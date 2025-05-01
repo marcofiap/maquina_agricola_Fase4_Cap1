@@ -37,12 +37,14 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 // Configuração das portas do ESP32, monitor serial, sensor DHT e outros
 void setup() {
   Serial.begin(115200);
-  Serial.println("Sensor de PH - Inicializando...");
-  Serial.println("Sensor de Temperatura - Inicializando...");
-  Serial.println("Sensor de Umidade - Inicializando...");
-  Serial.println("Sensor de Potássio - Inicializando...");
-  Serial.println("Sensor de Fósforo - Inicializando...");
-  Serial.println("Display Digital - Inicializando...");
+  Serial.println("");
+  Serial.println("Sensor de PH            Inicializando...");
+  Serial.println("Sensor de Temperatura   Inicializando...");
+  Serial.println("Sensor de Umidade       Inicializando...");
+  Serial.println("Sensor de Potássio      Inicializando...");
+  Serial.println("Sensor de Fósforo       Inicializando...");
+  Serial.println("Display Digital         Inicializando...");
+  Serial.println("");
   Serial.println("Conectando-se ao Wi-Fi...");
   pinMode(BUTTON1, INPUT_PULLUP);                                           // Define pino 2 como entrada para o botão 1 e configurada com resistor de entrada na porta com sinal GND
   pinMode(BUTTON2, INPUT_PULLUP);                                           // Define pino 18 como entrada para o botão 2 e configurada com resistor de entrada na porta com sinal GND
@@ -54,12 +56,14 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.print("************************");
   }
   Serial.println("");
   Serial.println("Wi-Fi conectado!");
   Serial.print("Endereço IP: ");
   Serial.println(WiFi.localIP());
+  Serial.print("");
+  Serial.println("************************");
 
   // Conexão display Oled
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {                           // Endereço 0x3C para displays comuns
@@ -82,7 +86,7 @@ void setup() {
   display.setCursor(11, 40);
   display.println("SOLUTIONS");
   display.display();                                                         // Exibe o buffer
-  delay(5000);                                                               // Mostra a mensagem por 5 segundos
+  delay(2000);                                                               // Mostra a mensagem por 5 segundos
 }
 
 void loop() {
@@ -92,6 +96,8 @@ void loop() {
   int buttonKState = digitalRead(BUTTON2);
   String fosforo = (buttonPState == LOW) ? "ausente" : "presente";          // Operador ternário -> condição ? valor_se_verdadeiro : valor_se_falso;
   String potassio = (buttonKState == LOW) ? "ausente" : "presente";
+  String f = fosforo;
+  String p = potassio;
 
   // Delay recomendado entre leituras para DHT22 é de pelo menos 2 segundos.
   delay(2000);
@@ -109,8 +115,11 @@ void loop() {
   Serial.println(F("°C "));
   Serial.print("Valor do PH: ");
   Serial.println(ldrValue/290);
-  //delay(500);
-
+  Serial.print(F("Fosforo: "));
+  Serial.print(f);
+  Serial.print(F("  Potassio: "));
+  Serial.println(p);
+  
   // Leitura do sensor LDR (pH simulado)
   ldrValue = analogRead(ldrPin);
   int phValue = ldrValue / 290;                                             // Declaração e cálculo de phValue aproximado
@@ -140,7 +149,7 @@ void loop() {
     String response = http.getString();
     Serial.println("Response from server: " + response);
   } else {
-    Serial.print("Error on HTTP request: ");
+    Serial.println("Error on HTTP request: ");
     Serial.println(http.errorToString(httpResponseCode));
   }
 
@@ -162,7 +171,6 @@ void loop() {
   display.print("ph: ");
   display.println(ldrValue/290);                                            // Exibe o valor do LDR
   display.display();
- 
-  }
+ }
 
    
