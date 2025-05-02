@@ -169,7 +169,7 @@ void loop() {
   display.print(" %");
   display.setCursor(0, 40);
   display.print("ph: ");
-  display.println(ldrValue/290);                                            // Exibe o valor do LDR convertido lux -> valores de ph
+  display.println(ldrValue/290);                                            // Exibe o valor do LDR convertido lux -> valores de ph de 0 até 14
   display.setCursor(0, 55);
   display.print("P:");
   display.print(p);
