@@ -124,7 +124,7 @@ void loop() {
   ldrValue = analogRead(ldrPin);
   int phValue = ldrValue / 290;                                             // Declaração e cálculo de phValue aproximado
 
-  // Lógica de controle do relé baseada na umidade
+  // Lógica de controle do relé (ACIONA LED VERMELHO) baseada na umidade.
   bool mostrarIrrigacao = (h < 40.0);
   digitalWrite(MODULORELEPIN, mostrarIrrigacao ? HIGH : LOW);
   String releStatus = mostrarIrrigacao ? "on" : "off";
