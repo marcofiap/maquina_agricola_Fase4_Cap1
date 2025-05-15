@@ -135,7 +135,7 @@ void loop() {
                       "&potassio=" + potassio + "&rele=" + releStatus;
 
   // Endereço do servidor Python 
-  String serverAddress = "http://192.168.0.11:8000/data?" + sensorData;
+  String serverAddress = "http://192.168.0.14:8000/data?" + sensorData;
 
   WiFiClient client;
   HTTPClient http;
