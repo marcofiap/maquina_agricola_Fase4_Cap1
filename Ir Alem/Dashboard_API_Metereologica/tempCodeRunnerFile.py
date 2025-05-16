@@ -1,0 +1,1 @@
+response = requests.get(FLASK_SERVER_URL.replace('/data', '/get_data')) 

@@ -94,8 +94,8 @@ void loop() {
   // Controle do botão (P e K)
   int buttonPState = digitalRead(BUTTON1);
   int buttonKState = digitalRead(BUTTON2);
-  String fosforo = (buttonPState == LOW) ? "presente" : "ausente";          // Operador ternário -> condição ? valor_se_verdadeiro : valor_se_falso;
-  String potassio = (buttonKState == LOW) ? "presente" : "ausente";
+  String fosforo = (buttonPState == LOW) ? "true" : "false";          // Operador ternário -> condição ? valor_se_verdadeiro : valor_se_falso;
+  String potassio = (buttonKState == LOW) ? "true" : "false";
   String f = fosforo;
   String p = potassio;
 
