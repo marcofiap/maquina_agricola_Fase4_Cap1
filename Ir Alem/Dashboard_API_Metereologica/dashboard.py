@@ -187,13 +187,14 @@ app.layout = html.Div(children=[
         Output('status-rele', 'children'),
         Output('fosforo-status', 'children'),
         Output('potassio-status', 'children'),
-        Output('clima-info', 'children') #Adicionado output para informações climaticas
+        Output('clima-info', 'children'), #Adicionado output para informações climaticas
+        Output('previsao-chuva', 'children') # Novo output para previsão de chuva
     ],
     [Input('interval-component', 'n_intervals')]
 )
 def update_dashboard(n):
     df = get_sensor_data()
-    weather_data = get_weather_data(API_KEY, CIDADE) # Busca dados do clima
+    weather_data = get_weather_data(API_KEY, CIDADE) # Busca dados do clima (atual e previsão)
 
     if not df.empty:
         data = df.to_dict('records')
@@ -236,25 +237,34 @@ def update_dashboard(n):
         fosforo_status = f"Fósforo (P): {df['fosforo'].iloc[-1].upper()}" if 'fosforo' in df.columns else "Fósforo (P): N/A"
         potassio_status = f"Potássio (K): {df['potassio'].iloc[-1].upper()}" if 'potassio' in df.columns else "Potássio (K): N/A"
 
-        # Formata dados do clima para exibição
-        if weather_data:
+        # Formata dados do clima atual para exibição
+        if weather_data and weather_data['atual']:
             clima_info = html.Div(children=[
-                html.P(f"Condição: {weather_data['weather'][0]['description']}"),
-                html.P(f"Temperatura: {weather_data['main']['temp']} °C"),
-                html.P(f"Umidade: {weather_data['main']['humidity']}%"),
-                html.P(f"Velocidade do Vento: {weather_data['wind']['speed']} m/s")
+                html.P(f"Condição: {weather_data['atual']['weather'][0]['description']}"),
+                html.P(f"Temperatura: {weather_data['atual']['main']['temp']} °C"),
+                html.P(f"Umidade: {weather_data['atual']['main']['humidity']}%"),
+                html.P(f"Velocidade do Vento: {weather_data['atual']['wind']['speed']} m/s")
             ], style = {
                 'fontSize': '18px',
                 'color': '#333'
             })
         else:
-            clima_info = html.P("Não foi possível obter dados climáticos.", style={'color': 'red'})
+            clima_info = html.P("Não foi possível obter dados climáticos atuais.", style={'color': 'red'})
 
-        return data, columns, grafico_umidade, grafico_temperatura, indicador_ph, status_rele, fosforo_status, potassio_status, clima_info
+        # Formata dados da previsão de chuva para exibição
+        previsao_chuva_info = []
+        if weather_data and weather_data['previsao'] and 'list' in weather_data['previsao']:
+            for item in weather_data['previsao']['list']:
+                timestamp = pd.to_datetime(item['dt'], unit='s').strftime('%H:%M')
+                chuva = item.get('rain', {}).get('3h', 0) # Obtém a quantidade de chuva nas próximas 3 horas
+                previsao_chuva_info.append(html.P(f"{timestamp}: {chuva} mm"))
+            previsao_chuva_output = html.Div(children=previsao_chuva_info, style={'fontSize': '16px', 'color': '#333'})
+        else:
+            previsao_chuva_output = html.P("Não há previsão de chuva disponível.", style={'color': 'orange'})
+
+        return data, columns, grafico_umidade, grafico_temperatura, indicador_ph, status_rele, fosforo_status, potassio_status, clima_info, previsao_chuva_output
     else:
-        return [], [], {}, {}, html.P("Nenhum dado recebido do servidor Flask."), html.P("Nenhum dado recebido"), "Fósforo (P): N/A", "Potássio (K): N/A", html.P("Nenhum dado recebido")
-
-
+        return [], [], {}, {}, html.P("Nenhum dado recebido do servidor Flask."), html.P("Nenhum dado recebido"), "Fósforo (P): N/A", "Potássio (K): N/A", html.P("Nenhum dado recebido"), html.P("Nenhum dado recebido")
 
 if __name__ == '__main__':
     app.run(debug=True)
