@@ -49,7 +49,8 @@ A lógica de controle da bomba de irrigação implementada no ESP32 é a seguint
 
 2.  **Desligamento Manual (Botão no Pino 15):**
     * Um botão conectado ao pino digital 15 do ESP32 permite o desligamento manual da bomba.
-    * Se o botão for pressionado (nível LOW, devido à configuração pull-up) em qualquer momento, a bomba é desligada imediatamente, interrompendo a irrigação automática, caso esteja em andamento.
+    * O deligamento ocorre somente quando o dashboard emitir um alerta de previsão de chuva.
+    * O botão é pressionado manualmente (nível LOW, devido à configuração pull-up) em qualquer momento, a bomba é desligada imediatamente, interrompendo a irrigação automática, caso esteja em andamento.
 
 3.  **Estado da Bomba:**
     * Uma variável booleana (`bombaLigada`) rastreia o estado atual da bomba (ligada ou desligada).
@@ -57,7 +58,7 @@ A lógica de controle da bomba de irrigação implementada no ESP32 é a seguint
 
 ## Código C/C++
 
-O código C/C++ para o ESP32 lê os dados dos sensores, implementa a lógica de controle da bomba e envia os dados para o servidor Python. Os valores dos sensores também são exibidos localmente no display OLED. (O código completo está no arquivo `.ino` do projeto).
+O código C/C++ para o ESP32 lê os dados dos sensores, implementa a lógica de controle da bomba e envia os dados para o servidor Python. Os valores dos sensores também são exibidos localmente no display OLED. (O código completo está no arquivo `programa_esp32` na pasta src da entrega_1 do projeto).
 
 ## Próximos Passos (Entrega 2)
 
