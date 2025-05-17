@@ -66,6 +66,9 @@ A seguinte lógica condicional foi implementada:
 
 A implementação desta lógica visa otimizar o uso da água, evitando a irrigação desnecessária em períodos de chuva previstos e garantindo que a irrigação ocorra quando necessário, mesmo com previsões de chuva leve, considerando a umidade atual do solo.
 
+### Considerações Finais
+O dashboard desenvolvido em Python oferece uma maneira intuitiva de monitorar e analisar os dados do sistema de irrigação simulado, facilitando a compreensão do seu funcionamento e auxiliando em futuras decisões sobre o manejo da água e sua economia.
+
 ### Código Python (Trecho Exemplo)
 
 ```python
@@ -113,12 +116,4 @@ try:
                             break
                     if aviso_desligar:
                         break
-
-
-
-
-
-
-### Considerações Finais
-O dashboard desenvolvido em Python oferece uma maneira intuitiva de monitorar e analisar os dados do sistema de irrigação simulado, facilitando a compreensão do seu funcionamento e auxiliando em futuras decisões sobre o manejo da água e sua economia.
 
