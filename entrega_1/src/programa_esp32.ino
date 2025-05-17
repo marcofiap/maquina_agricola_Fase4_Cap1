@@ -148,19 +148,20 @@ void loop() {
       digitalWrite(MODULORELEPIN, LOW);
       bombaLigada = false;
       break;
+
     case 1: // Umidade abaixo de 40% -> Liga a bomba (por um tempo limitado)
       Serial.println("Umidade abaixo de 40%, bomba ligada.");
       digitalWrite(MODULORELEPIN, HIGH);
       bombaLigada = true;
-      //delay(5000); // Simula tempo de irrigação
-      //digitalWrite(MODULORELEPIN, LOW);
-      //bombaLigada = false;
       break;
+
     case 2: // Botão de desligar pressionado -> Desliga a bomba manualmente
-      Serial.println("Botão de desligar bomba pressionado.");
+      Serial.println("ALERTA - ESTÁ CHOVENDO");
+      Serial.println("Botão de Desligar Bomba Pressionado.");
       digitalWrite(MODULORELEPIN, LOW);
       bombaLigada = false;
       break;
+
     default: // Estado desconhecido ou não tratado (manter desligado por segurança)
       digitalWrite(MODULORELEPIN, LOW);
       bombaLigada = false;
