@@ -1,4 +1,4 @@
-# Maquina_Agricola
+# Maquina Agricola
 Projeto Fase 3 - FIAP
 
 # FarmTech Solutions - Sistema de Sensores e Controle com ESP32
