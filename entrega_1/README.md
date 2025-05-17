@@ -4,8 +4,6 @@
 
 ## Visão Geral do Projeto
 
-## Visão Geral do Projeto
-
 Este projeto simula um sistema de irrigação inteligente para a FarmTech Solutions, utilizando um ESP32 e sensores simulados na plataforma Wokwi. O sistema coleta dados de umidade do solo, simula leituras de pH e níveis de nutrientes (Fósforo e Potássio) e controla automaticamente uma bomba de irrigação com base na umidade do solo. Adicionalmente, o sistema permite o controle manual da irrigação pelo usuário, seguindo as indicações de alerta de chuva fornecidas pelo dashboard com base nas previsões climáticas.
 
 Para facilitar o acompanhamento local, um display OLED conectado ao circuito no Wokwi exibe as grandezas físicas coletadas pelo ESP32. Os dados também são visualizados em tempo real através de um dashboard, apresentado em formato de tabelas, gráficos, condições climáticas e previsões de chuva, auxiliando na análise e tomada de decisão sobre a irrigação.
