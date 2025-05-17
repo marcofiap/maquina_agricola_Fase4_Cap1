@@ -19,7 +19,7 @@ Para facilitar o acompanhamento local, um display OLED conectado ao circuito no 
 ![{EE6152C4-0433-4732-9D7F-F61FCD4C71C7}](https://github.com/user-attachments/assets/f2897d8a-19a8-4ecf-a9e3-49c5c1c81269)
 * O botão amarelo apertado simulando o sensor de Fósforo (P) = true (ver display Oled).
 ![{087AB5C3-B1CC-4D57-AD6C-0937B0CE704E}](https://github.com/user-attachments/assets/ce4708d8-ca46-44ff-8daf-0b808e03fd51)
-* Circuito montado no simulador wokwi e funcionando.
+* Umidade abaixo de 40% e a bomba estava ligada (led simulando a bomba) ao pressionar o botão a bomba (led) desligou (ver display Oled).
 ![{EACDDBA9-F1CD-4CC6-8ED0-3A8B912DABF7}](https://github.com/user-attachments/assets/d0341cae-5fb9-4de8-9547-e2fb6e5e3c51)
 
 ### Componentes Utilizados:
