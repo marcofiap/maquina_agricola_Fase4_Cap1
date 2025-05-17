@@ -62,8 +62,7 @@ A decisão de controlar a bomba de irrigação é influenciada pelos dados meteo
 A seguinte lógica condicional foi implementada:
 
 * **Condição de Desligamento por Previsão de Chuva:**
-    * Se a previsão de chuva para as próximas 12 horas indicar Limiar ou condição para chuva, ex: qualquer ocorrência de chuva (presença da chave 'rain' na resposta da API), o sistema impede que a bomba seja ligada, ou seja, desliga a bomba caso esteja em funcionamento.
-    * Especificamente, se a chave 'rain' estiver presente no primeiro item da lista de previsão, a bomba não será ligada.
+    * Se a previsão de chuva para as próximas 12 horas indicar Limiar ou condição para chuva, o sistema impede que a bomba seja ligada, ou seja, desliga a bomba caso esteja em funcionamento.
 
 A implementação desta lógica visa otimizar o uso da água, evitando a irrigação desnecessária em períodos de chuva previstos e garantindo que a irrigação ocorra quando necessário, mesmo com previsões de chuva leve, considerando a umidade atual do solo.
 
