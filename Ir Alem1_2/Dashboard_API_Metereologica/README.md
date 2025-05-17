@@ -33,8 +33,6 @@ Os dados exibidos no dashboard são integrados [Como os dados são integrados? E
 
 As capturas de tela acima ilustram a interface e as visualizações implementadas no dashboard.
 
-### Considerações Finais
-O dashboard desenvolvido em Python oferece uma maneira intuitiva de monitorar e analisar os dados do sistema de irrigação simulado, facilitando a compreensão do seu funcionamento e auxiliando em futuras decisões sobre o manejo da água.
 
 ## Ir Além 2: Integração Python com API Pública
 
@@ -82,6 +80,9 @@ if "rain" in data:
  # Ligar a bomba (se outras condições permitirem)
  print("Sem previsão de chuva forte, verificando outras condições.")
 else:
+
+### Considerações Finais
+O dashboard desenvolvido em Python oferece uma maneira intuitiva de monitorar e analisar os dados do sistema de irrigação simulado, facilitando a compreensão do seu funcionamento e auxiliando em futuras decisões sobre o manejo da água.
  # Ligar a bomba (se outras condições permitirem)
  print("Sem dados de chuva, verificando outras condições.")
 
