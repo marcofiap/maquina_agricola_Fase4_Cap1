@@ -6,7 +6,7 @@ Desenvolvimento de um dashboard interativo em Python para apresentar de forma cl
 
 ### Bibliotecas Utilizadas
 
-Para a criação do dashboard, utilizamos a biblioteca [Nome da Biblioteca Utilizada, ex: Dash] em Python. [Opcional: Explique brevemente o motivo da escolha da biblioteca, ex: Dash foi escolhido por sua capacidade de criar aplicativos web interativos com componentes visuais.]
+Para a criação do dashboard, utilizamos a biblioteca **Dash** em Python. **Dash foi escolhido por sua capacidade de criar aplicativos web interativos com componentes visuais.**
 
 ### Funcionalidades do Dashboard
 
@@ -14,19 +14,19 @@ O dashboard implementado apresenta as seguintes visualizações:
 * **Gráfico de Umidade do Solo:** Exibe a variação da umidade do solo ao longo do tempo, permitindo identificar padrões e necessidades de irrigação.
 * **Gráfico de Estado do Relé (Bomba):** Indica os momentos em que a bomba de irrigação foi ativada (ON) e desativada (OFF), correlacionando com outros dados.
 * **Gráfico de pH:** Mostra a simulação das leituras de pH ao longo do tempo.
-* **Gráfico de Nutrientes (P e K):** Apresenta o estado (presença/ausência simulada) dos nutrientes Fósforo e Potássio. [Opcional: Se você representou isso de alguma forma visual no gráfico, explique.]
+* **Gráfico de Nutrientes (P e K):** Apresenta o estado (presença/ausência simulada) dos nutrientes Fósforo e Potássio. 
 * **Tabela de Dados em Tempo Real:** Exibe os valores mais recentes de todos os sensores em formato tabular para uma visão detalhada.
-* **Condições Climáticas Atuais:** [Se implementado] Mostra as condições climáticas atuais (temperatura, umidade, vento, etc.) obtidas através de uma API.
-* **Previsão de Chuva:** [Se implementado] Exibe a previsão de chuva para as próximas horas, auxiliando na decisão de irrigar ou não.
-* **Aviso de Desligamento da Bomba:** [Se implementado] Apresenta um alerta visual quando há previsão de chuva, indicando que a bomba deve ser desligada.
+* **Condições Climáticas Atuais:** Mostra as condições climáticas atuais (temperatura, umidade, vento, etc.) obtidas através de uma API.
+* **Previsão de Chuva:** Exibe a previsão de chuva para as próximas horas, auxiliando na decisão de irrigar ou não.
+* **Aviso de Desligamento da Bomba:** Apresenta um alerta visual quando há previsão de chuva, indicando que a bomba deve ser desligada.
 
 ### Integração com Dados
 
-Os dados exibidos no dashboard são integrados [Como os dados são integrados? Ex: diretamente do monitor serial (para simulação), de um arquivo CSV simulado, ou (se já implementado) de um banco de dados SQL]. [Se você simulou dados, explique brevemente como essa simulação foi feita.]
+Os dados exibidos no dashboard são integrados diretamente do monitor serial (para simulação), de um arquivo CSV simulado, ou (se já implementado) de um banco de dados SQL]. 
 
 ### Atualizações e Simulações
 
-[Explique como o dashboard é atualizado. Ex: Os dados são atualizados automaticamente a cada X segundos, ou é necessário recarregar a página? Se você implementou alguma forma de simulação (ex: permitir alterar valores de sensores), explique aqui.]
+Os dados são atualizados automaticamente a cada segundo.
 
 ### Capturas de Tela do Dashboard
 ![DashBoardCompletoeFuncionando](https://github.com/user-attachments/assets/a50a58ca-055b-48bd-b303-c76cdc0c4fba)
@@ -42,11 +42,12 @@ Criar uma integração entre o sistema de irrigação e uma fonte de dados meteo
 
 ### API Utilizada
 
-Foi escolhida a API [OpenWeatherMap] ([(https://api.openweathermap.org/data/2.5/weather?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br)]). Essa API fornece dados climáticos em tempo real e previsões para diversas localidades.
+Foi escolhida a **API OpenWeatherMap** ([(https://api.openweathermap.org/data/2.5/weather?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br)]). 
+Essa API fornece dados climáticos em tempo real e previsões para diversas localidades.
 
 ### Implementação
 
-1.  **Requisição à API:** O código Python realiza uma requisição à API [Nome da API utilizada] para obter dados climáticos atuais e/ou previsão de chuva para [Localidade, ex: Porto Alegre].
+1.  **Requisição à API:** O código Python realiza uma requisição à **API OpenWeatherMap** para obter dados climáticos atuais e/ou previsão de chuva para Localidade, Porto Alegre.
 2.  **Processamento dos Dados:** Os dados recebidos da API são processados para extrair as informações relevantes (ex: temperatura, umidade, previsão de chuva).
 3.  **Lógica Condicional para Irrigação:** Foi implementada a seguinte lógica condicional para controlar a bomba de irrigação:
 
@@ -54,7 +55,17 @@ Foi escolhida a API [OpenWeatherMap] ([(https://api.openweathermap.org/data/2.5/
     * [Exemplo de regra 2: Se a umidade atual for superior a Y%, a bomba é desligada, mesmo que não haja previsão de chuva.]
     * [Exemplo de regra 3: Se a temperatura for muito baixa (abaixo de Z°C), a bomba é desligada para evitar danos às plantas.]
 
-    [Explique detalhadamente a lógica condicional que você implementou. Seja específico sobre os limiares e as ações tomadas.]
+    ### Lógica Condicional para Irrigação Baseada em Dados Meteorológicos
+
+A decisão de controlar a bomba de irrigação é influenciada pelos dados meteorológicos obtidos através da **API OpenWeatherMap**. Especificamente, o sistema analisa a [Parâmetro da previsão utilizado, previsão de chuva para as próximas 12 horas para determinar se a irrigação deve ser ativada ou desativada.
+
+A seguinte lógica condicional foi implementada:
+
+* **Condição de Desligamento por Previsão de Chuva:**
+    * Se a previsão de chuva para as próximas 12 horas indicar Limiar ou condição para chuva, ex: qualquer ocorrência de chuva (presença da chave 'rain' na resposta da API), o sistema impede que a bomba seja ligada, ou seja, desliga a bomba caso esteja em funcionamento.
+    * Especificamente, se a chave 'rain' estiver presente no primeiro item da lista de previsão, a bomba não será ligada.
+
+A implementação desta lógica visa otimizar o uso da água, evitando a irrigação desnecessária em períodos de chuva previstos e garantindo que a irrigação ocorra quando necessário, mesmo com previsões de chuva leve, considerando a umidade atual do solo.
 
 ### Código Python (Trecho Exemplo)
 
