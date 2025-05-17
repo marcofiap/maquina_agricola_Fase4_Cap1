@@ -68,14 +68,14 @@ A lógica de controle da bomba de irrigação implementada no ESP32 é a seguint
 
 1.  **Irrigação Automática (Baseada na Umidade):**
     * A bomba é ligada (o relé é acionado para HIGH) se a umidade do solo (lida pelo sensor DHT22) for inferior a 40%.
-    * A bomba permanece ligada por um período simulado de 5 segundos para simular a irrigação.
-    * Após o período de irrigação, a bomba é desligada (o relé é acionado para LOW).
-    * A bomba também é desligada automaticamente se a umidade do solo subir acima de 40% enquanto estiver ligada.
-
+    * A bomba permanece ligada (simulada pelo led) para a irrigação da cultura.
+    * A bomba é desligada automaticamente caso a umidade do solo for maior ou igual a 40% (o relé é acionado para LOW).
+    
 2.  **Desligamento Manual (Botão no Pino 15):**
     * Um botão conectado ao pino digital 15 do ESP32 permite o desligamento manual da bomba.
-    * O deligamento ocorre somente quando o dashboard emitir um alerta de previsão de chuva.
+    * O deligamento ocorre somente quando o dashboard emitir uma mensagem de alerta de chuva.
     * O botão é pressionado manualmente (nível LOW, devido à configuração pull-up) em qualquer momento, a bomba é desligada imediatamente, interrompendo a irrigação automática, caso esteja em andamento.
+    * Esse desligamento da bomba tem como objetivo de economizar água em casos de chuva.
 
 3.  **Estado da Bomba:**
     * Uma variável booleana (`bombaLigada`) rastreia o estado atual da bomba (ligada ou desligada).
