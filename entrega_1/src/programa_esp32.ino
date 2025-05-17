@@ -156,8 +156,10 @@ void loop() {
       break;
 
     case 2: // Botão de desligar pressionado -> Desliga a bomba manualmente
-      Serial.println("ALERTA - ESTÁ CHOVENDO");
-      Serial.println("Botão de Desligar Bomba Pressionado.");
+      Serial.println("*******************************************");
+      Serial.println("          ALERTA - ESTÁ CHOVENDO           ");
+      Serial.println("Botão Manual de Desligar Bomba Pressionado.");
+      Serial.println("*******************************************");
       digitalWrite(MODULORELEPIN, LOW);
       bombaLigada = false;
       break;

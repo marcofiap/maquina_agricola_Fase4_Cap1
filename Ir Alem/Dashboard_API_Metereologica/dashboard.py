@@ -50,7 +50,7 @@ def get_weather_data(api_key, cidade):
 
 # Configuração da API meteorológica
 API_KEY = "9b90edf9b722e841505a711976022ea2" # Substitua pela sua chave da API OpenWeatherMap
-CIDADE = "Presidente Figueiredo" # Substitua pela cidade desejada
+CIDADE = "Humaitá" # Substitua pela cidade desejada
 
 app = dash.Dash(__name__)
 
@@ -281,4 +281,3 @@ def update_dashboard(n):
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
