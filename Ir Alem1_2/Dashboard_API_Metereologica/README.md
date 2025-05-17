@@ -42,7 +42,7 @@ Criar uma integração entre o sistema de irrigação e uma fonte de dados meteo
 
 ### API Utilizada
 
-Foi escolhida a API [Nome da API utilizada, ex: OpenWeatherMap] ([Link para a API]). Essa API fornece dados climáticos em tempo real e previsões para diversas localidades.
+Foi escolhida a API [OpenWeatherMap] ([(https://api.openweathermap.org/data/2.5/weather?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br)]). Essa API fornece dados climáticos em tempo real e previsões para diversas localidades.
 
 ### Implementação
 
@@ -62,28 +62,47 @@ Foi escolhida a API [Nome da API utilizada, ex: OpenWeatherMap] ([Link para a AP
 # Exemplo de como obter e processar os dados da API
 import requests
 
-API_KEY = "SUA_CHAVE_DA_API"
+API_KEY = "CHAVE_DA_API"
 CITY = "Porto Alegre"  # Ou a localidade desejada
 
-url = f"API_URL_AQUI?q={CITY}&appid={API_KEY}&units=metric"  # Adapte a URL da API
+url_atual = f"https://api.openweathermap.org/data/2.5/weather?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br"
+url_previsao = f"https://api.openweathermap.org/data/2.5/forecast?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br&cnt=4" # Previsão para 3 em 3 horas (próximas 12 horas)
 
-response = requests.get(url)
-data = response.json()
+try:
+        response_atual = requests.get(url_atual)
+        response_atual.raise_for_status()
+        data_atual = response_atual.json()
 
-# Exemplo de como usar a previsão de chuva para controlar a bomba
-if "rain" in data:
- previsao_chuva = data["rain"]["1h"]  # Volume de chuva na última hora
- if previsao_chuva > 2: # Exemplo: Se choveu mais de 2mm na última hora
- # Desligar a bomba
- print("Previsão de chuva: desligando a bomba.")
- else:
- # Ligar a bomba (se outras condições permitirem)
- print("Sem previsão de chuva forte, verificando outras condições.")
-else:
+        response_previsao = requests.get(url_previsao)
+        response_previsao.raise_for_status()
+        data_previsao = response_previsao.json()
+
+        return {"atual": data_atual, "previsao": data_previsao}
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao obter dados meteorológicos: {e}")
+        return None
+
+# Lógica para verificar a previsão de chuva e exibir o aviso de desligar a bomba
+        aviso_desligar = ""
+        if weather_data and weather_data['previsao'] and 'list' in weather_data['previsao']:
+            for item in weather_data['previsao']['list']:
+                # Verifica se há indicação de chuva na previsão
+                if 'rain' in item and item['rain'].get('3h', 0) > 0:
+                    aviso_desligar = html.Div(
+                        children="⚠️ AVISO: Previsão de chuva! A bomba de irrigação deve ser DESLIGADA.",
+                        style={'color': 'white', 'backgroundColor': '#dc3545', 'padding': '10px', 'borderRadius': '5px'}
+                    )
+                    break
+                elif 'weather' in item:
+                    for condition in item['weather']:
+                        if 'chuva' in condition['description'].lower():
+                            aviso_desligar = html.Div(
+                                children="⚠️ AVISO: Previsão de chuva! A bomba de irrigação deve ser DESLIGADA.",
+                                style={'color': 'white', 'backgroundColor': '#dc3545', 'padding': '10px', 'borderRadius': '5px'}
+                            )
+                            break
+                    if aviso_desligar:
+                        break
 
 ### Considerações Finais
-O dashboard desenvolvido em Python oferece uma maneira intuitiva de monitorar e analisar os dados do sistema de irrigação simulado, facilitando a compreensão do seu funcionamento e auxiliando em futuras decisões sobre o manejo da água.
- # Ligar a bomba (se outras condições permitirem)
- print("Sem dados de chuva, verificando outras condições.")
-
-# Adicione o código real que você usou para controlar a bomba
+O dashboard desenvolvido em Python oferece uma maneira intuitiva de monitorar e analisar os dados do sistema de irrigação simulado, facilitando a compreensão do seu funcionamento e auxiliando em futuras decisões sobre o manejo da água e sua economia.
