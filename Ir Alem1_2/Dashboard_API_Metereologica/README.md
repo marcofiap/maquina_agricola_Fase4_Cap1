@@ -51,9 +51,9 @@ Essa API fornece dados climáticos em tempo real e previsões para diversas loca
 2.  **Processamento dos Dados:** Os dados recebidos da API são processados para extrair as informações relevantes (ex: temperatura, umidade, previsão de chuva).
 3.  **Lógica Condicional para Irrigação:** Foi implementada a seguinte lógica condicional para controlar a bomba de irrigação:
 
-    * [Exemplo de regra 1: Se houver previsão de chuva nas próximas X horas, a bomba é desligada.]
-    * [Exemplo de regra 2: Se a umidade atual for superior a Y%, a bomba é desligada, mesmo que não haja previsão de chuva.]
-    * [Exemplo de regra 3: Se a temperatura for muito baixa (abaixo de Z°C), a bomba é desligada para evitar danos às plantas.]
+    * Se houver previsão de chuva nas próximas 12 horas, a bomba é desligada.
+    * Se a umidade atual for superior a 40%, a bomba é desligada, mesmo que não haja previsão de chuva.
+    * Se a temperatura for muito baixa (abaixo de 18°C), a bomba é desligada para evitar danos às plantas.
 
     ### Lógica Condicional para Irrigação Baseada em Dados Meteorológicos
 
