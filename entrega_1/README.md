@@ -65,6 +65,4 @@ A lógica de controle da bomba de irrigação implementada no ESP32 é a seguint
 
 O código C/C++ para o ESP32 lê os dados dos sensores, implementa a lógica de controle da bomba e envia os dados para o servidor Python. Os valores dos sensores também são exibidos localmente no display OLED. (O código completo está no arquivo `programa_esp32` na pasta src da entrega_1 do projeto).
 
-## Próximos Passos (Entrega 2)
 
-Na próxima entrega, os dados coletados e exibidos no monitor serial do ESP32 serão utilizados para simular o armazenamento em um banco de dados SQL usando um script Python, juntamente com a implementação das operações CRUD básicas.
