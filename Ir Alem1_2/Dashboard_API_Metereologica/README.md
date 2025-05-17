@@ -57,7 +57,7 @@ Essa API fornece dados climáticos em tempo real e previsões para diversas loca
 
     ### Lógica Condicional para Irrigação Baseada em Dados Meteorológicos
 
-A decisão de controlar a bomba de irrigação é influenciada pelos dados meteorológicos obtidos através da **API OpenWeatherMap**. Especificamente, o sistema analisa a [Parâmetro da previsão utilizado, previsão de chuva para as próximas 12 horas para determinar se a irrigação deve ser ativada ou desativada.
+A decisão de controlar a bomba de irrigação é influenciada pelos dados meteorológicos obtidos através da **API OpenWeatherMap**. Especificamente, o sistema analisa a previsão de chuva para as próximas 12 horas para determinar se a irrigação deve ser ativada ou desativada.
 
 A seguinte lógica condicional foi implementada:
 
