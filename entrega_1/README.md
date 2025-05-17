@@ -1,21 +1,24 @@
 # Maquina_Agricola
  Projeto Fase 3 - FIAP
+
 # FarmTech Solutions - Sistema de Sensores e Controle com ESP32
-
 FIAP - Faculdade de Informática e Administração Paulista
+![image](https://github.com/user-attachments/assets/467974e1-2cd2-4a9a-a01a-2c7861282489)
 
-Grupo 58
-👨‍🎓 Integrantes:
-Felipe Sabino da Silva
-Juan Felipe Voltolini
-Luiz Henrique Ribeiro de Oliveira
-Marco Aurélio Eberhardt Assimpção
-Paulo Henrique Senise
-👩‍🏫 Professores:
-Tutor(a)
-Leonardo Ruiz Orabona
-Coordenador(a)
-André Godoi
+## Grupo 58
+###👨‍🎓 Integrantes:
+* Felipe Sabino da Silva
+* Juan Felipe Voltolini
+* Luiz Henrique Ribeiro de Oliveira
+* Marco Aurélio Eberhardt Assimpção
+* Paulo Henrique Senise
+
+##👩‍🏫 Professores:
+### Tutor(a)
+* Leonardo Ruiz Orabona
+
+### Coordenador(a)
+* André Godoi
 
 ## Visão Geral do Projeto
 
