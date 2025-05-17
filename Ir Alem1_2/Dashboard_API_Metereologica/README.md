@@ -1,3 +1,24 @@
+FIAP - Faculdade de Informática e Administração Paulista
+
+![Sistema de Sensores e Controle com ESP32](https://github.com/user-attachments/assets/467974e1-2cd2-4a9a-a01a-2c7861282489)
+
+## Grupo 58
+
+### 👨‍🎓 Integrantes:
+* Felipe Sabino da Silva
+* Juan Felipe Voltolini
+* Luiz Henrique Ribeiro de Oliveira
+* Marco Aurélio Eberhardt Assimpção
+* Paulo Henrique Senise
+
+## 👩‍🏫 Professores:
+### Tutor(a)
+* Leonardo Ruiz Orabona
+
+### Coordenador(a)
+* André Godoi
+
+
 ## Ir Além 1: Dashboard em Python para Visualização dos Dados
 
 ### Objetivo
