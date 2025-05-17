@@ -29,7 +29,7 @@ Os dados exibidos no dashboard são integrados [Como os dados são integrados? E
 [Explique como o dashboard é atualizado. Ex: Os dados são atualizados automaticamente a cada X segundos, ou é necessário recarregar a página? Se você implementou alguma forma de simulação (ex: permitir alterar valores de sensores), explique aqui.]
 
 ### Capturas de Tela do Dashboard
-[INSERIR AQUI CAPTURAS DE TELA DO SEU DASHBOARD (.png)]
+![DashBoardCompletoeFuncionando](https://github.com/user-attachments/assets/59284969-1e00-42cb-8b19-92bf3b870ade)
 
 As capturas de tela acima ilustram a interface e as visualizações implementadas no dashboard.
 
