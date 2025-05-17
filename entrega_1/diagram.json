@@ -50,6 +50,14 @@
       "top": -246.46,
       "left": 48.23,
       "attrs": { "i2cAddress": "0x3c" }
+    },
+    {
+      "type": "wokwi-pushbutton-6mm",
+      "id": "btn3",
+      "top": -171.8,
+      "left": -264.8,
+      "rotate": 90,
+      "attrs": { "color": "green", "xray": "1" }
     }
   ],
   "connections": [
@@ -75,14 +83,12 @@
     [ "esp:22", "oled1:SCL", "green", [ "h364.8", "v-249.6", "h-76.8" ] ],
     [ "bb1:21b.j", "esp:2", "green", [ "v19.2", "h-19.2", "v220.8", "h-9.6" ] ],
     [ "bb1:bn.19", "bb1:23b.j", "black", [ "v0" ] ],
+    [ "bb1:18b.j", "bb1:bn.15", "black", [ "v0" ] ],
+    [ "bb1:16b.j", "esp:18", "green", [ "v182.4", "h-9.6" ] ],
     [ "dht1:VCC", "bb1:27b.i", "", [ "$bb" ] ],
     [ "dht1:SDA", "bb1:28b.i", "", [ "$bb" ] ],
     [ "dht1:NC", "bb1:29b.i", "", [ "$bb" ] ],
     [ "dht1:GND", "bb1:30b.i", "", [ "$bb" ] ],
-    [ "led1:A", "bb1:13t.a", "", [ "$bb" ] ],
-    [ "led1:C", "bb1:12t.a", "", [ "$bb" ] ],
-    [ "r1:1", "bb1:7t.c", "", [ "$bb" ] ],
-    [ "r1:2", "bb1:13t.c", "", [ "$bb" ] ],
     [ "btn1:1.l", "bb1:21b.h", "", [ "$bb" ] ],
     [ "btn1:2.l", "bb1:23b.h", "", [ "$bb" ] ],
     [ "btn1:1.r", "bb1:21t.c", "", [ "$bb" ] ],
@@ -91,8 +97,16 @@
     [ "btn2:2.l", "bb1:16t.c", "", [ "$bb" ] ],
     [ "btn2:1.r", "bb1:18b.h", "", [ "$bb" ] ],
     [ "btn2:2.r", "bb1:16b.h", "", [ "$bb" ] ],
-    [ "bb1:18b.j", "bb1:bn.15", "black", [ "v0" ] ],
-    [ "bb1:16b.j", "esp:18", "green", [ "v182.4", "h-9.6" ] ]
+    [ "led1:A", "bb1:13t.a", "", [ "$bb" ] ],
+    [ "led1:C", "bb1:12t.a", "", [ "$bb" ] ],
+    [ "r1:1", "bb1:7t.c", "", [ "$bb" ] ],
+    [ "r1:2", "bb1:13t.c", "", [ "$bb" ] ],
+    [ "esp:15", "bb1:7b.j", "green", [ "h28.8", "v48", "h-144", "v-230.4", "h38.4" ] ],
+    [ "btn3:1.l", "bb1:9b.f", "", [ "$bb" ] ],
+    [ "btn3:2.l", "bb1:7b.f", "", [ "$bb" ] ],
+    [ "btn3:1.r", "bb1:9b.i", "", [ "$bb" ] ],
+    [ "btn3:2.r", "bb1:7b.i", "", [ "$bb" ] ],
+    [ "bb1:bn.7", "bb1:9b.j", "black", [ "v0" ] ]
   ],
   "dependencies": {}
 }
