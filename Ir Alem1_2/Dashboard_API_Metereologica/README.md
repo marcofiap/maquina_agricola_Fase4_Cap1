@@ -114,5 +114,11 @@ try:
                     if aviso_desligar:
                         break
 
+
+
+
+
+
 ### Considerações Finais
 O dashboard desenvolvido em Python oferece uma maneira intuitiva de monitorar e analisar os dados do sistema de irrigação simulado, facilitando a compreensão do seu funcionamento e auxiliando em futuras decisões sobre o manejo da água e sua economia.
+
