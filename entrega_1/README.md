@@ -10,8 +10,7 @@ Para facilitar o acompanhamento local, um display OLED conectado ao circuito no 
 
 ## Circuito Wokwi
 
-[![{4217235E-FFF3-487A-9F3B-5A85030145D6}](https://github.com/user-attachments/assets/0997e5f3-63be-4ba2-af87-7304838a6367)
-]
+![{4217235E-FFF3-487A-9F3B-5A85030145D6}](https://github.com/user-attachments/assets/0997e5f3-63be-4ba2-af87-7304838a6367)
 
 ### Componentes Utilizados:
 
