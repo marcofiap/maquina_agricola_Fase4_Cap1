@@ -29,7 +29,7 @@ Para facilitar o acompanhamento local, um display OLED conectado ao circuito no 
 * **LDR (Light Dependent Resistor):** Simula o sensor de pH, com valores analógicos variando conforme a luminosidade.
 * **Botões (2):** Simulam os sensores de Fósforo (P) e Potássio (K), com leituras binárias (pressionado = presente, solto = ausente).
 * **Relé (Simulado por um LED):** Representa a bomba d'água, sendo ligado para irrigar e desligado para interromper.
-* **Botão (Pino 15):** Botão manual para desligar a bomba de irrigação.
+* **Botão (Pino 15):** Botão manual para desligar a bomba de irrigação (caso esteja ligada) somente após aviso de alerta de chuva pelo dashboard.
 * **Display OLED:** Exibe localmente as leituras de temperatura, umidade e pH.
 
 ### Conexões:
