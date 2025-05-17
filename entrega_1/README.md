@@ -13,6 +13,11 @@ Para facilitar o acompanhamento local, um display OLED conectado ao circuito no 
 ![{4217235E-FFF3-487A-9F3B-5A85030145D6}](https://github.com/user-attachments/assets/0997e5f3-63be-4ba2-af87-7304838a6367)
 ![{11348D9C-31EB-4D85-A726-8CF698791E9B}](https://github.com/user-attachments/assets/c918b9b5-cff2-4a4b-98a4-f91859953572)
 ![{3C9E2132-2E48-4ED4-B1AD-1586886FEC2A}](https://github.com/user-attachments/assets/73d38647-ca94-4695-a5a5-ecff9594e71f)
+![{EE6152C4-0433-4732-9D7F-F61FCD4C71C7}](https://github.com/user-attachments/assets/f2897d8a-19a8-4ecf-a9e3-49c5c1c81269)
+![{087AB5C3-B1CC-4D57-AD6C-0937B0CE704E}](https://github.com/user-attachments/assets/ce4708d8-ca46-44ff-8daf-0b808e03fd51)
+
+
+
 
 
 
