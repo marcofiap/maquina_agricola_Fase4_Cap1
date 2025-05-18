@@ -1,8 +1,8 @@
-# 🌿 FarmTech Solutions - Sistema de Irrigação Inteligente com Dashboard e Clima em Tempo Real
+# FarmTech Solutions - Sistema de Irrigação Inteligente com Dashboard e Clima em Tempo Real
 
 ![Sistema de Sensores e Controle com ESP32](https://github.com/user-attachments/assets/467974e1-2cd2-4a9a-a01a-2c7861282489)
 
-## 📌 Descrição do Projeto
+## Descrição do Projeto
 
 Este projeto tem como objetivo simular um sistema de irrigação inteligente que utiliza sensores físicos (simulados) conectados a um ESP32. Os dados dos sensores são enviados para um servidor Flask, armazenados em banco de dados Oracle, e visualizados em tempo real através de um dashboard interativo em Python com a biblioteca Dash.
 
@@ -10,7 +10,7 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 
 ---
 
-## 👨‍🎓 Grupo 58 - FIAP
+## Grupo 58 - FIAP
 
 ### Integrantes:
 
@@ -27,7 +27,7 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 
 ---
 
-## ⚙️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 * ESP32 (simulado via Wokwi)
 * Sensores simulados: DHT22, LDR, botões (fósforo/potássio)
@@ -39,13 +39,13 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 
 ---
 
-## 📂 Entrega 2: Armazenamento de Dados em Banco SQL com Python
+## Entrega 2: Armazenamento de Dados em Banco SQL com Python
 
-### 🎯 Objetivo
+### Objetivo
 
 Armazenar os dados de sensores enviados via ESP32 em um banco Oracle local, utilizando Python e operações CRUD completas.
 
-### 📊 Estrutura da Tabela
+### Estrutura da Tabela
 
 A tabela `leituras_sensores` representa o modelo lógico criado na fase anterior (MER), e possui os seguintes campos:
 
@@ -59,7 +59,7 @@ A tabela `leituras_sensores` representa o modelo lógico criado na fase anterior
 | potassio     | VARCHAR2    | Presença de potássio                          |
 | bomba\_dagua | VARCHAR2    | Status da bomba ("on" ou "off")               |
 
-### ✅ Justificativa da Estrutura
+### Justificativa da Estrutura
 
 A escolha dos campos representa diretamente os sensores conectados ao ESP32:
 
@@ -70,7 +70,7 @@ A escolha dos campos representa diretamente os sensores conectados ao ESP32:
 
 A chave primária `timestamp` garante que cada leitura seja única e rastreável no tempo.
 
-### 🛠️ Operações CRUD Implementadas
+### Operações CRUD Implementadas
 
 As seguintes operações estão disponíveis via Python:
 
@@ -82,7 +82,7 @@ As seguintes operações estão disponíveis via Python:
 | **Update** | Atualização de dados com base no `timestamp`              |
 | **Delete** | Remoção de uma leitura específica                         |
 
-### 💻 Exemplo de Criação da Tabela em Oracle (via Python)
+### Exemplo de Criação da Tabela em Oracle (via Python)
 
 ```python
 import oracledb
@@ -115,7 +115,7 @@ conn.close()
 
 ---
 
-## 🧪 Funcionalidades do Dashboard
+## Funcionalidades do Dashboard
 
 * Leitura de sensores: umidade, temperatura, pH (via LDR), fósforo e potássio
 * Acionamento de bomba via relé (simulado)
@@ -132,7 +132,7 @@ conn.close()
 
 ---
 
-## 🚀 Como Executar o Projeto
+## Como Executar o Projeto
 
 ### 1. ESP32 (via Wokwi)
 
@@ -167,7 +167,7 @@ API_KEY = "SUA_CHAVE_AQUI"
 
 ---
 
-## 🌦️ Ir Além 2: Integração com API de Previsão do Tempo
+## Ir Além 2: Integração com API de Previsão do Tempo
 
 O sistema se conecta à **API OpenWeatherMap** para buscar dados climáticos atuais e previsão para as próximas 12 horas. Baseado nisso:
 
@@ -181,13 +181,13 @@ Isso evita desperdício de água e melhora a eficiência do sistema.
 
 ---
 
-## 📸 Capturas de Tela do Dashboard
+## Capturas de Tela do Dashboard
 
 ![DashBoardCompletoeFuncionando](https://github.com/user-attachments/assets/a50a58ca-055b-48bd-b303-c76cdc0c4fba)
 
 ---
 
-## 🧠 Código Python - Exemplo de Integração com a API
+## Código Python - Exemplo de Integração com a API
 
 ```python
 import requests
@@ -208,7 +208,7 @@ for item in data['list']:
 
 ---
 
-## 🧾 Uso do Script Simulador CRUD Oracle
+## Uso do Script Simulador CRUD Oracle
 
 Para facilitar os testes manuais sem depender do ESP32 ou do servidor Flask, foi criado o script `crud_simulador_oracle.py`, que permite executar operações diretamente no banco Oracle local.
 
@@ -241,7 +241,7 @@ python crud_simulador_oracle.py
 
 ---
 
-## 👩‍🏫 Considerações Finais
+## Considerações Finais
 
 O dashboard em Python oferece uma interface visual e informativa para monitorar sensores agrícolas, com auxílio de dados meteorológicos reais, simulando um sistema de irrigação inteligente completo.
 
