@@ -1,15 +1,15 @@
-# 🌿 FarmTech Solutions - Sistema de Irrigação Inteligente com Dashboard e Clima em Tempo Real
+# FarmTech Solutions - Sistema de Irrigação Inteligente com Dashboard e Clima em Tempo Real
 
 ![Sistema de Sensores e Controle com ESP32](https://github.com/user-attachments/assets/467974e1-2cd2-4a9a-a01a-2c7861282489)
 
-## 📌 Descrição do Projeto
+## Descrição do Projeto
 Este projeto tem como objetivo simular um sistema de irrigação inteligente que utiliza sensores físicos (simulados) conectados a um ESP32. Os dados dos sensores são enviados para um servidor Flask, armazenados em banco de dados Oracle, e visualizados em tempo real através de um dashboard interativo em Python com a biblioteca Dash.
 
 Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e exibir dados climáticos da cidade em tempo real.
 
 ---
 
-## 👨‍🎓 Grupo 58 - FIAP
+## Grupo 58 - FIAP
 ### Integrantes:
 - Felipe Sabino da Silva
 - Juan Felipe Voltolini
@@ -23,7 +23,7 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 
 ---
 
-## ⚙️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 - ESP32 (simulado via Wokwi)
 - Sensores simulados: DHT22, LDR, botões (fósforo/potássio)
 - Python 3.10+
@@ -34,7 +34,7 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 
 ---
 
-## 🧪 Funcionalidades do Dashboard
+## Funcionalidades do Dashboard
 - Leitura de sensores: umidade, temperatura, pH (via LDR), fósforo e potássio
 - Acionamento de bomba via relé (simulado)
 - Envio dos dados via HTTP para servidor Flask
@@ -49,7 +49,7 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 
 ---
 
-## 🚀 Como Executar o Projeto
+## Como Executar o Projeto
 
 ### 1. ESP32 (via Wokwi)
 - Monte o circuito no [https://wokwi.com/](https://wokwi.com/)
@@ -77,7 +77,7 @@ API_KEY = "SUA_CHAVE_AQUI"
 
 ---
 
-## 🌦️ Ir Além 2: Integração com API de Previsão do Tempo
+## Ir Além 2: Integração com API de Previsão do Tempo
 O sistema se conecta à **API OpenWeatherMap** para buscar dados climáticos atuais e previsão para as próximas 12 horas. Baseado nisso:
 
 ### Lógica Condicional para Irrigação:
@@ -89,12 +89,12 @@ Isso evita desperdício de água e melhora a eficiência do sistema.
 
 ---
 
-## 📸 Capturas de Tela do Dashboard
+## Capturas de Tela do Dashboard
 ![DashBoardCompletoeFuncionando](https://github.com/user-attachments/assets/a50a58ca-055b-48bd-b303-c76cdc0c4fba)
 
 ---
 
-## 🧠 Código Python - Exemplo de Integração com a API
+## Código Python - Exemplo de Integração com a API
 ```python
 import requests
 
@@ -114,7 +114,7 @@ for item in data['list']:
 
 ---
 
-## 👩‍🏫 Considerações Finais
+## Considerações Finais
 O dashboard em Python oferece uma interface visual e informativa para monitorar sensores agrícolas, com auxílio de dados meteorológicos reais, simulando um sistema de irrigação inteligente completo.
 
 ---
