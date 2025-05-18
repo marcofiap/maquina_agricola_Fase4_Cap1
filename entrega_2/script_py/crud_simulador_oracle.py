@@ -1,4 +1,3 @@
-
 import oracledb
 from datetime import datetime
 
