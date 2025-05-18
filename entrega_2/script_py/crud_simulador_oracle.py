@@ -3,7 +3,7 @@ from datetime import datetime
 
 # Configurações do Oracle
 DB_USER = "system"
-DB_PASSWORD = "system"
+DB_PASSWORD = "Sua_Senha"
 DB_DSN = "localhost:1521/xe"
 
 def conectar_db():
