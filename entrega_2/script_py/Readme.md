@@ -30,7 +30,7 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 ## Tecnologias Utilizadas
 
 * ESP32 (simulado via Wokwi)
-* Sensores simulados: DHT22, LDR, botões (fósforo/potássio)
+* Sensores simulados: DHT22, LDR, botões simulando nutrientes (fósforo/potássio)
 * Python 3.10+
 * Flask (servidor HTTP e banco de dados Oracle)
 * Oracle Database XE
@@ -43,7 +43,7 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 
 ### Objetivo
 
-Armazenar os dados de sensores enviados via ESP32 em um banco Oracle local, utilizando Python e operações CRUD completas.
+Armazenar os dados de sensores enviados via ESP32 em um banco Oracle local, utilizando Python e operações CRUD completa.
 
 ### Estrutura da Tabela
 
@@ -57,14 +57,14 @@ A tabela `leituras_sensores` representa o modelo lógico criado na fase anterior
 | ph           | NUMBER(4,2) | Nível de pH do solo                           |
 | fosforo      | VARCHAR2    | Presença de fósforo ("presente" ou "ausente") |
 | potassio     | VARCHAR2    | Presença de potássio                          |
-| bomba\_dagua | VARCHAR2    | Status da bomba ("on" ou "off")               |
+| bomba_dagua  | VARCHAR2    | Status da bomba ("on" ou "off")               |
 
 ### Justificativa da Estrutura
 
 A escolha dos campos representa diretamente os sensores conectados ao ESP32:
 
 * Umidade e temperatura via DHT22
-* pH via sensor LDR
+* pH via sensor LDR (simulação)
 * Fósforo e potássio via botões (booleanos simulados)
 * Estado do relé representando a bomba de irrigação
 
@@ -128,7 +128,7 @@ conn.close()
   * Indicadores de fósforo e potássio
   * Tabela de dados em tempo real
   * Painel de clima atual (temperatura, vento, céu, etc.)
-  * Alerta de chuva (visual)
+  * Alerta de chuva (visual) para desligamento manual da bomba via botão, em caso da bomba estiver ligada
 
 ---
 
@@ -173,11 +173,11 @@ O sistema se conecta à **API OpenWeatherMap** para buscar dados climáticos atu
 
 ### Lógica Condicional para Irrigação:
 
-* Se houver previsão de chuva, **bomba é desligada**
+* Se houver previsão de chuva, **bomba deve ser desligada manualmente, via botão no esp32**
 * Se a umidade do solo for > 40%, **bomba é desligada**
 * Se a temperatura for < 18°C, **bomba é desligada**
 
-Isso evita desperdício de água e melhora a eficiência do sistema.
+**Isso evita desperdício de água e melhora a eficiência do sistema.**
 
 ---
 
