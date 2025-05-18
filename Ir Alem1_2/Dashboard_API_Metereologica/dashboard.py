@@ -107,7 +107,7 @@ app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'padding': '20px
         'backgroundColor': '#f5f5f5',
         'fontSize': '16px',
         'lineHeight': '1.6',
-        'color': '#333'
+        'color': '#333' 
     }),
 
     dcc.Interval(id='interval-component', interval=3000, n_intervals=0)
