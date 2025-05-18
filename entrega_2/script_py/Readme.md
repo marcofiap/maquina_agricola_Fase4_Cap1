@@ -247,25 +247,4 @@ O dashboard em Python oferece uma interface visual e informativa para monitorar 
 
 ---
 
-## 🔄 Possibilidades de Expansão
-
-### ☁️ 1. Banco de Dados em Nuvem
-
-* Troque o Oracle local por um banco online como PlanetScale (MySQL), Supabase (PostgreSQL) ou MongoDB Atlas (NoSQL).
-* Permite centralizar dados e acessá-los de qualquer lugar, inclusive em dispositivos móveis.
-
-### 🌐 2. Painel Remoto (Web)
-
-* Hospede o dashboard em plataformas como Render, Railway ou Heroku.
-* Assim, o painel pode ser acessado por professores, colegas ou dispositivos móveis fora da rede local.
-
-### 🕒 3. Histórico e Análise de Dados
-
-* Salve dados em CSV ou banco relacional com timestamps.
-* Use Pandas e gráficos para gerar relatórios semanais/mensais.
-* Analise padrões: consumo de água, sazonalidade da umidade, efeito da previsão de chuva.
-
----
-
-Se tiver dúvidas ou quiser implementar qualquer uma dessas melhorias, é só chamar! 🌱
 
