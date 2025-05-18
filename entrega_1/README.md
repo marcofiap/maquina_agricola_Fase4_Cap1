@@ -8,14 +8,14 @@ FIAP - Faculdade de Informática e Administração Paulista
 
 ## Grupo 58
 
-### 👨‍🎓 Integrantes:
+### Integrantes:
 * Felipe Sabino da Silva
 * Juan Felipe Voltolini
 * Luiz Henrique Ribeiro de Oliveira
 * Marco Aurélio Eberhardt Assimpção
 * Paulo Henrique Senise
 
-## 👩‍🏫 Professores:
+## Professores:
 ### Tutor(a)
 * Leonardo Ruiz Orabona
 
