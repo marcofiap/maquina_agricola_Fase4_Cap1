@@ -11,7 +11,7 @@ FLASK_SERVER_URL = "http://127.0.0.1:8000/get_data"
 
 # --- Função para consultar a API do tempo ---
 def get_clima_atual():
-    API_KEY = "9b90edf9b722e841505a711976022ea2"  # <-- Substitua pela sua chave da OpenWeatherMap
+    API_KEY = "SUA SENHA"  # <-- Substitua pela sua chave da OpenWeatherMap
     CIDADE = "São Paulo"
     URL = f"https://api.openweathermap.org/data/2.5/weather?q={CIDADE}&appid={API_KEY}&units=metric&lang=pt_br"
 
