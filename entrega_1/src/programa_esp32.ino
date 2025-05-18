@@ -171,8 +171,6 @@ void loop() {
   }
   String releStatus = bombaLigada ? "on" : "off";
 
-    
-
   // Formatar os dados para envio via HTTP GET
   String sensorData = "umidade=" + String(h) + "&temperatura=" + String(t) +
                       "&ph=" + String(phValue) + "&fosforo=" + fosforo +
