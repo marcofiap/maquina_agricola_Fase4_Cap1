@@ -33,7 +33,7 @@ Além disso, o sistema se integra à API do OpenWeatherMap para prever chuva e e
 - OpenWeatherMap API (clima atual)
 
 ---
-
+## Ir Além 1: Criação do Dashboard
 ## Funcionalidades do Dashboard
 - Leitura de sensores: umidade, temperatura, pH (via LDR), fósforo e potássio
 - Acionamento de bomba via relé (simulado)
