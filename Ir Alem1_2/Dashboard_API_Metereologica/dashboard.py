@@ -1,143 +1,118 @@
 import dash
-from dash import dcc
-from dash import html
+from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output
 import requests
 import pandas as pd
 import plotly.graph_objs as go
-from dash import dash_table
-import json
 from datetime import datetime
 
-# Endereço do servidor Flask
+# URL do seu servidor Flask local
 FLASK_SERVER_URL = "http://127.0.0.1:8000/get_data"
 
-# Função para buscar os dados do servidor Flask
+# --- Função para consultar a API do tempo ---
+def get_clima_atual():
+    API_KEY = "9b90edf9b722e841505a711976022ea2"  # <-- Substitua pela sua chave da OpenWeatherMap
+    CIDADE = "São Paulo"
+    URL = f"https://api.openweathermap.org/data/2.5/weather?q={CIDADE}&appid={API_KEY}&units=metric&lang=pt_br"
+
+    try:
+        response = requests.get(URL)
+        response.raise_for_status()
+        dados = response.json()
+
+        clima = {
+            'cidade': dados.get("name", "Desconhecida"),
+            'temperatura': dados.get("main", {}).get("temp", "N/A"),
+            'umidade': dados.get("main", {}).get("humidity", "N/A"),
+            'condicao': dados.get("weather", [{}])[0].get("description", "N/A").capitalize(),
+            'vento': dados.get("wind", {}).get("speed", "N/A"),
+            'chuva': dados.get("rain", {}).get("1h", 0.0)
+        }
+
+        clima['vai_chover'] = clima['chuva'] > 0
+        return clima
+
+    except Exception as e:
+        print("Erro ao consultar clima:", e)
+        return {
+            'cidade': 'Erro',
+            'temperatura': 'N/A',
+            'umidade': 'N/A',
+            'condicao': 'Erro ao consultar clima',
+            'vento': 'N/A',
+            'chuva': 'N/A',
+            'vai_chover': False
+        }
+
+# --- Função para obter os dados do Flask ---
 def get_sensor_data():
-    """
-    Busca os dados do servidor Flask.
-    Retorna os dados brutos em formato JSON.
-    Em caso de erro, retorna um dicionário vazio e exibe uma mensagem de erro.
-    """
     try:
         response = requests.get(FLASK_SERVER_URL)
         response.raise_for_status()
-        data = response.json()
-        print("Dados recebidos do servidor:", json.dumps(data, indent=4, ensure_ascii=False))
-        return data
+        return response.json()
     except requests.exceptions.RequestException as e:
         print(f"Erro ao conectar com o servidor Flask: {e}")
-        return {}
+        return []
 
-# Função para buscar dados meteorológicos de uma API (incluindo previsão de chuva)
-def get_weather_data(api_key, cidade):
-    """
-    Busca dados meteorológicos atuais e previsão de chuva de uma API.
-    Retorna um dicionário com os dados ou None em caso de erro.
-    """
-    url_atual = f"https://api.openweathermap.org/data/2.5/weather?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br"
-    url_previsao = f"https://api.openweathermap.org/data/2.5/forecast?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br&cnt=4"
-    try:
-        response_atual = requests.get(url_atual)
-        response_atual.raise_for_status()
-        data_atual = response_atual.json()
-
-        response_previsao = requests.get(url_previsao)
-        response_previsao.raise_for_status()
-        data_previsao = response_previsao.json()
-
-        return {"atual": data_atual, "previsao": data_previsao}
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao obter dados meteorológicos: {e}")
-        return None
-
-# Configuração da API meteorológica
-API_KEY = "9b90edf9b722e841505a711976022ea2"  # Substitua pela sua chave da API OpenWeatherMap
-CIDADE = "Sorocaba"  # Substitua pela cidade desejada
-
-# Configuração do aplicativo Dash
+# --- Layout do app ---
 app = dash.Dash(__name__)
 
-# Layout do aplicativo
 app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'padding': '20px'}, children=[
-    html.H1(children='FarmTech Solutions - Dashboard de Irrigação', style={'textAlign': 'center', 'color': '#2E8B57'}),
+    html.H1('Dashboard FarmTech Solutions', style={'textAlign': 'center', 'color': '#2E8B57'}),
+
     dash_table.DataTable(
         id='sensor-data-table',
         columns=[],
         data=[],
         style_cell={'textAlign': 'left'},
-        style_header={
-            'backgroundColor': '#555',
-            'color': 'white',
-            'fontWeight': 'bold'
-        },
-        style_data_conditional=[
-            {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': '#eee'
-            }
-        ],
+        style_header={'backgroundColor': '#555', 'color': 'white', 'fontWeight': 'bold'},
+        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': '#eee'}],
         page_size=10,
         style_table={'overflowX': 'auto'},
     ),
+
     html.Div(style={'display': 'flex', 'gap': '20px', 'marginTop': '20px'}, children=[
         html.Div(style={'flex': 1, 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-            html.H2(children='Umidade do Solo', style={'color': '#333'}),
+            html.H2('Umidade do Solo'),
             dcc.Graph(id='umidade-graph'),
         ]),
         html.Div(style={'flex': 1, 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-            html.H2(children='Temperatura do Solo', style={'color': '#333'}),
+            html.H2('Temperatura do Solo'),
             dcc.Graph(id='temperatura-graph'),
         ]),
     ]),
-    html.Div(style={'marginBottom': '20px', 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-        html.H2(children='Níveis de Nutrientes', style={'color': '#333'}),
-        html.Div(
-            id='nutrient-levels',
-            style={'display': 'flex', 'justifyContent': 'space-around'},
-            children=[
-                html.Div(
-                    id='fosforo-level',
-                    style={
-                        'fontSize': '18px',
-                        'fontWeight': 'bold',
-                        'color': '#8B4513',
-                        'padding': '10px',
-                        'borderRadius': '5px',
-                        'backgroundColor': '#d2b48c',
-                        'textAlign': 'center',
-                        'minWidth': '150px',
-                    },
-                ),
-                html.Div(
-                    id='potassio-level',
-                    style={
-                        'fontSize': '18px',
-                        'fontWeight': 'bold',
-                        'color': '#191970',
-                        'padding': '10px',
-                        'borderRadius': '5px',
-                        'backgroundColor': '#add8e6',
-                        'textAlign': 'center',
-                        'minWidth': '150px',
-                    },
-                ),
-            ],
-        ),
+
+    html.Div(id='nutrient-levels', style={'display': 'flex', 'justifyContent': 'space-around', 'marginTop': '20px'}, children=[
+        html.Div(id='fosforo-level'),
+        html.Div(id='potassio-level'),
+        html.Div(id='bomba-status'),
     ]),
-    html.Div(style={'marginBottom': '20px', 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-        html.H2(children='Condições Climáticas', style={'color': '#333'}),
-        html.Div(id='clima-info', style={'fontSize': '16px', 'color': '#333'}),
-    ]),
-    html.Div(style={'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-        html.H2(children='Previsão de Chuva (Próximas 12 Horas)', style={'color': '#333'}),
-        html.Div(id='previsao-chuva', style={'fontSize': '16px', 'color': '#333'}),
-    ]),
-    html.Div(id='aviso-desligar-bomba', style={'marginTop': '20px', 'fontSize': '18px', 'fontWeight': 'bold', 'textAlign': 'center'}),
-    dcc.Interval(id='interval-component', interval=2000, n_intervals=0)
+ 
+    html.Div(id='alerta-chuva', style={
+        'marginTop': '10px',
+        'fontWeight': 'bold',
+        'fontSize': '18px',
+        'textAlign': 'center',
+        'padding': '10px',
+        'borderRadius': '8px'
+    }),
+
+    html.Br(),
+
+    html.Div(id='painel-clima', style={
+        'marginTop': '20px',
+        'padding': '25px',
+        'border': '2px solid #ccc',
+        'borderRadius': '10px',
+        'backgroundColor': '#f5f5f5',
+        'fontSize': '16px',
+        'lineHeight': '1.6',
+        'color': '#333'
+    }),
+
+    dcc.Interval(id='interval-component', interval=3000, n_intervals=0)
 ])
 
-# Callback para atualizar a tabela e os gráficos
 @app.callback(
     [
         Output('sensor-data-table', 'columns'),
@@ -145,418 +120,105 @@ app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'padding': '20px
         Output('umidade-graph', 'figure'),
         Output('temperatura-graph', 'figure'),
         Output('fosforo-level', 'children'),
+        Output('fosforo-level', 'style'),
         Output('potassio-level', 'children'),
-        Output('clima-info', 'children'),
-        Output('previsao-chuva', 'children'),
-        Output('aviso-desligar-bomba', 'children')
+        Output('potassio-level', 'style'),
+        Output('bomba-status', 'children'),
+        Output('bomba-status', 'style'),
+        Output('alerta-chuva', 'children'),
+        Output('alerta-chuva', 'style'),
+        Output('painel-clima', 'children'),
     ],
     [Input('interval-component', 'n_intervals')]
 )
 def update_dashboard(n):
     data = get_sensor_data()
-    weather_data = get_weather_data(API_KEY, CIDADE)
-
     if data:
-        # Converter para DataFrame para facilitar o manuseio dos dados
         df = pd.DataFrame(data)
+        df.columns = df.columns.str.upper()
 
-        # Converter a coluna 'TIMESTAMP' para o formato datetime, se existir
         if 'TIMESTAMP' in df.columns:
-            df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP']).dt.strftime('%Y-%m-%d %H:%M:%S')
+            df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP'])
+            df.sort_values(by="TIMESTAMP", inplace=True)
 
-        # Converter o DataFrame para dicionário (formato esperado pelo DataTable)
         table_data = df.to_dict('records')
         table_columns = [{"name": i, "id": i} for i in df.columns]
 
-        # Criar os gráficos de umidade e temperatura
         umidade_graph = {
-            'data': [
-                go.Scatter(x=df['TIMESTAMP'], y=df['UMIDADE'], mode='lines', name='Umidade do Solo')
-            ],
-            'layout': go.Layout(
-                title='Umidade do Solo ao Longo do Tempo',
-                xaxis={'title': 'Timestamp'},
-                yaxis={'title': 'Umidade (%)'}
-            )
+            'data': [go.Scatter(x=df['TIMESTAMP'], y=df['UMIDADE'], mode='lines', name='Umidade')],
+            'layout': go.Layout(title='Umidade do Solo ao Longo do Tempo', xaxis={'title': 'Timestamp'}, yaxis={'title': 'Umidade (%)'})
         }
 
         temperatura_graph = {
-            'data': [
-                go.Scatter(x=df['TIMESTAMP'], y=df['TEMPERATURA'], mode='lines', name='Temperatura do Solo')
-            ],
-            'layout': go.Layout(
-                title='Temperatura do Solo ao Longo do Tempo',
-                xaxis={'title': 'Timestamp'},
-                yaxis={'title': 'Temperatura (°C)'}
-            )
+            'data': [go.Scatter(x=df['TIMESTAMP'], y=df['TEMPERATURA'], mode='lines', name='Temperatura')],
+            'layout': go.Layout(title='Temperatura do Solo ao Longo do Tempo', xaxis={'title': 'Timestamp'}, yaxis={'title': 'Temperatura (°C)'})
         }
 
-        # Obter os níveis de fósforo e potássio
-        fosforo_level = f"Fósforo (P): {df['FOSFORO'].iloc[-1]}" if 'FOSFORO' in df.columns else "Fósforo (P): N/A"
-        potassio_level = f"Potássio (K): {df['POTASSIO'].iloc[-1]}" if 'POTASSIO' in df.columns else "Potássio (K): N/A"
+        fosforo_msg = "Fósforo (P): N/A"
+        fosforo_style = {}
+        if 'FOSFORO' in df.columns and not df['FOSFORO'].isna().all():
+            val = df['FOSFORO'].iloc[-1].strip().lower()
+            fosforo_msg = 'Fósforo (P): Presente ✅' if val == 'presente' else 'Fósforo (P): Ausente ❌'
+            fosforo_style = {'color': 'green' if val == 'presente' else 'red',
+                             'backgroundColor': '#d0f0c0' if val == 'presente' else '#f9d6d5',
+                             'fontWeight': 'bold', 'textAlign': 'center', 'padding': '10px', 'borderRadius': '5px'}
 
-        # Formatar dados do clima para exibição
-        clima_info_children = []
-        previsao_chuva_children = []
-        aviso_desligar = ""
+        potassio_msg = "Potássio (K): N/A"
+        potassio_style = {}
+        if 'POTASSIO' in df.columns and not df['POTASSIO'].isna().all():
+            val = df['POTASSIO'].iloc[-1].strip().lower()
+            potassio_msg = 'Potássio (K): Presente ✅' if val == 'presente' else 'Potássio (K): Ausente ❌'
+            potassio_style = {'color': 'green' if val == 'presente' else 'red',
+                              'backgroundColor': '#d0f0c0' if val == 'presente' else '#f9d6d5',
+                              'fontWeight': 'bold', 'textAlign': 'center', 'padding': '10px', 'borderRadius': '5px'}
 
-        if weather_data and weather_data['atual']:
-            clima_info_children = [
-                html.H4(f"{weather_data['atual']['name']}, {weather_data['atual']['sys']['country']}"),
-                html.P(f"Condição: {weather_data['atual']['weather'][0]['description']}"),
-                html.P(f"Temperatura: {weather_data['atual']['main']['temp']} °C"),
-                html.P(f"Umidade: {weather_data['atual']['main']['humidity']}%"),
-                html.P(f"Velocidade do Vento: {weather_data['atual']['wind']['speed']} m/s")
-            ]
-        else:
-            clima_info_children = [html.P("Não foi possível obter dados climáticos atuais.")]
+        bomba_msg = "Bomba: status desconhecido"
+        bomba_style = {'color': 'gray', 'backgroundColor': '#eeeeee', 'fontWeight': 'bold', 'textAlign': 'center', 'padding': '10px', 'borderRadius': '5px'}
+        if 'BOMBA_DAGUA' in df.columns and not df['BOMBA_DAGUA'].isna().all():
+            val = df['BOMBA_DAGUA'].iloc[-1].strip().lower()
+            if val == 'on':
+                bomba_msg = 'Bomba de Irrigação: Ligada ✅'
+                bomba_style['color'] = 'green'
+                bomba_style['backgroundColor'] = '#d0f0c0'
+            elif val == 'off':
+                bomba_msg = 'Bomba de Irrigação: Desligada ❌'
+                bomba_style['color'] = 'red'
+                bomba_style['backgroundColor'] = '#f9d6d5'
 
-        if weather_data and weather_data['previsao'] and 'list' in weather_data['previsao']:
-            previsao_chuva_children.append(html.H4("Próximas Previsões:"))
-            for item in weather_data['previsao']['list']:
-                timestamp = pd.to_datetime(item['dt'], unit='s').strftime('%H:%M')
-                chuva = item.get('rain', {}).get('3h', 0)
-                previsao_chuva_children.append(html.P(f"{timestamp}: {chuva} mm"))
-                # Verifica se há previsão de chuva
-                if chuva > 0:
-                    aviso_desligar = html.Div(
-                        children="⚠️ AVISO: Previsão de chuva! A bomba de irrigação deve ser DESLIGADA.",
-                        style={'color': 'white', 'backgroundColor': '#dc3545', 'padding': '10px', 'borderRadius': '5px'}
-                    )
-                    break  # Para o loop ao encontrar a primeira previsão de chuva
-        else:
-            previsao_chuva_children.append(html.P("Não há previsão de chuva disponível."))
+        clima = get_clima_atual()
+        alerta_msg = f"🌧️ Alerta: Previsão de {clima['chuva']} mm de chuva!" if clima['vai_chover'] else "☀️ Sem previsão de chuva nas próximas horas."
+        alerta_style = {'backgroundColor': '#ffe4e1' if clima['vai_chover'] else '#e0f7fa', 'color': 'red' if clima['vai_chover'] else 'green'}
 
-        clima_info = html.Div(children=clima_info_children)
-        previsao_chuva_output = html.Div(children=previsao_chuva_children)
+        painel_clima = html.Div([
+            html.Div(style={'display': 'flex', 'justifyContent': 'space-around'}, children=[
+                html.Div(f"📍 Cidade: {clima['cidade']}"),
+                html.Div(f"🌡️ Temperatura: {clima['temperatura']}°C"),
+                html.Div(f"💧 Umidade: {clima['umidade']}%"),
+            ]),
+            html.Div(style={'display': 'flex', 'justifyContent': 'space-around', 'marginTop': '10px'}, children=[
+                html.Div(f"☁️ Condição: {clima['condicao']}"),
+                html.Div(f"🌬️ Vento: {clima['vento']} m/s"),
+                html.Div(f"🌧️ Chuva (última hora): {clima['chuva']} mm"),
+            ])
+        ])
 
-        return table_columns, table_data, umidade_graph, temperatura_graph, fosforo_level, potassio_level, clima_info, previsao_chuva_output, aviso_desligar
+        return table_columns, table_data, umidade_graph, temperatura_graph, \
+               fosforo_msg, fosforo_style, potassio_msg, potassio_style, \
+               bomba_msg, bomba_style, alerta_msg, alerta_style, painel_clima
+
     else:
-        return [], [], {}, {}, "Fósforo (P): N/A", "Potássio (K): N/A", html.Div("Nenhum dado recebido"), html.Div("Nenhum dado recebido"), ""
-
+        painel_clima = html.Div([
+            html.Div("❌ Erro ao obter dados climáticos.", style={'textAlign': 'center'})
+        ])
+        return [], [], {}, {}, "Fósforo (P): N/A", {}, "Potássio (K): N/A", {}, \
+               "Bomba: N/A", {}, "Sem dados climáticos", {}, painel_clima
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True)
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# import dash
-# from dash import dcc
-# from dash import html
-# from dash.dependencies import Input, Output
-# import pandas as pd
-# import requests
-# import plotly.graph_objs as go
-# from dash import dash_table
-# from datetime import datetime
-
-# # Endereço do servidor Flask
-# FLASK_SERVER_URL = "http://127.0.0.1:8000/get_data"
-
-# # Função para buscar os dados do servidor Flask
-# def get_sensor_data():
-#     """
-#     Busca os dados do servidor Flask. Retorna um DataFrame.
-#     Em caso de erro, retorna um DataFrame vazio e exibe uma mensagem de erro.
-#     """
-#     try:
-#         response = requests.get(FLASK_SERVER_URL)
-#         response.raise_for_status()
-#         data = response.json()
-#         # Ajuste para lidar com a estrutura de dados aninhada
-#         if isinstance(data, dict) and "data" in data:
-#             # Se os dados estão aninhados, extrai o DataFrame da chave "data"
-#             df = pd.DataFrame([data["data"]])
-#         elif isinstance(data, list):
-#             # Se os dados já estão em uma lista de dicionários, cria o DataFrame diretamente
-#             df = pd.DataFrame(data)
-#         else:
-#             df = pd.DataFrame()  # Retorna um DataFrame vazio em outros casos
-#         return df
-#     except requests.exceptions.RequestException as e:
-#         print(f"Erro ao conectar com o servidor Flask: {e}")
-#         return pd.DataFrame()
-
-# # Função para buscar dados meteorológicos de uma API (incluindo previsão de chuva)
-# def get_weather_data(api_key, cidade):
-#     """
-#     Busca dados meteorológicos atuais e previsão de chuva de uma API.
-#     Retorna um dicionário com os dados ou None em caso de erro.
-#     """
-#     url_atual = f"https://api.openweathermap.org/data/2.5/weather?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br"
-#     url_previsao = f"https://api.openweathermap.org/data/2.5/forecast?q={cidade},BR&appid={api_key}&units=metric&lang=pt_br&cnt=4"
-#     try:
-#         response_atual = requests.get(url_atual)
-#         response_atual.raise_for_status()
-#         data_atual = response_atual.json()
-
-#         response_previsao = requests.get(url_previsao)
-#         response_previsao.raise_for_status()
-#         data_previsao = response_previsao.json()
-
-#         return {"atual": data_atual, "previsao": data_previsao}
-#     except requests.exceptions.RequestException as e:
-#         print(f"Erro ao obter dados meteorológicos: {e}")
-#         return None
-
-# # Configuração da API meteorológica
-# API_KEY = "9b90edf9b722e841505a711976022ea2"  # Substitua pela sua chave da API OpenWeatherMap
-# CIDADE = "Sorocaba"  # Substitua pela cidade desejada
-
-# app = dash.Dash(__name__)
-
-# app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'padding': '20px'}, children=[
-#     html.H1(children='FarmTech Solutions - Dashboard de Irrigação', style={'textAlign': 'center', 'color': '#2E8B57'}),
-
-#     html.Div(style={'marginBottom': '20px', 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-#         html.H2(children='Dados Recebidos em Tempo Real', style={'color': '#333'}),
-#         dash_table.DataTable(
-#             id='tabela-dados',
-#             columns=[{"name": i, "id": i} for i in pd.DataFrame().columns],
-#             data=[],
-#             style_cell={'textAlign': 'left'},
-#             style_header={
-#                 'backgroundColor': '#555',
-#                 'color': 'white',
-#                 'fontWeight': 'bold'
-#             },
-#             style_data_conditional=[
-#                 {
-#                     'if': {'row_index': 'odd'},
-#                     'backgroundColor': '#eee'
-#                 }
-#             ],
-#             page_size=10,
-#             style_table={'overflowX': 'auto'},
-#         ),
-#     ]),
-
-#     html.Div(style={'display': 'flex', 'gap': '20px', 'marginBottom': '20px'}, children=[
-#         html.Div(style={'flex': 1, 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-#             html.H2(children='Umidade do Solo', style={'color': '#333'}),
-#             dcc.Graph(id='grafico-umidade'),
-#         ]),
-#         html.Div(style={'flex': 1, 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-#             html.H2(children='Temperatura', style={'color': '#333'}),
-#             dcc.Graph(id='grafico-temperatura'),
-#         ]),
-#     ]),
-
-#     html.Div(style={'display': 'flex', 'gap': '20px', 'marginBottom': '20px'}, children=[
-#         html.Div(style={'flex': 1, 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-#             html.H2(children='pH do Solo', style={'color': '#333'}),
-#             html.Div(
-#                 id='indicador-ph',
-#                 style={
-#                     'textAlign': 'center',
-#                     'fontSize': '28px',
-#                     'fontWeight': 'bold',
-#                     'color': '#4682B4',
-#                     'padding': '10px',
-#                     'backgroundColor': '#e0f2f7',
-#                     'borderRadius': '5px'
-#                 },
-#             ),
-#         ]),
-#         html.Div(style={'flex': 1, 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-#             html.H2(children='Status da Bomba de Irrigação', style={'color': '#333'}),
-#             html.Div(
-#                 id='status-rele',
-#                 style={
-#                     'textAlign': 'center',
-#                     'fontSize': '28px',
-#                     'fontWeight': 'bold',
-#                     'color': '#FF8C00',
-#                     'padding': '10px',
-#                     'backgroundColor': '#ffe0b2',
-#                     'borderRadius': '5px'
-#                 },
-#             ),
-#         ]),
-#     ]),
-
-#     html.Div(style={'marginBottom': '20px', 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-#         html.H2(children='Níveis de Nutrientes', style={'color': '#333'}),
-#         html.Div(
-#             id='estado-nutrientes',
-#             style={'display': 'flex', 'justifyContent': 'space-around'},
-#             children=[
-#                 html.Div(
-#                     id='fosforo-status',
-#                     style={
-#                         'fontSize': '18px',
-#                         'fontWeight': 'bold',
-#                         'color': '#8B4513',
-#                         'padding': '10px',
-#                         'borderRadius': '5px',
-#                         'backgroundColor': '#d2b48c',
-#                         'textAlign': 'center',
-#                         'minWidth': '150px',
-#                     },
-#                 ),
-#                 html.Div(
-#                     id='potassio-status',
-#                     style={
-#                         'fontSize': '18px',
-#                         'fontWeight': 'bold',
-#                         'color': '#191970',
-#                         'padding': '10px',
-#                         'borderRadius': '5px',
-#                         'backgroundColor': '#add8e6',
-#                         'textAlign': 'center',
-#                         'minWidth': '150px',
-#                     },
-#                 ),
-#             ],
-#         ),
-#     ]),
-
-#     html.Div(style={'marginBottom': '20px', 'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-#         html.H2(children='Condições Climáticas', style={'color': '#333'}),
-#         html.Div(id='clima-info', style={'fontSize': '16px', 'color': '#333'}),
-#     ]),
-
-#     html.Div(style={'border': '1px solid #ddd', 'padding': '15px', 'borderRadius': '5px', 'backgroundColor': '#f9f9f9'}, children=[
-#         html.H2(children='Previsão de Chuva (Próximas 12 Horas)', style={'color': '#333'}),
-#         html.Div(id='previsao-chuva', style={'fontSize': '16px', 'color': '#333'}),
-#     ]),
-
-#     html.Div(id='aviso-desligar-bomba', style={'marginTop': '20px', 'fontSize': '18px', 'fontWeight': 'bold', 'textAlign': 'center'}),
-
-#     dcc.Interval(
-#         id='interval-component',
-#         interval=2000,
-#         n_intervals=0
-#     )
-# ])
-
-# # Callback para atualizar os componentes do dashboard
-# @app.callback(
-#     [
-#         Output('tabela-dados', 'data'),
-#         Output('tabela-dados', 'columns'),
-#         Output('grafico-umidade', 'figure'),
-#         Output('grafico-temperatura', 'figure'),
-#         Output('indicador-ph', 'children'),
-#         Output('status-rele', 'children'),
-#         Output('fosforo-status', 'children'),
-#         Output('potassio-status', 'children'),
-#         Output('clima-info', 'children'),
-#         Output('previsao-chuva', 'children'),
-#         Output('aviso-desligar-bomba', 'children')
-#     ],
-#     [Input('interval-component', 'n_intervals')]
-# )
-# def update_dashboard(n):
-#     df = get_sensor_data()
-#     weather_data = get_weather_data(API_KEY, CIDADE)
-
-#     if not df.empty:
-#         # Converter 'timestamp' para datetime, se ainda não for
-#         if not isinstance(df['timestamp'].iloc[0], datetime):
-#             df['timestamp'] = pd.to_datetime(df['timestamp'])
-
-#         # Formatar 'timestamp' para exibição
-#         df['timestamp'] = df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
-
-#         data = df.to_dict('records')
-#         columns = [{"name": i, "id": i} for i in df.columns]
-
-#         grafico_umidade = {
-#             'data': [
-#                 go.Scatter(x=df['timestamp'], y=df['umidade'], mode='lines', name='Umidade')
-#             ],
-#             'layout': go.Layout(title='Umidade do Solo', yaxis={'title': '%'}, xaxis={'title': 'Tempo'})
-#         }
-
-#         grafico_temperatura = {
-#             'data': [
-#                 go.Scatter(x=df['timestamp'], y=df['temperatura'], mode='lines', name='Temperatura')
-#             ],
-#             'layout': go.Layout(title='Temperatura', yaxis={'title': '°C'}, xaxis={'title': 'Tempo'})
-#         }
-
-#         ph_value = f"pH: {df['ph'].iloc[-1]}" if 'ph' in df.columns else "N/A"
-#         indicador_ph = html.Div(children=ph_value)
-
-#         # Use 'bomba_dagua' diretamente, assumindo que o nome da coluna está correto
-#         rele_status = f"Bomba: {df['bomba_dagua'].iloc[-1].upper()}" if 'bomba_dagua' in df.columns else "N/A"
-#         status_rele = html.Div(children=rele_status)
-
-#         fosforo_status = f"Fósforo (P): {df['fosforo'].iloc[-1].upper()}" if 'fosforo' in df.columns else "Fósforo (P): N/A"
-#         potassio_status = f"Potássio (K): {df['potassio'].iloc[-1].upper()}" if 'potassio' in df.columns else "Potássio (K): N/A"
-
-#         clima_info_children = []
-#         if weather_data and weather_data['atual']:
-#             clima_info_children.extend([
-#                 html.H4(f"{weather_data['atual']['name']}, {weather_data['atual']['sys']['country']}", style={'marginBottom': '10px'}),
-#                 html.P(f"Condição: {weather_data['atual']['weather'][0]['description']}"),
-#                 html.P(f"Temperatura: {weather_data['atual']['main']['temp']} °C"),
-#                 html.P(f"Umidade: {weather_data['atual']['main']['humidity']}%"),
-#                 html.P(f"Velocidade do Vento: {weather_data['atual']['wind']['speed']} m/s")
-#             ])
-#         else:
-#             clima_info_children.append(html.P("Não foi possível obter dados climáticos atuais.", style={'color': 'red'}))
-#         clima_info = html.Div(children=clima_info_children)
-
-#         previsao_chuva_children = []
-#         if weather_data and weather_data['previsao'] and 'list' in weather_data['previsao']:
-#             previsao_chuva_children.append(html.H4("Próximas Previsões:", style={'marginBottom': '10px'}))
-#             for item in weather_data['previsao']['list']:
-#                 timestamp = pd.to_datetime(item['dt'], unit='s').strftime('%H:%M')
-#                 chuva = item.get('rain', {}).get('3h', 0)
-#                 previsao_chuva_children.append(html.P(f"{timestamp}: {chuva} mm"))
-#         else:
-#             previsao_chuva_children.append(html.P("Não há previsão de chuva disponível.", style={'color': 'orange'}))
-#         previsao_chuva_output = html.Div(children=previsao_chuva_children)
-
-#         aviso_desligar = ""
-#         if weather_data and weather_data['previsao'] and 'list' in weather_data['previsao']:
-#             for item in weather_data['previsao']['list']:
-#                 if 'rain' in item and item['rain'].get('3h', 0) > 0:
-#                     aviso_desligar = html.Div(
-#                         children="⚠️ AVISO: Previsão de chuva! A bomba de irrigação deve ser DESLIGADA.",
-#                         style={'color': 'white', 'backgroundColor': '#dc3545', 'padding': '10px', 'borderRadius': '5px'}
-#                     )
-#                     break
-#                 elif 'weather' in item:
-#                     for condition in item['weather']:
-#                         if 'chuva' in condition['description'].lower():
-#                             aviso_desligar = html.Div(
-#                                 children="⚠️ AVISO: Previsão de chuva! A bomba de irrigação deve ser DESLIGADA.",
-#                                 style={'color': 'white', 'backgroundColor': '#dc3545', 'padding': '10px', 'borderRadius': '5px'}
-#                             )
-#                             break
-#                     if aviso_desligar:
-#                         break
-
-#         return data, columns, grafico_umidade, grafico_temperatura, indicador_ph, status_rele, fosforo_status, potassio_status, clima_info, previsao_chuva_output, aviso_desligar
-#     else:
-#         return [], [], {}, {}, html.Div("Nenhum dado recebido"), html.Div("Nenhum dado recebido"), "Fósforo (P): N/A", "Potássio (K): N/A", html.Div("Nenhum dado recebido"), html.Div("Nenhum dado recebido"), ""
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
 
