@@ -48,7 +48,8 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ## 🖼️ Visão Geral do Sistema
 
-![Visão completa do dashboard](Ir Alem1_2/Imagens/DashboardFuncioando.png)
+![Visão completa do dashboard](Ir Alem1_2/Dashboard_API_Metereologica/Imagens/DashboardFuncioando.png)
+![Visão completa do dashboard](entrega_3/dashboard_completo.png)
 
 ---
 
