@@ -48,7 +48,10 @@ O objetivo geral deste projeto é desenvolver um sistema de irrigação intelige
 - Logica em C++ com comentarios explicativos
 
 Imagem do circuito:  
-![Circuito Wokwi](caminho/para/imagem.png)
+
+![ComponentesEletronicos](https://github.com/user-attachments/assets/33abfdf9-1e6f-42ba-a6a6-be4ee1a2a69a)
+
+![CircuitoMontadoSimulador](https://github.com/user-attachments/assets/97423c93-470f-4d61-950f-be215e9e5520)
 
 ---
 
