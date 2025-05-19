@@ -1,6 +1,34 @@
-# FarmTech Solutions – Sistema de Irrigação Inteligente com ESP32, Python e Clima em Tempo Real
+# FarmTech Solutions – Sistema de Irrigação Inteligente
 
-Este repositório apresenta o desenvolvimento completo de um sistema de **agricultura digital inteligente**, com sensores simulados, banco de dados Oracle, API de clima e visualização interativa. O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artificial na FIAP.
+Este repositório apresenta o desenvolvimento completo de um sistema de **agricultura digital inteligente**.
+O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artificial na FIAP.
+
+![Status do Projeto](https://img.shields.io/badge/Entrega%20Concluída-100%25-green)
+![ESP32](https://img.shields.io/badge/Hardware-ESP32-lightgrey)
+![Banco de Dados](https://img.shields.io/badge/Oracle-CRUD-blue)
+![Dashboard](https://img.shields.io/badge/Visualização-Dash%20%2B%20API-orange)
+![Análise Preditiva](https://img.shields.io/badge/Análise%20Preditiva-R%20%2B%20Séries%20Temporais-blueviolet)
+
+## Sumário do Projeto
+
+-  [Entrega 1 – Sensores e Controle com ESP32](./entrega_1/)
+  - [`programa_esp32.ino`](./entrega_1/src/programa_esp32.ino) – Código principal
+  - Lógica de irrigação automática com sensores simulados (umidade, pH, P, K)
+  - Controle do relé e display OLED com alertas
+
+-  [Entrega 2 – Banco de Dados Oracle com CRUD em Python](./entrega_2/)
+  - [`crud_simulador_oracle.py`](./entrega_2/crud_simulador_oracle.py)
+  - Operações de inserção, consulta, atualização e remoção
+  - Estrutura da tabela relacionada ao MER da Fase 2
+
+-  [Ir Além 1 e 2 – Dashboard com API de Clima em Tempo Real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
+  - [`dashboard.py`](./Ir%20Alem1_2/Dashboard_API_Metereologica/dashboard.py)
+  - Gráficos de sensores, status da bomba, clima em tempo real (OpenWeatherMap)
+  - Alerta visual de chuva com suporte a decisão manual
+
+-  [Análise Estatística e Preditiva (R)](./Analise_Estatistica/)
+  - Estatísticas descritivas, boxplots, séries temporais com ARIMA
+  - Previsão de umidade futura baseada em dados do banco
 
 ---
 
@@ -13,6 +41,7 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 - Armazenar os dados em um **banco relacional (Oracle)**
 - Visualizar e analisar os dados por meio de um **dashboard interativo**
 - Integrar **previsões climáticas reais** para otimizar o uso de água
+- Realizar análise estatística preditiva dos dados coletados utilizando R, identificando padrões e antecipando condições ideais de irrigação
 
 ---
 
@@ -30,24 +59,18 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ## Estrutura do Repositório
 
-| Pasta         | Conteúdo                                                  |
-|---------------|-----------------------------------------------------------|
-| `entrega_1/`  | Código C++ do ESP32, lógica de sensores, display, relé    |
-| `entrega_2/`  | Script Python com operações CRUD em banco Oracle          |
-| `Ir Alem1_2/` | Dashboard interativo em Python + integração com a API     |
+| Pasta                   | Conteúdo                                                                                        |
+|-------------------------|-------------------------------------------------------------------------------------------------|
+| `Analise_Estatistica/`  | Códigos em R para análise descritiva (média, desvio padrão) e preditiva (modelos de previsão)   |
+| `Ir Alem1_2/`           | Dashboard interativo em Python + integração com a API                                           |
+| `Servidor_Local/`       | Código Python, rodar servidor com biblioteca Flask                                              |
+| `entrega_1/`            | Código C++ do ESP32, lógica de sensores, display, relé                                          |
+| `entrega_2/`            | Script Python com operações CRUD em banco Oracle                                                |
+
 
 ---
 
-## Acesse cada parte do projeto:
-
--  [Entrega 1 – ESP32 e sensores simulados](./entrega_1/)
--  [Entrega 2 – Banco de dados e CRUD Oracle](./entrega_2/)
--  [Entrega 3 – Dashboard com clima em tempo real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
-
----
-
-## Visão Geral do Sistema
-
+## Visão Geral do Sistema Dashboard
 ![Visão completa do dashboard](Ir%20Alem1_2/Dashboard_API_Metereologica/Imagens/DashboardFuncioando.png)
 
 ---
@@ -59,25 +82,31 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 - Integração com API meteorológica  
 - Dashboard funcional com gráficos, alertas e automações  
 - Documentação completa para cada entrega
+- Análise estatística em R
 
 ---
 
-## Melhoria Futura Implementável – Irrigação Preditiva
+## Previsões Climáticas - Lógica Atual e Possível Evolução – Irrigação Preditiva
+Atualmente, o sistema já possui uma lógica inteligente de desligamento da bomba em caso de previsão de chuva, com base em dados climáticos consultados via API.
+Se a bomba estiver ligada e houver previsão de chuva, um alerta visual é acionado.
+Para maior controle, o sistema permite o desligamento manual da bomba pelo botão no ESP32, somente quando ela estiver ligada automaticamente devido à umidade inferior a 40%.
 
-O sistema pode evoluir para incorporar uma lógica **inteligente de desligamento automático da bomba**, com base na **quantidade de chuva prevista** (em milímetros) nas próximas horas.
+## Possível Melhoria Futura:
+A lógica pode ser aprimorada para considerar a quantidade de chuva prevista (em mm) e o intervalo de tempo.
+Por exemplo:
 
-### Exemplo de lógica:
-- Se a previsão for ≥ 3.0 mm de chuva nas próximas 3h → alerta visual para não irrigar
+Se a previsão for ≥ 3.0 mm de chuva nas próximas 3h → alerta visual e suspensão da irrigação
 
-Essa abordagem torna o sistema **ainda mais eficiente**, evitando irrigação desnecessária e otimizando o uso da água com base em dados climáticos reais.
+Essa evolução tornaria o sistema ainda mais eficiente, evitando irrigação desnecessária e otimizando o uso de água com base em dados mais precisos.
 
 ---
 
-## Projeto desenvolvido para avaliação na FIAP  
+## Projeto Desenvolvido para Avaliação na FIAP  
 **Curso:** Tecnólogo em Inteligência Artificial  
 **Grupo 58**  
 - Professores: André Godoi
-- Tutor: Leonardo Ruiz Orabona 
+- Tutor: Leonardo Ruiz Orabona
+  
 **Integrantes:**
 - Felipe Sabino da Silva  
 - Juan Felipe Voltolini  
