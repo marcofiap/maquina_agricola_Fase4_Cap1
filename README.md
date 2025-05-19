@@ -86,10 +86,6 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ---
 
-# Análise Estatística e Preditiva – FarmTech Solutions
-
-[Análise Estatística e Previsão (R)](./Analise_Estatistica/)
-
 ## Melhoria Futura Implementável – Irrigação Preditiva
 
 O sistema pode evoluir para incorporar uma lógica **inteligente de desligamento automático da bomba**, com base na **quantidade de chuva prevista** (em milímetros) nas próximas horas.
