@@ -11,8 +11,8 @@ FLASK_SERVER_URL = "http://127.0.0.1:8000/get_data"
 
 # --- Função para consultar a API do tempo ---
 def get_clima_atual():
-    API_KEY = "SUA SENHA"  # <-- Substitua pela sua chave da OpenWeatherMap
-    CIDADE = "São Paulo"
+    API_KEY = "9b90edf9b722e841505a711976022ea2"  # <-- Substitua pela sua chave da OpenWeatherMap
+    CIDADE = "Camopi"
     URL = f"https://api.openweathermap.org/data/2.5/weather?q={CIDADE}&appid={API_KEY}&units=metric&lang=pt_br"
 
     try:
@@ -100,8 +100,8 @@ app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'padding': '20px
     html.Br(),
 
     html.Div(id='painel-clima', style={
-        'marginTop': '20px',
-        'padding': '25px',
+        'marginTop': '10px',
+        'padding': '15px',
         'border': '2px solid #ccc',
         'borderRadius': '10px',
         'backgroundColor': '#f5f5f5',
@@ -138,7 +138,7 @@ def update_dashboard(n):
         df.columns = df.columns.str.upper()
 
         if 'TIMESTAMP' in df.columns:
-            df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP'])
+            df['TIMESTAMP'] = pd.to_datetime(df['TIMESTAMP'])                       
             df.sort_values(by="TIMESTAMP", inplace=True)
 
         table_data = df.to_dict('records')
@@ -186,8 +186,8 @@ def update_dashboard(n):
                 bomba_style['backgroundColor'] = '#f9d6d5'
 
         clima = get_clima_atual()
-        alerta_msg = f"🌧️ Alerta: Previsão de {clima['chuva']} mm de chuva!" if clima['vai_chover'] else "☀️ Sem previsão de chuva nas próximas horas."
-        alerta_style = {'backgroundColor': '#ffe4e1' if clima['vai_chover'] else '#e0f7fa', 'color': 'red' if clima['vai_chover'] else 'green'}
+        alerta_msg = f"🌧️ Alerta: Previsão de {clima['chuva']} mm de chuva!Manter Desligado a Bomba d'água!!!" if clima['vai_chover'] else "☀️ Sem previsão de chuva nas próximas horas."
+        alerta_style = {'textAlign': 'center', 'marginTop': '30px', 'backgroundColor': '#ffe4e1' if clima['vai_chover'] else '#e0f7fa', 'color': 'red' if clima['vai_chover'] else 'green'}
 
         painel_clima = html.Div([
             html.Div(style={'display': 'flex', 'justifyContent': 'space-around'}, children=[
