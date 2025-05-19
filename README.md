@@ -41,6 +41,7 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 - Armazenar os dados em um **banco relacional (Oracle)**
 - Visualizar e analisar os dados por meio de um **dashboard interativo**
 - Integrar **previsões climáticas reais** para otimizar o uso de água
+- Realizar análise estatística preditiva dos dados coletados utilizando R, identificando padrões e antecipando condições ideais de irrigação
 
 ---
 
