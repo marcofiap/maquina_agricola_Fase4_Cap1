@@ -91,7 +91,7 @@ Atualmente, o sistema já possui uma lógica inteligente de desligamento da bomb
 Se a bomba estiver ligada e houver previsão de chuva, um alerta visual é acionado.
 Para maior controle, o sistema permite o desligamento manual da bomba pelo botão no ESP32, somente quando ela estiver ligada automaticamente devido à umidade inferior a 40%.
 
-## Possível melhoria futura:
+## Possível Melhoria Futura:
 A lógica pode ser aprimorada para considerar a quantidade de chuva prevista (em mm) e o intervalo de tempo.
 Por exemplo:
 
