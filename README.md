@@ -65,6 +65,11 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 ## 👨‍🏫 Projeto desenvolvido para avaliação na FIAP  
 **Curso:** Tecnólogo em Inteligência Artificial  
 **Grupo 58** – Professores: Leonardo Ruiz Orabona / André Godoi  
-**Desenvolvedor:** Paulo Henrique Senise e equipe
+**Integrantes:**
+- Felipe Sabino da Silva  
+- Juan Felipe Voltolini  
+- Luiz Henrique Ribeiro de Oliveira  
+- Marco Aurélio Eberhardt Assimpção  
+- Paulo Henrique Senise  
 
 ---
