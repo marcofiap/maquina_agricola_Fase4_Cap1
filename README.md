@@ -3,6 +3,15 @@
 Este repositório apresenta o desenvolvimento completo de um sistema de **agricultura digital inteligente**, com sensores simulados, banco de dados Oracle, API de clima e visualização interativa. O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artificial na FIAP.
 
 ---
+# FarmTech Solutions – Sistema de Irrigação Inteligente
+
+Monitoramento agrícola com sensores simulados, controle automatizado via ESP32, banco de dados Oracle, dashboard em Python e análise preditiva em R.
+
+![Status do Projeto](https://img.shields.io/badge/Entrega%20Concluída-100%25-green)
+![ESP32](https://img.shields.io/badge/Hardware-ESP32-lightgrey)
+![Banco de Dados](https://img.shields.io/badge/Oracle-CRUD-blue)
+![Dashboard](https://img.shields.io/badge/Visualização-Dash%20%2B%20API-orange)
+![Análise Preditiva](https://img.shields.io/badge/Análise%20Preditiva-R%20%2B%20Séries%20Temporais-blueviolet)
 
 ## Objetivo Geral
 
