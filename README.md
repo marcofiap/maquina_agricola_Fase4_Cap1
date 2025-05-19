@@ -86,14 +86,17 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ---
 
-## Melhoria Futura Implementável – Irrigação Preditiva
+## Lógica Atual e Possível Evolução – Irrigação Preditiva
+Atualmente, o sistema já possui uma lógica inteligente de desligamento da bomba em caso de previsão de chuva, com base em dados climáticos consultados via API.
+Se a bomba estiver ligada e houver previsão de chuva, um alerta visual é acionado e a bomba é desligada automaticamente.
 
-O sistema pode evoluir para incorporar uma lógica **inteligente de desligamento automático da bomba**, com base na **quantidade de chuva prevista** (em milímetros) nas próximas horas.
+## Possível melhoria futura:
+A lógica pode ser aprimorada para considerar a quantidade de chuva prevista (em mm) e o intervalo de tempo.
+Por exemplo:
 
-### Exemplo de lógica:
-- Se a previsão for ≥ 3.0 mm de chuva nas próximas 3h → alerta visual para não irrigar
+Se a previsão for ≥ 3.0 mm de chuva nas próximas 3h → alerta visual e suspensão da irrigação
 
-Essa abordagem torna o sistema **ainda mais eficiente**, evitando irrigação desnecessária e otimizando o uso da água com base em dados climáticos reais.
+Essa evolução tornaria o sistema ainda mais eficiente, evitando irrigação desnecessária e otimizando o uso de água com base em dados mais precisos.
 
 ---
 
