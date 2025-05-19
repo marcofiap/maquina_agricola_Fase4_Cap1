@@ -17,7 +17,7 @@ Esta entrega tem como foco o armazenamento dos dados coletados pela máquina agr
 
 ---
 
-## 📘 Objetivo
+## Objetivo
 
 Desenvolver um script em Python que:
 - Armazene dados coletados de sensores simulados (via ESP32) em um banco Oracle
@@ -26,7 +26,7 @@ Desenvolver um script em Python que:
 
 ---
 
-## 🧩 Estrutura da Tabela Oracle
+## Estrutura da Tabela Oracle
 
 ```sql
 CREATE TABLE leituras_sensores (
@@ -42,7 +42,7 @@ CREATE TABLE leituras_sensores (
 
 ---
 
-## 🔎 Justificativa da Estrutura
+## Justificativa da Estrutura
 
 A estrutura da tabela representa diretamente os sensores conectados ao ESP32:
 
@@ -59,7 +59,7 @@ O campo `timestamp` é a **chave primária**, garantindo unicidade e rastreabili
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - Python 3.10+
 - Oracle Database XE
@@ -111,7 +111,7 @@ python crud_v2.py
 
 ---
 
-## 🧪 Exemplo de Execução (Menu)
+## Exemplo de Execução (Menu)
 
 ```text
 ================ MENU CRUD - BANCO ORACLE ================
@@ -127,7 +127,7 @@ python crud_v2.py
 
 ---
 
-## 🧠 Observações
+## Observações
 
 - Todos os dados inseridos manualmente são validados (faixa de pH, umidade, etc.)
 - O campo `timestamp` deve ser único
@@ -135,7 +135,7 @@ python crud_v2.py
 
 ---
 
-## ✅ Status da Entrega
+## Status da Entrega
 
 ✔️ Estrutura do banco implementada  
 ✔️ CRUD funcional  
