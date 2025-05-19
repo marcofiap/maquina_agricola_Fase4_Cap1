@@ -46,7 +46,7 @@ O objetivo geral deste projeto é desenvolver um sistema de irrigação intelige
 - LED indica status da irrigacao
 - Logica em C++ com comentarios explicativos
 
-Imagem do circuito:  
+**Imagem do circuito:**  
 
 ![ComponentesEletronicos](https://github.com/user-attachments/assets/33abfdf9-1e6f-42ba-a6a6-be4ee1a2a69a)
 
