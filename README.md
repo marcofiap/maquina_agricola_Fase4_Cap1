@@ -62,6 +62,17 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ---
 
+## Melhoria Futura Implementável – Irrigação Preditiva
+
+O sistema pode evoluir para incorporar uma lógica **inteligente de desligamento automático da bomba**, com base na **quantidade de chuva prevista** (em milímetros) nas próximas horas.
+
+### Exemplo de lógica:
+- Se a previsão for ≥ 3.0 mm de chuva nas próximas 3h → alerta visual para não irrigar
+
+Essa abordagem torna o sistema **ainda mais eficiente**, evitando irrigação desnecessária e otimizando o uso da água com base em dados climáticos reais.
+
+---
+
 ## Projeto desenvolvido para avaliação na FIAP  
 **Curso:** Tecnólogo em Inteligência Artificial  
 **Grupo 58**  
