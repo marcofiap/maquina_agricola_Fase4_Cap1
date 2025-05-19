@@ -109,8 +109,7 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 O código responsável pela leitura dos sensores, lógica de irrigação e comunicação com o servidor está disponível na pasta:
 
- [`programa_esp32.ino`](./entrega_1/src/programa_esp32.ino)
-
+  [Código do ESP32 – programa_esp32.ino](./entrega_1/src/programa_esp32.ino)
 
 - Os valores dos sensores são exibidos localmente no **display OLED**.
 - Dados são enviados via `HTTP GET` para o servidor Flask.
