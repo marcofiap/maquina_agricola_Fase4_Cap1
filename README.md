@@ -75,10 +75,10 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 ![ComponentesEletronicos](https://github.com/user-attachments/assets/d4cb7f36-a7ce-4803-af37-cd8949f2ffbd)
 
 - Visão geral do projeto montado.
+  
 ![CircuitoMontadoSimulador](https://github.com/user-attachments/assets/7d1bc44a-0881-43e7-bbf6-208411a68dbc)
 
-## Visão Geral do Sistema
-
+## Visão Geral do Sistema Dashboard
 ![Visão completa do dashboard](Ir%20Alem1_2/Dashboard_API_Metereologica/Imagens/DashboardFuncioando.png)
 
 ---
