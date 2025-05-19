@@ -68,7 +68,7 @@ O campo `timestamp` é a **chave primária**, garantindo unicidade e rastreabili
 
 ---
 
-## 📁 Arquivo principal
+## Arquivo principal
 
 - [`crud_v2.py`](./crud_v2.py)
 
@@ -76,7 +76,7 @@ Este script contém o menu interativo e as funções para manipulação dos dado
 
 ---
 
-## 📋 Funcionalidades CRUD
+## Funcionalidades CRUD
 
 | Operação | Descrição |
 |----------|-----------|
@@ -88,7 +88,7 @@ Este script contém o menu interativo e as funções para manipulação dos dado
 
 ---
 
-## ▶️ Como Executar
+## Como Executar
 
 1. Certifique-se que o Oracle DB esteja ativo.
 2. Instale a biblioteca necessária:
@@ -137,11 +137,11 @@ python crud_v2.py
 
 ## Status da Entrega
 
-✔️ Estrutura do banco implementada  
-✔️ CRUD funcional  
-✔️ Consulta por umidade adicionada  
-✔️ Validações básicas implementadas  
-✔️ Pronto para integração com outros módulos
+✔ Estrutura do banco implementada  
+✔ CRUD funcional  
+✔ Consulta por umidade adicionada  
+✔ Validações básicas implementadas  
+✔ Pronto para integração com outros módulos
 
 ---
 
