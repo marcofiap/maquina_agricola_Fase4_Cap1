@@ -1,0 +1,7 @@
+"","  timestamp","   umidade"," temperatura","      ph","  fosforo","  potassio","bomba_dagua"
+"","Min.   :2025-05-18 19:59:56.00  ","Min.   :25.5  ","Min.   :-32.20  ","Min.   :3  ","Length:567        ","Length:567        ","Length:567        "
+"","1st Qu.:2025-05-18 20:28:26.00  ","1st Qu.:27.5  ","1st Qu.: 24.00  ","1st Qu.:3  ","Class :character  ","Class :character  ","Class :character  "
+"","Median :2025-05-18 23:01:24.00  ","Median :34.5  ","Median : 24.00  ","Median :3  ","Mode  :character  ","Mode  :character  ","Mode  :character  "
+"","Mean   :2025-05-18 21:50:49.53  ","Mean   :32.5  ","Mean   : 28.79  ","Mean   :3  ",NA,NA,NA
+"","3rd Qu.:2025-05-18 23:07:13.00  ","3rd Qu.:34.5  ","3rd Qu.: 36.80  ","3rd Qu.:3  ",NA,NA,NA
+"","Max.   :2025-05-18 23:13:01.00  ","Max.   :53.0  ","Max.   : 62.30  ","Max.   :3  ",NA,NA,NA
