@@ -1,3 +1,6 @@
+# Entrega 2 – Banco de Dados com Python e Oracle  
+### Projeto Fase 3 – FarmTech Solutions | FIAP
+
 Esta entrega tem como foco o armazenamento dos dados coletados pela máquina agrícola inteligente em um banco de dados Oracle. Através de um script em Python, é possível realizar todas as operações CRUD (Create, Read, Update, Delete), simulando a persistência dos dados recebidos do ESP32.
 
 ---
@@ -76,12 +79,6 @@ Este script contém o menu interativo e as funções para manipulação dos dado
 
 ---
 
-## Visualização da Tabela no Oracle
-
-A imagem abaixo mostra os dados inseridos com sucesso na tabela `LEITURAS_SENSORES`:
-
-![BancoDeDadosLeituraSensor](https://github.com/user-attachments/assets/4bcd862a-1a5d-448b-a265-39b659f345de)
-
 ## Funcionalidades CRUD
 
 | Operação | Descrição |
@@ -152,3 +149,21 @@ python crud_v2.py
 ---
 
 
+---
+
+## Relacionamento com o MER da Fase 2
+
+A estrutura da tabela `LEITURAS_SENSORES` foi inspirada na entidade `LeituraSensor` do Modelo Entidade-Relacionamento (MER) da Fase 2, com os seguintes mapeamentos:
+
+| Campo no MER         | Campo no Banco (Entrega 2)   | Observações                     |
+|----------------------|------------------------------|----------------------------------|
+| DataHoraLeitura      | timestamp                    | ✔️ Chave primária local           |
+| ValorUmidade         | umidade                      | ✔️ Valor numérico direto          |
+| ValorpH              | ph                           | ✔️ Simulado via sensor LDR        |
+| ValorFosforo         | fosforo                      | ⚠️ Presente/ausente (booleano)    |
+| ValorPotassio        | potassio                     | ⚠️ Presente/ausente (booleano)    |
+| ID_Leitura           | —                            | 🔴 Não implementado               |
+| ID_Sensor            | —                            | 🔴 Não implementado               |
+| ID_Plantio           | —                            | 🔴 Não implementado               |
+
+> **Nota:** Esta entrega tem foco em simular e armazenar dados sensoriais em uma estrutura funcional e simples. A normalização completa e a integração com outras entidades do MER (como `Plantio`, `Sensor`, `Talhão`) podem ser incorporadas em uma versão futura, com maior granularidade de dados e controle relacional.
