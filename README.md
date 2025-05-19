@@ -86,7 +86,8 @@ Essa abordagem torna o sistema **ainda mais eficiente**, evitando irrigação de
 **Curso:** Tecnólogo em Inteligência Artificial  
 **Grupo 58**  
 - Professores: André Godoi
-- Tutor: Leonardo Ruiz Orabona 
+- Tutor: Leonardo Ruiz Orabona
+  
 **Integrantes:**
 - Felipe Sabino da Silva  
 - Juan Felipe Voltolini  
