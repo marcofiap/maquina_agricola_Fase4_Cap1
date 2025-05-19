@@ -77,7 +77,7 @@ O dashboard desenvolvido em Dash apresenta dados atualizados dos sensores e esta
 
 Ao detectar previsão de chuva, o operador pode desligar a bomba manualmente por meio do botão físico no ESP32:
 
-![Operador reage ao alerta de chuva e desliga bomba](imagens/acao_manual_esp32.png)
+![AposMSGdeAlertaDashbBotaoESP32PressionadoDesligBombaMSGMonitorSerial](https://github.com/user-attachments/assets/6c9088ca-e051-44cd-a1bb-7ca3ce09d540)
 
 ---
 
