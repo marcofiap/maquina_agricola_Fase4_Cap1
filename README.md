@@ -46,12 +46,6 @@ O objetivo geral deste projeto é desenvolver um sistema de irrigação intelige
 - LED indica status da irrigacao
 - Logica em C++ com comentarios explicativos
 
-**Imagem do circuito:**  
-
-![ComponentesEletronicos](https://github.com/user-attachments/assets/33abfdf9-1e6f-42ba-a6a6-be4ee1a2a69a)
-
-![CircuitoMontadoSimulador](https://github.com/user-attachments/assets/97423c93-470f-4d61-950f-be215e9e5520)
-
 ---
 
 ## Entrega 2 – Banco de Dados e CRUD em Python
@@ -122,4 +116,15 @@ if previsao_chuva > 0:
 ---
 
 ## Autores
+**Grupo 58 – FIAP**  
+*Integrantes:*
+- Felipe Sabino da Silva  
+- Juan Felipe Voltolini  
+- Luiz Henrique Ribeiro de Oliveira  
+- Marco Aurélio Eberhardt Assimpção  
+- Paulo Henrique Senise 
+
+**Professores:**  
+- Tutor: Leonardo Ruiz Orabona  
+- Coordenador: André Godoi
 
