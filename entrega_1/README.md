@@ -52,11 +52,12 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 > (📷 Substitua os links abaixo por imagens salvas na pasta `/imagens/` no seu repositório)
 
-- Sensor LDR simula o pH
-- DHT22 simula temperatura e umidade
-- Botões simulam fósforo e potássio
-- Relé simulado por LED vermelho
-- Display OLED exibe os dados
+- LDR é um sensor eletrônico
+- DHT22 é um sensor eletrônico
+- Botões(amarelo e azul) pushbotom
+- Botão(verde) pushbotom
+- Relé simulado por LED vermelho 
+- Display OLED 
 
 ---
 
