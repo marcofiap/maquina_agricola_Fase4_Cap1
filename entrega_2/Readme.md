@@ -143,11 +143,11 @@ python crud_v2.py
 
 ## Status da Entrega
 
-✔ Estrutura do banco implementada  
-✔ CRUD funcional  
-✔ Consulta por umidade adicionada  
-✔ Validações básicas implementadas  
-✔ Pronto para integração com outros módulos
+- Estrutura do banco implementada  
+- CRUD funcional  
+- Consulta por umidade adicionada  
+- Validações básicas implementadas  
+- Pronto para integração com outros módulos
 
 ---
 
