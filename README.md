@@ -27,7 +27,6 @@ O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artifi
   - Alerta visual de chuva com suporte a decisão manual
 
 -  [Análise Estatística e Preditiva (R)](./Analise_Estatistica/)
-  - [`analise_farmtech.Rmd`](./Analise_Estatistica/analise_farmtech.Rmd)
   - Estatísticas descritivas, boxplots, séries temporais com ARIMA
   - Previsão de umidade futura baseada em dados do banco
 
