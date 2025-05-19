@@ -109,7 +109,7 @@ DB_DSN = "localhost:1521/xe"
 
 4. Execute:
 ```bash
-python crud_v2.py
+python crud_simulador_oracle.py
 ```
 
 ---
