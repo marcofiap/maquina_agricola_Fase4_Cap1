@@ -59,8 +59,13 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 - Integração com API meteorológica  
 - Dashboard funcional com gráficos, alertas e automações  
 - Documentação completa para cada entrega
+- Análise estatística em R
 
 ---
+
+# Análise Estatística e Preditiva – FarmTech Solutions
+
+[Análise Estatística e Previsão (R)](./Analise_Estatistica/)
 
 ## Melhoria Futura Implementável – Irrigação Preditiva
 
