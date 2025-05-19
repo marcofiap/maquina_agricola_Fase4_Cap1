@@ -9,7 +9,6 @@
 
 ## Sumario do Projeto
 
-- [Objetivo Geral](#objetivo-geral)
 - [Descricao do Projeto](#descricao-do-projeto)
 - [Entrega 1 – Controle com ESP32](#entrega-1--controle-com-esp32)
 - [Entrega 2 – Banco de Dados e CRUD em Python](#entrega-2--banco-de-dados-e-crud-em-python)
@@ -26,12 +25,6 @@
 Este projeto simula um sistema de **irrigacao agricola inteligente**, utilizando sensores fisicos (ou simulados) conectados a um ESP32. O sistema monitora parametros como **umidade, pH e presenca de nutrientes (Fosforo e Potassio)**. A bomba de irrigacao é acionada automaticamente de acordo com a logica implementada.
 
 Alem disso, os dados sao armazenados em um **banco de dados relacional Oracle**, visualizados por meio de uma **dashboard Python**, e o sistema se conecta a uma **API meteorologica** para tomada de decisoes mais inteligentes.
-
----
-
-## Objetivo Geral
-
-O objetivo geral deste projeto é desenvolver um sistema de irrigação com base em sensores ambientais simulados. O sistema deve ser capaz de acionar automaticamente uma bomba de irrigação conforme condições do solo, com integração a banco de dados e suporte a visualização por dashboard e clima em tempo real.
 
 ---
 
