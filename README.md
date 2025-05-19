@@ -11,12 +11,12 @@ O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artifi
 
 ## Sumário do Projeto
 
-- [Descrição do Projeto](#descricao-do-projeto)
+- [Descricao do Projeto](#descricao-do-projeto)
 - [Entrega 1 – Controle com ESP32](#entrega-1--controle-com-esp32)
 - [Entrega 2 – Banco de Dados e CRUD em Python](#entrega-2--banco-de-dados-e-crud-em-python)
-- [Ir Além – Dashboard Interativo](#ir-alem--dashboard-interativo)
-- [Ir Além – Integração com API Climática](#ir-alem--integracao-com-api-climatica)
-- [Demonstração em Vídeo](#demonstracao-em-video)
+- [Ir Alem – Dashboard Interativo](#ir-alem--dashboard-interativo)
+- [Ir Alem – Integracao com API Climatica](#ir-alem--integracao-com-api-climatica)
+- [Demonstracao em Video](#demonstracao-em-video)
 - [Tecnologias Utilizadas](#tecnologias-utilizadas)
 - [Como Executar](#como-executar)
 - [Autores](#autores)
