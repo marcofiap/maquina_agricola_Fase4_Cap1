@@ -15,7 +15,6 @@
 - [Entrega 2 – Banco de Dados e CRUD em Python](#entrega-2--banco-de-dados-e-crud-em-python)
 - [Ir Alem – Dashboard Interativo](#ir-alem--dashboard-interativo)
 - [Ir Alem – Integracao com API Climatica](#ir-alem--integracao-com-api-climatica)
-- [Demonstracao em Video](#demonstracao-em-video)
 - [Tecnologias Utilizadas](#tecnologias-utilizadas)
 - [Como Executar](#como-executar)
 - [Autores](#autores)
