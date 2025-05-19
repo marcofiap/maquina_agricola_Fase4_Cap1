@@ -15,8 +15,8 @@ Esta entrega tem como foco o armazenamento dos dados coletados pela máquina agr
 - Paulo Henrique Senise  
 
 **Professores:**  
-- Tutor(a): Leonardo Ruiz Orabona  
-- Coordenador(a): André Godoi
+- Tutor: Leonardo Ruiz Orabona  
+- Coordenador: André Godoi
 
 ---
 
