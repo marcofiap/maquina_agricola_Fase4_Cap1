@@ -73,7 +73,7 @@ O campo `timestamp` é a **chave primária**, garantindo unicidade e rastreabili
 
 ## Arquivo principal
 
-- [`crud_v2.py`](./crud_v2.py)
+- [`crud_simulador_oracle.py`]
 
 Este script contém o menu interativo e as funções para manipulação dos dados no banco.
 
