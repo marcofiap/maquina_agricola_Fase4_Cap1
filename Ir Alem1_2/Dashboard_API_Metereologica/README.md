@@ -69,7 +69,7 @@ API_KEY = "SUA_CHAVE_AQUI"
 
 O dashboard desenvolvido em Dash apresenta dados atualizados dos sensores e estado da bomba:
 
-![Dashboard com alerta de chuva](imagens/dashboard_alerta_chuva.png)
+![MensagemAlertaChuvaDashboard](https://github.com/user-attachments/assets/c8139400-eb5f-4c6e-b601-fdb806f940aa)
 
 ---
 
@@ -85,7 +85,7 @@ Ao detectar previsão de chuva, o operador pode desligar a bomba manualmente por
 
 Abaixo, a visão geral do dashboard, exibindo todos os recursos implementados:
 
-![Visão completa do dashboard](imagens/dashboard_completo.png)
+![DashboardFuncioando](https://github.com/user-attachments/assets/cc48b61f-b78b-4f4d-9f4f-57e0580d2e50)
 
 ---
 
