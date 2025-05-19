@@ -7,19 +7,19 @@ Além disso, os dados dos sensores são enviados via HTTP a um backend Python qu
 
 ---
 
-## 📑 Índice
+## Índice
 
-- [👥 Grupo](#-grupo)
-- [📘 Visão Geral](#-visão-geral-do-projeto)
-- [🔌 Circuito Wokwi](#-circuito-wokwi)
-- [🔧 Componentes](#-componentes-utilizados)
-- [⚙️ Conexões](#-conexões)
-- [💧 Lógica de Controle](#-lógica-de-controle-da-bomba-de-irrigação)
-- [📁 Código](#-código-cc)
+- [ Grupo](#-grupo)
+- [ Visão Geral](#-visão-geral-do-projeto)
+- [ Circuito Wokwi](#-circuito-wokwi)
+- [ Componentes](#-componentes-utilizados)
+- [ Conexões](#-conexões)
+- [ Lógica de Controle](#-lógica-de-controle-da-bomba-de-irrigação)
+- [ Código](#-código-cc)
 
 ---
 
-## 👥 Grupo
+## Grupo
 
 **Grupo 58 – FIAP**  
 *Integrantes:*
@@ -35,7 +35,7 @@ Além disso, os dados dos sensores são enviados via HTTP a um backend Python qu
 
 ---
 
-## 📘 Visão Geral do Projeto
+## Visão Geral do Projeto
 
 O sistema realiza:
 - Leitura da **umidade do solo**, **pH**, **fósforo** e **potássio**.
@@ -46,11 +46,11 @@ O sistema realiza:
 
 ---
 
-## 🔌 Circuito Wokwi
+## Circuito Wokwi
 
 O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). As imagens abaixo mostram os sensores e botões simulados em ação:
 
-> (📷 Substitua os links abaixo por imagens salvas na pasta `/imagens/` no seu repositório)
+
 
 - LDR é um sensor eletrônico
 - DHT22 é um sensor eletrônico
@@ -61,7 +61,7 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 ---
 
-## 🔧 Componentes Utilizados
+## Componentes Utilizados
 
 | Componente        | Função                                  |
 |-------------------|------------------------------------------|
@@ -75,7 +75,7 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 ---
 
-## ⚙️ Conexões
+## Conexões
 
 | Componente            | Pino do ESP32  |
 |-----------------------|----------------|
@@ -89,7 +89,7 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 ---
 
-## 💧 Lógica de Controle da Bomba de Irrigação
+## Lógica de Controle da Bomba de Irrigação
 
 ### 1. **Automático (baseado na umidade)**
 - **Se** umidade < 40% → **Liga** a bomba.
@@ -105,11 +105,11 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 ---
 
-## 📁 Código C/C++
+## Código C/C++
 
 O código responsável pela leitura dos sensores, lógica de irrigação e comunicação com o servidor está disponível na pasta:
 
-📂 [`src/programa_esp32`](./src/programa_esp32)
+ [`src/programa_esp32`](./src/programa_esp32)
 
 - Os valores dos sensores são exibidos localmente no **display OLED**.
 - Dados são enviados via `HTTP GET` para o servidor Flask.
