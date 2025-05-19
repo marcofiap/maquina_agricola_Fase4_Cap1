@@ -76,6 +76,12 @@ Este script contém o menu interativo e as funções para manipulação dos dado
 
 ---
 
+## Visualização da Tabela no Oracle
+
+A imagem abaixo mostra os dados inseridos com sucesso na tabela `LEITURAS_SENSORES`:
+
+![BancoDeDadosLeituraSensor](https://github.com/user-attachments/assets/4bcd862a-1a5d-448b-a265-39b659f345de)
+
 ## Funcionalidades CRUD
 
 | Operação | Descrição |
