@@ -86,7 +86,7 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ---
 
-## Lógica Atual e Possível Evolução – Irrigação Preditiva
+## Previsões Climática - Lógica Atual e Possível Evolução – Irrigação Preditiva
 Atualmente, o sistema já possui uma lógica inteligente de desligamento da bomba em caso de previsão de chuva, com base em dados climáticos consultados via API.
 Se a bomba estiver ligada e houver previsão de chuva, um alerta visual é acionado e a bomba é desligada automaticamente.
 
