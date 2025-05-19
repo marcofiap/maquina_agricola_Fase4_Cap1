@@ -33,17 +33,20 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 | Pasta                   | Conteúdo                                                  |
 |-------------------------|-----------------------------------------------------------|
 | `Analise_Estatistica/`  | Código R, Análise média, media, desvio padrão, previsão   |
+| `Ir Alem1_2/`           | Dashboard interativo em Python + integração com a API     |
+| `Servidor_Local/`       | Código Python, rodar servidor com biblioteca Flask        |
 | `entrega_1/`            | Código C++ do ESP32, lógica de sensores, display, relé    |
 | `entrega_2/`            | Script Python com operações CRUD em banco Oracle          |
-| `Ir Alem1_2/`           | Dashboard interativo em Python + integração com a API     |
+
 
 ---
 
 ## Acesse cada parte do projeto:
 
+-  [Análise Estatística – Dados Oracle](./Analise_Estatistica/)
 -  [Entrega 1 – ESP32 e sensores simulados](./entrega_1/)
 -  [Entrega 2 – Banco de dados e CRUD Oracle](./entrega_2/)
--  [Entrega 3 – Dashboard com clima em tempo real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
+-  [Ir Além 1 e 2 – Dashboard com clima em tempo real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
 
 ---
 
