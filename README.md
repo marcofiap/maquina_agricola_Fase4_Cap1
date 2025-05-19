@@ -42,7 +42,7 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 - 📦 [Entrega 1 – ESP32 e sensores simulados](./entrega_1/)
 - 💾 [Entrega 2 – Banco de dados e CRUD Oracle](./entrega_2/)
-- 📊 [Entrega 3 – Dashboard com clima em tempo real](./entrega_3/)
+- 📊 [Entrega 3 – Dashboard com clima em tempo real](./Ir%Alem1_2/)
 
 ---
 
