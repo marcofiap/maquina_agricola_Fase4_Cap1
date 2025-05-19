@@ -21,7 +21,7 @@ O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artifi
   - Operações de inserção, consulta, atualização e remoção
   - Estrutura da tabela relacionada ao MER da Fase 2
 
--  [Entrega 3 – Dashboard com API de Clima em Tempo Real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
+-  [Ir Além 1 e 2 – Dashboard com API de Clima em Tempo Real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
   - [`dashboard.py`](./Ir%20Alem1_2/Dashboard_API_Metereologica/dashboard.py)
   - Gráficos de sensores, status da bomba, clima em tempo real (OpenWeatherMap)
   - Alerta visual de chuva com suporte a decisão manual
