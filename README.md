@@ -2,7 +2,6 @@
 # FarmTech Solutions – Sistema de Irrigação Inteligente
 
 Este repositório apresenta o desenvolvimento completo de um sistema de **agricultura digital inteligente**.
-Monitoramento agrícola com sensores simulados, controle automatizado via ESP32, banco de dados Oracle, dashboard em Python e análise preditiva em R.
 O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artificial na FIAP.
 
 ![Status do Projeto](https://img.shields.io/badge/Entrega%20Concluída-100%25-green)
