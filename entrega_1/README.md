@@ -75,6 +75,17 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 ---
 
+## Imagens do Projeto Eletrônico
+
+- Detalhes individuais dos componentes utilizados no circuito simulador wokwi.
+![ComponentesEletronicos](https://github.com/user-attachments/assets/d4cb7f36-a7ce-4803-af37-cd8949f2ffbd)
+
+- Visão geral do projeto montado.
+  
+![CircuitoMontadoSimulador](https://github.com/user-attachments/assets/7d1bc44a-0881-43e7-bbf6-208411a68dbc)
+
+---
+
 ## Conexões
 
 | Componente            | Pino do ESP32  |
