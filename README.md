@@ -101,7 +101,7 @@ Essa evolução tornaria o sistema ainda mais eficiente, evitando irrigação de
 
 ---
 
-## Projeto desenvolvido para avaliação na FIAP  
+## Projeto Desenvolvido para Avaliação na FIAP  
 **Curso:** Tecnólogo em Inteligência Artificial  
 **Grupo 58**  
 - Professores: André Godoi
