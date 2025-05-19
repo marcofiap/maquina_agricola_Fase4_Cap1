@@ -64,7 +64,9 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ## Projeto desenvolvido para avaliação na FIAP  
 **Curso:** Tecnólogo em Inteligência Artificial  
-**Grupo 58** – Professores: Leonardo Ruiz Orabona / André Godoi  
+**Grupo 58**  
+- Professores: André Godoi
+- Tutor: Leonardo Ruiz Orabona 
 **Integrantes:**
 - Felipe Sabino da Silva  
 - Juan Felipe Voltolini  
