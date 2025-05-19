@@ -44,9 +44,9 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 ## Acesse cada parte do projeto:
 
 -  [Análise Estatística – Dados Oracle](./Analise_Estatistica/)
--  [Entrega 1 – ESP32 e sensores simulados](./entrega_1/)
--  [Entrega 2 – Banco de dados e CRUD Oracle](./entrega_2/)
--  [Ir Além 1 e 2 – Dashboard com clima em tempo real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
+-  [Entrega 1 – ESP32 e Sensores Simulados](./entrega_1/)
+-  [Entrega 2 – Banco de Dados e CRUD Oracle](./entrega_2/)
+-  [Ir Além 1 e 2 – Dashboard com Clima em Tempo Real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
 
 ---
 
