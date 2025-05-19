@@ -1,10 +1,10 @@
-# 🌾 FarmTech Solutions – Sistema de Irrigação Inteligente com ESP32, Python e Clima em Tempo Real
+# FarmTech Solutions – Sistema de Irrigação Inteligente com ESP32, Python e Clima em Tempo Real
 
 Este repositório apresenta o desenvolvimento completo de um sistema de **agricultura digital inteligente**, com sensores simulados, banco de dados Oracle, API de clima e visualização interativa. O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artificial na FIAP.
 
 ---
 
-## 🎯 Objetivo Geral
+## Objetivo Geral
 
 Criar uma solução completa de **irrigação inteligente**, capaz de:
 
@@ -16,7 +16,7 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **ESP32** (simulado com Wokwi)
 - **C/C++** com PlatformIO (VS Code)
@@ -28,7 +28,7 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ---
 
-## 📂 Estrutura do Repositório
+## Estrutura do Repositório
 
 | Pasta        | Conteúdo                                                  |
 |--------------|-----------------------------------------------------------|
@@ -38,31 +38,31 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ---
 
-## 🔗 Acesse cada parte do projeto:
+## Acesse cada parte do projeto:
 
-- 📦 [Entrega 1 – ESP32 e sensores simulados](./entrega_1/)
-- 💾 [Entrega 2 – Banco de dados e CRUD Oracle](./entrega_2/)
-- 📊 [Entrega 3 – Dashboard com clima em tempo real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
+-  [Entrega 1 – ESP32 e sensores simulados](./entrega_1/)
+-  [Entrega 2 – Banco de dados e CRUD Oracle](./entrega_2/)
+-  [Entrega 3 – Dashboard com clima em tempo real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
 
 ---
 
-## 🖼️ Visão Geral do Sistema
+## Visão Geral do Sistema
 
 ![Visão completa do dashboard](Ir%20Alem1_2/Dashboard_API_Metereologica/Imagens/DashboardFuncioando.png)
 
 ---
 
-## ✅ Status do Projeto
+## Status do Projeto
 
-✔️ Circuito funcional com sensores simulados  
-✔️ CRUD completo com armazenamento em banco Oracle  
-✔️ Integração com API meteorológica  
-✔️ Dashboard funcional com gráficos, alertas e automações  
-✔️ Documentação completa para cada entrega
+- Circuito funcional com sensores simulados  
+- CRUD completo com armazenamento em banco Oracle  
+- Integração com API meteorológica  
+- Dashboard funcional com gráficos, alertas e automações  
+- Documentação completa para cada entrega
 
 ---
 
-## 👨‍🏫 Projeto desenvolvido para avaliação na FIAP  
+## Projeto desenvolvido para avaliação na FIAP  
 **Curso:** Tecnólogo em Inteligência Artificial  
 **Grupo 58** – Professores: Leonardo Ruiz Orabona / André Godoi  
 **Integrantes:**
