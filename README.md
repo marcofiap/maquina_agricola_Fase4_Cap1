@@ -31,7 +31,7 @@ Alem disso, os dados sao armazenados em um **banco de dados relacional Oracle**,
 
 ## Objetivo Geral
 
-O objetivo geral deste projeto é desenvolver um sistema de irrigação inteligente com base em sensores ambientais simulados. O sistema deve ser capaz de acionar automaticamente uma bomba de irrigação conforme condições do solo, com integração a banco de dados e suporte a visualização por dashboard e clima em tempo real.
+O objetivo geral deste projeto é desenvolver um sistema de irrigação com base em sensores ambientais simulados. O sistema deve ser capaz de acionar automaticamente uma bomba de irrigação conforme condições do solo, com integração a banco de dados e suporte a visualização por dashboard e clima em tempo real.
 
 ---
 
