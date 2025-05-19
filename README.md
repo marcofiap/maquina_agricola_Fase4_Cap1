@@ -1,4 +1,3 @@
-
 # FarmTech Solutions – Sistema de Irrigação Inteligente
 
 Este repositório apresenta o desenvolvimento completo de um sistema de **agricultura digital inteligente**.
@@ -9,6 +8,30 @@ O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artifi
 ![Banco de Dados](https://img.shields.io/badge/Oracle-CRUD-blue)
 ![Dashboard](https://img.shields.io/badge/Visualização-Dash%20%2B%20API-orange)
 ![Análise Preditiva](https://img.shields.io/badge/Análise%20Preditiva-R%20%2B%20Séries%20Temporais-blueviolet)
+
+## Sumário do Projeto
+
+-  [Entrega 1 – Sensores e Controle com ESP32](./entrega_1/)
+  - [`programa_esp32.ino`](./entrega_1/src/programa_esp32.ino) – Código principal
+  - Lógica de irrigação automática com sensores simulados (umidade, pH, P, K)
+  - Controle do relé e display OLED com alertas
+
+-  [Entrega 2 – Banco de Dados Oracle com CRUD em Python](./entrega_2/)
+  - [`crud_simulador_oracle.py`](./entrega_2/crud_simulador_oracle.py)
+  - Operações de inserção, consulta, atualização e remoção
+  - Estrutura da tabela relacionada ao MER da Fase 2
+
+-  [Entrega 3 – Dashboard com API de Clima em Tempo Real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
+  - [`dashboard.py`](./Ir%20Alem1_2/Dashboard_API_Metereologica/dashboard.py)
+  - Gráficos de sensores, status da bomba, clima em tempo real (OpenWeatherMap)
+  - Alerta visual de chuva com suporte a decisão manual
+
+-  [Análise Estatística e Preditiva (R)](./Analise_Estatistica/)
+  - [`analise_farmtech.Rmd`](./Analise_Estatistica/analise_farmtech.Rmd)
+  - Estatísticas descritivas, boxplots, séries temporais com ARIMA
+  - Previsão de umidade futura baseada em dados do banco
+
+---
 
 ## Objetivo Geral
 
