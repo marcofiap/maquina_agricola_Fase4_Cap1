@@ -11,24 +11,15 @@ O projeto foi desenvolvido como parte da Fase 3 do curso de Inteligência Artifi
 
 ## Sumário do Projeto
 
--  [Entrega 1 – Sensores e Controle com ESP32](./entrega_1/)
-  - [`programa_esp32.ino`](./entrega_1/src/programa_esp32.ino) – Código principal
-  - Lógica de irrigação automática com sensores simulados (umidade, pH, P, K)
-  - Controle do relé e display OLED com alertas
-
--  [Entrega 2 – Banco de Dados Oracle com CRUD em Python](./entrega_2/)
-  - [`crud_simulador_oracle.py`](./entrega_2/crud_simulador_oracle.py)
-  - Operações de inserção, consulta, atualização e remoção
-  - Estrutura da tabela relacionada ao MER da Fase 2
-
--  [Ir Além 1 e 2 – Dashboard com API de Clima em Tempo Real](./Ir%20Alem1_2/Dashboard_API_Metereologica/)
-  - [`dashboard.py`](./Ir%20Alem1_2/Dashboard_API_Metereologica/dashboard.py)
-  - Gráficos de sensores, status da bomba, clima em tempo real (OpenWeatherMap)
-  - Alerta visual de chuva com suporte a decisão manual
-
--  [Análise Estatística e Preditiva (R)](./Analise_Estatistica/)
-  - Estatísticas descritivas, boxplots, séries temporais com ARIMA
-  - Previsão de umidade futura baseada em dados do banco
+- [Descrição do Projeto](#descrição-do-projeto)
+- [Entrega 1 – Controle com ESP32](#entrega-1--controle-com-esp32)
+- [Entrega 2 – Banco de Dados e CRUD em Python](#entrega-2--banco-de-dados-e-crud-em-python)
+- [Ir Além – Dashboard Interativo](#ir-além--dashboard-interativo)
+- [Ir Além – Integração com API Climática](#ir-além--integração-com-api-climática)
+- [Demonstração em Vídeo](#demonstração-em-vídeo)
+- [Tecnologias Utilizadas](#tecnologias-utilizadas)
+- [Como Executar](#como-executar)
+- [Autores](#autores)
 
 ---
 
