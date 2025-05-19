@@ -61,7 +61,11 @@ A estrutura da tabela representa diretamente os sensores conectados ao ESP32:
 O campo `timestamp` é a **chave primária**, garantindo unicidade e rastreabilidade das leituras no tempo.
 
 ---
+## Imagem da Tabela Oracle no Banco de Dados
+- Dados coletados e inseridos conforme estrume MER da Fase 2
 
+  ![BancoDeDadosLeituraSensor](https://github.com/user-attachments/assets/6795aeb3-fa9b-4b57-92b4-9d5178d2099f)
+ 
 ## Tecnologias Utilizadas
 
 - Python 3.10+
