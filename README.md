@@ -59,13 +59,13 @@ Criar uma solução completa de **irrigação inteligente**, capaz de:
 
 ## Estrutura do Repositório
 
-| Pasta                   | Conteúdo                                                  |
-|-------------------------|-----------------------------------------------------------|
-| `Analise_Estatistica/`  | Código R, Análise média, media, desvio padrão, previsão   |
-| `Ir Alem1_2/`           | Dashboard interativo em Python + integração com a API     |
-| `Servidor_Local/`       | Código Python, rodar servidor com biblioteca Flask        |
-| `entrega_1/`            | Código C++ do ESP32, lógica de sensores, display, relé    |
-| `entrega_2/`            | Script Python com operações CRUD em banco Oracle          |
+| Pasta                   | Conteúdo                                                                                        |
+|-------------------------|-------------------------------------------------------------------------------------------------|
+| `Analise_Estatistica/`  | Códigos em R para análise descritiva (média, desvio padrão) e preditiva (modelos de previsão)   |
+| `Ir Alem1_2/`           | Dashboard interativo em Python + integração com a API                                           |
+| `Servidor_Local/`       | Código Python, rodar servidor com biblioteca Flask                                              |
+| `entrega_1/`            | Código C++ do ESP32, lógica de sensores, display, relé                                          |
+| `entrega_2/`            | Script Python com operações CRUD em banco Oracle                                                |
 
 
 ---
