@@ -51,6 +51,6 @@ install.packages(c("readr", "dplyr", "ggplot2", "lubridate", "forecast"))
 
 ---
 
-Grupo 58 – FIAP  
+Grupo 65 – FIAP  
 Projeto Integrador Fase 3 | Inteligência Artificial
 
