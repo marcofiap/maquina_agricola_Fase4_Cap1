@@ -156,7 +156,7 @@ Você deve substituir o IP `192.168.0.12` pelo **seu IP local** (da máquina que
 ### Exemplo atualizado no código:
 
 ```cpp
-String serverAddress = "http://192.168.0.21:8000/data?" + sensorData;
+String serverAddress = "http://192.168.0.15:8000/data?" + sensorData;
 ```
 
 Com isso, o envio de dados para o backend funcionará corretamente via `HTTP GET.
