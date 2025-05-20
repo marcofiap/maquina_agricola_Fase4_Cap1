@@ -21,13 +21,13 @@ Além disso, os dados dos sensores são enviados via HTTP a um backend Python qu
 
 ## Grupo
 
-**Grupo 58 – FIAP**  
+**Grupo 65 – FIAP**  
 *Integrantes:*
 - Felipe Sabino da Silva  
 - Juan Felipe Voltolini  
 - Luiz Henrique Ribeiro de Oliveira  
 - Marco Aurélio Eberhardt Assimpção  
-- **Paulo Henrique Senise**  
+- Paulo Henrique Senise  
 
 *Professores:*  
 - Tutor: Leonardo Ruiz Orabona  
@@ -51,7 +51,6 @@ O sistema realiza:
 O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). As imagens abaixo mostram os sensores e botões simulados em ação:
 
 
-
 - LDR é um sensor eletrônico
 - DHT22 é um sensor eletrônico
 - Botões(amarelo e azul) pushbotom
@@ -63,8 +62,8 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 ## Componentes Utilizados
 
-| Componente        | Função                                  |
-|-------------------|------------------------------------------|
+| Componente        | Função                                    |
+|-------------------|-------------------------------------------|
 | **ESP32**         | Microcontrolador principal                |
 | **DHT22**         | Sensor de temperatura e umidade           |
 | **LDR**           | Simula leitura de pH                      |
@@ -81,7 +80,7 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 ![ComponentesEletronicos](https://github.com/user-attachments/assets/d4cb7f36-a7ce-4803-af37-cd8949f2ffbd)
 
 - Visão geral do projeto montado.
-  
+
 ![CircuitoMontadoSimulador](https://github.com/user-attachments/assets/7d1bc44a-0881-43e7-bbf6-208411a68dbc)
 
 ---
@@ -116,6 +115,8 @@ O projeto foi montado e testado no simulador online [Wokwi](https://wokwi.com). 
 
 ---
 
+> Caso deseje ver a visualização dos dados e integração com banco/API, acesse as outras entregas na pasta raiz do projeto.
+
 ## Código C/C++
 
 O código responsável pela leitura dos sensores, lógica de irrigação e comunicação com o servidor está disponível na pasta:
@@ -128,4 +129,37 @@ O código responsável pela leitura dos sensores, lógica de irrigação e comun
 
 ---
 
-> Caso deseje ver a visualização dos dados e integração com banco/API, acesse as outras entregas na pasta raiz do projeto.
+## Configuração do Endereço IP no Código do ESP32
+
+Para que o **ESP32** consiga enviar dados ao servidor Python (`serve.py`), é necessário informar o **endereço IP local da máquina** onde o servidor está rodando.
+
+No código do ESP32, existe uma linha como esta:
+
+```cpp
+// --- Monta string para envio ao servidor Flask/Python ---
+  String sensorData = "umidade=" + String(h) + "&temperatura=" + String(t) +
+                      "&ph=" + String(phValue) + "&fosforo=" + fosforo +
+                      "&potassio=" + potassio + "&rele=" + releStatus;
+
+  String serverAddress = "http://192.168.0.12:8000/data?" + sensorData;
+```
+
+Você deve substituir o IP `192.168.0.12` pelo **seu IP local** (da máquina que roda o Flask), garantindo que o ESP32 e o servidor estejam na **mesma rede**.
+
+### Como descobrir seu IP local (Windows):
+
+1. Abra o **Prompt de Comando** (`cmd`)  
+2. Digite o comando: `ipconfig`  
+3. Localize o campo: `Endereço IPv4` (exemplo: `192.168.0.15`)
+
+### Exemplo atualizado no código:
+
+```cpp
+String serverAddress = "http://192.168.0.21:8000/data?" + sensorData;
+```
+
+Com isso, o envio de dados para o backend funcionará corretamente via `HTTP GET.
+
+
+
+
