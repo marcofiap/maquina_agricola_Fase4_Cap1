@@ -126,16 +126,6 @@ if previsao_chuva > 0:
 
 ---
 
-## Autores
-**Grupo 65 – FIAP**  
-*Integrantes:*
-- Felipe Sabino da Silva  
-- Juan Felipe Voltolini  
-- Luiz Henrique Ribeiro de Oliveira  
-- Marco Aurélio Eberhardt Assimpção  
-- Paulo Henrique Senise 
-
-**Professores:**  
-- Tutor: Leonardo Ruiz Orabona  
+  
 - Coordenador: André Godoi
 
