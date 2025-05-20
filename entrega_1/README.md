@@ -9,13 +9,14 @@ Além disso, os dados dos sensores são enviados via HTTP a um backend Python qu
 
 ## Índice
 
-- [ Grupo](#-grupo)
-- [ Visão Geral](#-visão-geral-do-projeto)
-- [ Circuito Wokwi](#-circuito-wokwi)
-- [ Componentes](#-componentes-utilizados)
-- [ Conexões](#-conexões)
-- [ Lógica de Controle](#-lógica-de-controle-da-bomba-de-irrigação)
-- [ Código](#-código-cc)
+- [Grupo](#grupo)
+- [Visão Geral](#visão-geral-do-projeto)
+- [Circuito Wokwi](#circuito-wokwi)
+- [Componentes](#componentes-utilizados)
+- [Conexões](#conexões)
+- [Lógica de Controle](#lógica-de-controle-da-bomba-de-irrigação)
+- [Código](#código-cc)
+- [IP Local no Código](#️-configuração-do-endereço-ip-no-código-do-esp32)
 
 ---
 
