@@ -127,5 +127,5 @@ if previsao_chuva > 0:
 ---
 
   
-- Coordenador: André Godoi
+
 
