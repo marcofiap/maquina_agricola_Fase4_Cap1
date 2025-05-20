@@ -1,9 +1,27 @@
+# FIAP - Faculdade de Informática e Administração Paulista 
+
+<p align="center">
+<a href= "https://www.fiap.com.br/"><img src="imagens/logo-fiap.png" alt="FIAP - Faculdade de Informática e Admnistração Paulista" border="0" width=40% height=40%></a>
+</p>
+
+<br>
+
 ## Sistema de Irrigacao Inteligente – Fase 3 | FarmTech Solutions
 
-![Status](https://img.shields.io/badge/status-concluído-brightgreen)
-![CRUD Oracle](https://img.shields.io/badge/CRUD-implementado-blue)
-![Dashboard](https://img.shields.io/badge/dashboard-ativo-orange)
-![API Climática](https://img.shields.io/badge/API%20Climática-integrada-lightgrey)
+## Grupo 65
+
+## Integrantes: 
+- <a href="https://github.com/FelipeSabinoTMRS">Felipe Sabino da Silva</a>
+- <a href="https://github.com/juanvoltolini-rm562890">Juan Felipe Voltolini</a>
+- <a href="https://github.com/Luiz-FIAP">Luiz Henrique Ribeiro de Oliveira</a> 
+- <a href="https://github.com/marcofiap">Marco Aurélio Eberhardt Assimpção</a>
+- <a href="https://github.com/PauloSenise">Paulo Henrique Senise</a> 
+
+## Professores:
+### Tutor(a) 
+- <a href="https://github.com/Leoruiz197">Leonardo Ruiz Orabona</a>
+### Coordenador(a)
+- <a href="https://github.com/agodoi">André Godoi</a>
 
 ---
 
