@@ -1,10 +1,10 @@
 # FIAP - Faculdade de Informática e Administração Paulista 
 
 <p align="center">
-  <a href="https://www.fiap.com.br/">
-    <img src="imagens/logo-fiap.png" alt="FIAP - Faculdade de Informática e Administração Paulista" width="40%" height="40%">
-  </a>
+<a href= "https://www.fiap.com.br/"><img src="imagens/logo-fiap.png" alt="FIAP - Faculdade de Informática e Admnistração Paulista" border="0" width=40% height=40%></a>
 </p>
+
+<br>
 
 
 ## Sistema de Irrigacao Inteligente – Fase 3 | FarmTech Solutions
