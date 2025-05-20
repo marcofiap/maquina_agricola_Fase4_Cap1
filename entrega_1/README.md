@@ -16,7 +16,7 @@ Além disso, os dados dos sensores são enviados via HTTP a um backend Python qu
 - [Conexões](#conexões)
 - [Lógica de Controle](#lógica-de-controle-da-bomba-de-irrigação)
 - [Código](#código-cc)
-- [IP Local no Código](#️-configuração-do-endereço-ip-no-código-do-esp32)
+- [IP Local no Código](#️configuração-do-endereço-ip-no-código-do-esp32)
 
 ---
 
