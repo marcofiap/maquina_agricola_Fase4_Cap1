@@ -8,7 +8,6 @@ e integra com a simulação de um dispositivo ESP32 executando no Wokwi.
 import cx_Oracle
 import datetime
 import sys
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import urllib.parse
 from threading import Thread
 from config import DB_CONFIG, SERVER_CONFIG
@@ -21,16 +20,21 @@ from config import DB_CONFIG, SERVER_CONFIG
 connection = None
 server = None
 
-# -------------------- CONEXÃO COM BANCO DE DADOS --------------------
+# -------------------- CONEXÃO COM BANCO DE DADOS --------------------------------------------------------------------------------------------------------------------------------------
 
 def connect_to_db():
     """Estabelece conexão com o banco de dados Oracle usando configurações do config.py"""
     global connection
     try:
+        # Configurações adicionais para melhorar a estabilidade da conexão
         connection = cx_Oracle.connect(
             DB_CONFIG["user"], 
             DB_CONFIG["password"], 
-            DB_CONFIG["dsn"]
+            DB_CONFIG["dsn"],
+            encoding="UTF-8",
+            nencoding="UTF-8",
+            threaded=True,  # Suporte a múltiplas threads
+            events=True     # Habilita callbacks de eventos de conexão
         )
         print("Conectado ao banco de dados Oracle com sucesso")
         return connection
@@ -38,123 +42,46 @@ def connect_to_db():
         print(f"Erro ao conectar ao banco de dados Oracle: {error}")
         return None
 
-# -------------------- RECEPTOR DE DADOS DO ESP32 --------------------
-
-class ESP32Handler(BaseHTTPRequestHandler):
-    """Manipulador de requisições HTTP para dados do ESP32"""
-    
-    def do_GET(self):
-        """Trata requisições GET do ESP32"""
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.wfile.write(b"Dados recebidos com sucesso!")
-        
-        # Analisa parâmetros da consulta
-        query = urllib.parse.urlparse(self.path).query
-        params = urllib.parse.parse_qs(query)
-        
-        # Extrai dados
-        try:
-            umidade = float(params.get('umidade', ['0'])[0])
-            temperatura = float(params.get('temperatura', ['0'])[0])
-            ph = int(params.get('ph', ['0'])[0])
-            fosforo = params.get('fosforo', ['ausente'])[0]
-            potassio = params.get('potassio', ['ausente'])[0]
-            rele = params.get('rele', ['off'])[0]
-            
-            # Exibe dados recebidos
-            print(f"\nDados recebidos do ESP32:")
-            print(f"Umidade: {umidade}%, Temperatura: {temperatura}°C, pH: {ph}")
-            print(f"Fósforo: {fosforo}, Potássio: {potassio}, Relé: {rele}")
-            
-            # Salva no banco de dados
-            save_sensor_data(temperatura, umidade, ph, fosforo, potassio, rele)
-            
-        except Exception as e:
-            print(f"Erro ao processar dados do ESP32: {e}")
-
-def save_sensor_data(temperatura, umidade, ph, fosforo, potassio, rele):
-    """Salva dados dos sensores no banco de dados"""
-    if not connection:
-        print("Sem conexão com o banco de dados")
-        return
-    
+# Verificar e reconectar ao banco de dados
+def ensure_connection():
+    """Verifica se a conexão com o banco de dados está ativa e reconecta se necessário"""
+    global connection
     try:
+        # Tenta executar uma consulta simples para verificar se a conexão está ativa
         cursor = connection.cursor()
-        now = datetime.datetime.now()
-        
-        # Para simplicidade, assumimos que sensores com IDs 1-6 já existem no banco
-        
-        # Obtém o próximo ID de monitoramento
-        cursor.execute("SELECT NVL(MAX(id_monitoramento), 0) + 1 FROM monitoramento")
-        id_monitoramento = cursor.fetchone()[0]
-        
-        # Salva temperatura (sensor ID 1)
-        cursor.execute(
-            "INSERT INTO monitoramento (id_monitoramento, id_sensor, valor, data_hora_monitoramento) VALUES (:1, :2, :3, :4)",
-            [id_monitoramento, 1, temperatura, now]
-        )
-        
-        # Salva umidade (sensor ID 2)
-        cursor.execute(
-            "INSERT INTO monitoramento (id_monitoramento, id_sensor, valor, data_hora_monitoramento) VALUES (:1, :2, :3, :4)",
-            [id_monitoramento + 1, 2, umidade, now]
-        )
-        
-        # Salva pH (sensor ID 3)
-        cursor.execute(
-            "INSERT INTO monitoramento (id_monitoramento, id_sensor, valor, data_hora_monitoramento) VALUES (:1, :2, :3, :4)",
-            [id_monitoramento + 2, 3, ph, now]
-        )
-        
-        # Converte valores de string para numérico para armazenamento no banco
-        fosforo_value = 1 if fosforo == 'presente' else 0
-        potassio_value = 1 if potassio == 'presente' else 0
-        rele_value = 1 if rele == 'on' else 0
-        
-        # Salva status do fósforo (sensor ID 4)
-        cursor.execute(
-            "INSERT INTO monitoramento (id_monitoramento, id_sensor, valor, data_hora_monitoramento) VALUES (:1, :2, :3, :4)",
-            [id_monitoramento + 3, 4, fosforo_value, now]
-        )
-        
-        # Salva status do potássio (sensor ID 5)
-        cursor.execute(
-            "INSERT INTO monitoramento (id_monitoramento, id_sensor, valor, data_hora_monitoramento) VALUES (:1, :2, :3, :4)",
-            [id_monitoramento + 4, 5, potassio_value, now]
-        )
-        
-        # Salva status do relé (sensor ID 6)
-        cursor.execute(
-            "INSERT INTO monitoramento (id_monitoramento, id_sensor, valor, data_hora_monitoramento) VALUES (:1, :2, :3, :4)",
-            [id_monitoramento + 5, 6, rele_value, now]
-        )
-        
-        connection.commit()
-        print("Dados dos sensores salvos com sucesso no banco de dados")
-        
-    except cx_Oracle.Error as error:
-        print(f"Erro ao salvar dados dos sensores: {error}")
-
-# -------------------- INICIALIZAÇÃO DO SERVIDOR --------------------
-
-def start_server():
-    """Inicia servidor HTTP para receber dados do ESP32"""
-    global server
-    server_address = (SERVER_CONFIG["host"], SERVER_CONFIG["port"])
-    try:
-        server = HTTPServer(server_address, ESP32Handler)
-        print(f'Iniciando servidor na porta {SERVER_CONFIG["port"]} para receber dados do ESP32...')
-        server_thread = Thread(target=server.serve_forever)
-        server_thread.daemon = True  # Thread será encerrada quando o programa principal encerrar
-        server_thread.start()
+        cursor.execute("SELECT 1 FROM dual")
+        cursor.fetchone()
+        cursor.close()
         return True
     except Exception as e:
-        print(f"Erro ao iniciar servidor: {e}")
-        return False
+        print(f"Conexão com o banco de dados perdida: {e}")
+        print("Tentando reconectar...")
+        try:
+            # Tenta fechar a conexão antiga, se ainda existir
+            if connection:
+                try:
+                    connection.close()
+                except:
+                    pass
+            # Estabelece uma nova conexão
+            connection = cx_Oracle.connect(
+                DB_CONFIG["user"], 
+                DB_CONFIG["password"], 
+                DB_CONFIG["dsn"]
+            )
+            print("Reconectado ao banco de dados Oracle com sucesso")
+            return True
+        except cx_Oracle.Error as error:
+            print(f"Erro ao reconectar ao banco de dados Oracle: {error}")
+            return False
 
-# -------------------- OPERAÇÕES CRUD: CULTURA --------------------
+# -------------------- FUNÇÕES AUXILIARES --------------------------------------------------------------------------------------------------------------------------------------
+
+def pausar():
+    """Pausa a execução até que o usuário pressione Enter"""
+    input("\nPressione Enter para continuar...")
+
+# -------------------- OPERAÇÕES CRUD: CULTURA --------------------------------------------------------------------------------------------------------------------------------------
 
 def create_cultura():
     """Cria um novo registro de cultura"""
@@ -190,8 +117,10 @@ def create_cultura():
         )
         connection.commit()
         print(f"Cultura cadastrada com sucesso! ID: {id_cultura}")
+        pausar()
     except cx_Oracle.Error as error:
         print(f"Erro ao cadastrar cultura: {error}")
+        pausar()
 
 def read_cultura():
     """Lê todos os registros de cultura"""
@@ -204,6 +133,7 @@ def read_cultura():
         
         if not rows:
             print("Nenhuma cultura cadastrada.")
+            pausar()
             return
         
         print(f"{'ID':<5} {'Descrição':<30} {'Ativo':<6} {'Área (m²)':<10}")
@@ -211,9 +141,12 @@ def read_cultura():
         
         for row in rows:
             print(f"{row[0]:<5} {row[1]:<30} {row[2]:<6} {row[3]:<10}")
+
+        pausar()
             
     except cx_Oracle.Error as error:
         print(f"Erro ao listar culturas: {error}")
+        pausar()
 
 def update_cultura():
     """Atualiza um registro de cultura"""
@@ -224,6 +157,7 @@ def update_cultura():
         id_cultura = int(id_cultura)
     except ValueError:
         print("ID inválido. Operação cancelada.")
+        pausar()
         return
     
     try:
@@ -233,6 +167,7 @@ def update_cultura():
         
         if not row:
             print(f"Cultura com ID {id_cultura} não encontrada.")
+            pausar()
             return
         
         print(f"Cultura atual: ID: {row[0]}, Descrição: {row[1]}, Ativo: {row[2]}, Área: {row[3]}")
@@ -267,9 +202,11 @@ def update_cultura():
         )
         connection.commit()
         print(f"Cultura atualizada com sucesso!")
+        pausar()
         
     except cx_Oracle.Error as error:
         print(f"Erro ao atualizar cultura: {error}")
+        pausar()
 
 def delete_cultura():
     """Exclui um registro de cultura"""
@@ -280,6 +217,7 @@ def delete_cultura():
         id_cultura = int(id_cultura)
     except ValueError:
         print("ID inválido. Operação cancelada.")
+        pausar()
         return
     
     try:
@@ -289,27 +227,32 @@ def delete_cultura():
         cursor.execute("SELECT 1 FROM cultura WHERE id_cultura = :1", [id_cultura])
         if not cursor.fetchone():
             print(f"Cultura com ID {id_cultura} não encontrada.")
+            pausar()
             return
         
         # Verifica se há sensores relacionados
         cursor.execute("SELECT 1 FROM sensor WHERE id_cultura = :1", [id_cultura])
         if cursor.fetchone():
             print(f"Não é possível excluir a cultura ID {id_cultura} porque existem sensores associados a ela.")
+            pausar()
             return
         
         confirm = input(f"Tem certeza que deseja excluir a cultura ID {id_cultura}? (S/N): ").upper()
         if confirm != 'S':
             print("Operação cancelada.")
+            pausar()
             return
         
         cursor.execute("DELETE FROM cultura WHERE id_cultura = :1", [id_cultura])
         connection.commit()
         print(f"Cultura excluída com sucesso!")
+        pausar()
         
     except cx_Oracle.Error as error:
         print(f"Erro ao excluir cultura: {error}")
+        pausar()
 
-# -------------------- OPERAÇÕES CRUD: SENSOR --------------------
+# -------------------- OPERAÇÕES CRUD: SENSOR --------------------------------------------------------------------------------------------------------------------------------------
 
 def create_sensor():
     """Cria um novo registro de sensor"""
@@ -323,6 +266,7 @@ def create_sensor():
         
         if not culturas:
             print("Não há culturas ativas cadastradas. Cadastre uma cultura primeiro.")
+            pausar()
             return
         
         print("\nCulturas disponíveis:")
@@ -334,29 +278,33 @@ def create_sensor():
             id_cultura = int(id_cultura)
         except ValueError:
             print("ID inválido. Operação cancelada.")
+            pausar()
             return
         
         # Verifica se a cultura existe
         cursor.execute("SELECT 1 FROM cultura WHERE id_cultura = :1", [id_cultura])
         if not cursor.fetchone():
             print(f"Cultura com ID {id_cultura} não encontrada.")
+            pausar()
             return
         
         numero_serie = input("Número de série do sensor: ")
-        if not numero_serie:
+        while not numero_serie:
             print("Número de série é obrigatório.")
-            return
+            numero_serie = input("Número de série do sensor: ")
+            
         
         # Verifica se o número de série já existe
         cursor.execute("SELECT 1 FROM sensor WHERE numero_serie = :1", [numero_serie])
         if cursor.fetchone():
             print(f"Já existe um sensor com o número de série {numero_serie}.")
-            return
+            numero_serie = input("Número de série do sensor: ")
         
         ativo = input("Ativo (S/N): ").upper()
-        if ativo not in ['S', 'N']:
+        while ativo not in ['S', 'N']:
             print("Valor inválido para campo ativo. Utilizando 'S' como padrão.")
-            ativo = 'S'
+            ativo = input("Ativo (S/N): ").upper()
+
         
         # Obtém próximo ID de sensor
         cursor.execute("SELECT NVL(MAX(id_sensor), 0) + 1 FROM sensor")
@@ -368,9 +316,11 @@ def create_sensor():
         )
         connection.commit()
         print(f"Sensor cadastrado com sucesso! ID: {id_sensor}")
+        pausar()
         
     except cx_Oracle.Error as error:
         print(f"Erro ao cadastrar sensor: {error}")
+        pausar()
 
 def read_sensor():
     """Lê todos os registros de sensor"""
@@ -388,6 +338,7 @@ def read_sensor():
         
         if not rows:
             print("Nenhum sensor cadastrado.")
+            pausar()
             return
         
         print(f"{'ID':<5} {'Número Série':<20} {'Ativo':<6} {'ID Cultura':<10} {'Descrição Cultura':<30}")
@@ -395,9 +346,11 @@ def read_sensor():
         
         for row in rows:
             print(f"{row[0]:<5} {row[1]:<20} {row[2]:<6} {row[3]:<10} {row[4]:<30}")
-            
+        pausar()
+
     except cx_Oracle.Error as error:
         print(f"Erro ao listar sensores: {error}")
+        pausar()
 
 def update_sensor():
     """Atualiza um registro de sensor"""
@@ -408,6 +361,7 @@ def update_sensor():
         id_sensor = int(id_sensor)
     except ValueError:
         print("ID inválido. Operação cancelada.")
+        pausar()
         return
     
     try:
@@ -422,6 +376,7 @@ def update_sensor():
         
         if not row:
             print(f"Sensor com ID {id_sensor} não encontrado.")
+            pausar()
             return
         
         print(f"Sensor atual: ID: {row[0]}, Número Série: {row[1]}, Ativo: {row[2]}, Cultura: {row[4]} (ID: {row[3]})")
@@ -456,6 +411,7 @@ def update_sensor():
         else:
             print("Não há culturas ativas disponíveis.")
             id_cultura = row[3]
+            pausar()
         
         # Verifica número de série
         if numero_serie:
@@ -479,9 +435,11 @@ def update_sensor():
         )
         connection.commit()
         print(f"Sensor atualizado com sucesso!")
+        pausar()
         
     except cx_Oracle.Error as error:
         print(f"Erro ao atualizar sensor: {error}")
+        pausar()
 
 def delete_sensor():
     """Exclui um registro de sensor"""
@@ -492,6 +450,7 @@ def delete_sensor():
         id_sensor = int(id_sensor)
     except ValueError:
         print("ID inválido. Operação cancelada.")
+        pausar()
         return
     
     try:
@@ -501,6 +460,7 @@ def delete_sensor():
         cursor.execute("SELECT 1 FROM sensor WHERE id_sensor = :1", [id_sensor])
         if not cursor.fetchone():
             print(f"Sensor com ID {id_sensor} não encontrado.")
+            pausar()
             return
         
         # Verifica se há monitoramentos associados ao sensor
@@ -511,6 +471,7 @@ def delete_sensor():
             confirm = input(f"Excluir o sensor irá remover também todos os registros de monitoramento. Continuar? (S/N): ").upper()
             if confirm != 'S':
                 print("Operação cancelada.")
+                pausar()
                 return
             
             # Remove os registros de monitoramento primeiro
@@ -527,11 +488,13 @@ def delete_sensor():
         cursor.execute("DELETE FROM sensor WHERE id_sensor = :1", [id_sensor])
         connection.commit()
         print(f"Sensor excluído com sucesso!")
+        pausar()
         
     except cx_Oracle.Error as error:
         print(f"Erro ao excluir sensor: {error}")
+        pausar()
 
-# -------------------- OPERAÇÕES CRUD: MONITORAMENTO --------------------
+# -------------------- OPERAÇÕES CRUD: MONITORAMENTO --------------------------------------------------------------------------------------------------------------------------------------
 
 def list_recent_monitoramentos():
     """Lista registros recentes de monitoramento"""
@@ -555,6 +518,7 @@ def list_recent_monitoramentos():
         
         if not rows:
             print("Nenhum registro de monitoramento encontrado.")
+            pausar()
             return
         
         print(f"{'ID':<6} {'Sensor':<10} {'Tipo':<15} {'Valor':<8} {'Unidade':<8} {'Data/Hora':<20} {'Cultura':<20}")
@@ -562,11 +526,13 @@ def list_recent_monitoramentos():
         
         for row in rows:
             print(f"{row[0]:<6} {row[1]:<10} {row[2]:<15} {row[3]:<8.2f} {row[4]:<8} {row[5]:<20} {row[6]:<20}")
-            
+        pausar()
+
     except cx_Oracle.Error as error:
         print(f"Erro ao listar monitoramentos: {error}")
+        pausar()
 
-# -------------------- MENU PRINCIPAL --------------------
+# -------------------- MENU PRINCIPAL --------------------------------------------------------------------------------------------------------------------------------------
 
 def show_menu():
     """Exibe o menu principal do sistema"""
@@ -594,13 +560,6 @@ def main():
     if not connect_to_db():
         print("Não foi possível conectar ao banco de dados. O programa será encerrado.")
         sys.exit(1)
-    
-    # Inicia o servidor para receber dados do ESP32
-    global server
-    if not start_server():
-        print("Não foi possível iniciar o servidor HTTP. Algumas funcionalidades podem não estar disponíveis.")
-    
-    print("\nSistema iniciado com sucesso! Aguardando dados do ESP32...")
     
     # Loop principal do menu
     while True:
@@ -637,10 +596,6 @@ def main():
     if connection:
         connection.close()
         print("Conexão com banco de dados encerrada.")
-    
-    if server:
-        server.shutdown()
-        print("Servidor HTTP encerrado.")
     
     print("Programa finalizado. Obrigado por utilizar o sistema FarmTech Solutions!")
 

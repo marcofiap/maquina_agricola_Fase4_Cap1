@@ -1,0 +1,10 @@
+1 - Cadastrar cultura:
+*Área plantada aceita valor negativo
+3 - Atualizar cultura:
+*Mostrar culturas antes de pedir ID
+
+
+
+
+*Reconectar 
+*Incluir opções que faltam
