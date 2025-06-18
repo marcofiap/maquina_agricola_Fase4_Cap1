@@ -1,20 +1,13 @@
-import oracledb
+import sys
+import os
 from datetime import datetime
 
-# === CONFIGURAÇÃO DO BANCO DE DADOS ORACLE ===
-DB_USER = "system"
-DB_PASSWORD = "system"
-DB_DSN = "localhost:1521/xe"
+# Adiciona o diretório raiz ao path para importar o config
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
-# === CONECTA AO BANCO DE DADOS ===
-def conectar_db():
-    try:
-        conn = oracledb.connect(user=DB_USER, password=DB_PASSWORD, dsn=DB_DSN)
-        cursor = conn.cursor()
-        return conn, cursor
-    except oracledb.Error as error:
-        print("❌ Erro na conexão:", error)
-        return None, None
+from config.database_config import DatabaseConfig, conectar_postgres
 
 # === INSERE UMA NOVA LEITURA MANUAL ===
 def inserir_dados():
@@ -33,17 +26,17 @@ def inserir_dados():
             print("❌ Valores fora da faixa válida.")
             return
 
-        conn, cursor = conectar_db()
+        conn, cursor = conectar_postgres()
         if conn:
-            cursor.execute("""
-                INSERT INTO leituras_sensores (timestamp, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
-                VALUES (:1, :2, :3, :4, :5, :6, :7)
+            cursor.execute(f"""
+                INSERT INTO {DatabaseConfig.SCHEMA}.leituras_sensores (timestamp, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (timestamp, umidade, temperatura, ph, fosforo, potassio, bomba))
             conn.commit()
             print("✅ Dados inseridos com sucesso.")
     except ValueError:
         print("❌ Erro: valores numéricos inválidos.")
-    except oracledb.Error as e:
+    except Exception as e:
         print("❌ Erro ao inserir:", e)
     finally:
         if conn:
@@ -53,12 +46,20 @@ def inserir_dados():
 # === LISTA TODAS AS LEITURAS ===
 def listar_dados():
     print("\n📄 Listando dados...")
-    conn, cursor = conectar_db()
+    conn, cursor = conectar_postgres()
     if conn:
-        cursor.execute("SELECT * FROM leituras_sensores ORDER BY timestamp DESC")
+        cursor.execute(f"SELECT * FROM {DatabaseConfig.SCHEMA}.leituras_sensores ORDER BY timestamp DESC")
         rows = cursor.fetchall()
-        for row in rows:
-            print(row)
+        if rows:
+            print(f"\n{'='*80}")
+            print(f"{'TIMESTAMP':<20} {'UMID':<6} {'TEMP':<6} {'PH':<6} {'FÓSF':<8} {'POT':<8} {'BOMBA':<8}")
+            print(f"{'='*80}")
+            for row in rows:
+                print(f"{str(row[0]):<20} {row[1]:<6} {row[2]:<6} {row[3]:<6} {row[4]:<8} {row[5]:<8} {row[6]:<8}")
+            print(f"{'='*80}")
+            print(f"Total de registros: {len(rows)}")
+        else:
+            print("⚠️ Nenhum dado encontrado.")
         cursor.close()
         conn.close()
 
@@ -74,12 +75,12 @@ def atualizar_dado():
         novo_potassio = input("Novo potássio (presente/ausente): ").lower()
         novo_bomba = input("Novo estado da bomba (on/off): ").lower()
 
-        conn, cursor = conectar_db()
+        conn, cursor = conectar_postgres()
         if conn:
-            cursor.execute("""
-                UPDATE leituras_sensores
-                SET umidade = :1, temperatura = :2, ph = :3, fosforo = :4, potassio = :5, bomba_dagua = :6
-                WHERE timestamp = :7
+            cursor.execute(f"""
+                UPDATE {DatabaseConfig.SCHEMA}.leituras_sensores
+                SET umidade = %s, temperatura = %s, ph = %s, fosforo = %s, potassio = %s, bomba_dagua = %s
+                WHERE timestamp = %s
             """, (nova_umidade, nova_temperatura, novo_ph, novo_fosforo, novo_potassio, novo_bomba, timestamp))
             if cursor.rowcount:
                 conn.commit()
@@ -97,9 +98,9 @@ def atualizar_dado():
 def remover_dado():
     print("\n🗑️ Remover leitura:")
     timestamp = input("Timestamp da leitura a remover: ")
-    conn, cursor = conectar_db()
+    conn, cursor = conectar_postgres()
     if conn:
-        cursor.execute("DELETE FROM leituras_sensores WHERE timestamp = :1", (timestamp,))
+        cursor.execute(f"DELETE FROM {DatabaseConfig.SCHEMA}.leituras_sensores WHERE timestamp = %s", (timestamp,))
         if cursor.rowcount:
             conn.commit()
             print("✅ Leitura removida com sucesso.")
@@ -119,17 +120,23 @@ def consultar_por_umidade():
             print("❌ Condição inválida. Use 'acima' ou 'abaixo'.")
             return
 
-        conn, cursor = conectar_db()
+        conn, cursor = conectar_postgres()
         if conn:
             if condicao == 'acima':
-                cursor.execute("SELECT * FROM leituras_sensores WHERE umidade > :1 ORDER BY timestamp DESC", (limite,))
+                cursor.execute(f"SELECT * FROM {DatabaseConfig.SCHEMA}.leituras_sensores WHERE umidade > %s ORDER BY timestamp DESC", (limite,))
             else:
-                cursor.execute("SELECT * FROM leituras_sensores WHERE umidade < :1 ORDER BY timestamp DESC", (limite,))
+                cursor.execute(f"SELECT * FROM {DatabaseConfig.SCHEMA}.leituras_sensores WHERE umidade < %s ORDER BY timestamp DESC", (limite,))
             
             rows = cursor.fetchall()
             if rows:
+                print(f"\n🔍 Leituras com umidade {condicao} de {limite}%:")
+                print(f"{'='*80}")
+                print(f"{'TIMESTAMP':<20} {'UMID':<6} {'TEMP':<6} {'PH':<6} {'FÓSF':<8} {'POT':<8} {'BOMBA':<8}")
+                print(f"{'='*80}")
                 for row in rows:
-                    print(row)
+                    print(f"{str(row[0]):<20} {row[1]:<6} {row[2]:<6} {row[3]:<6} {row[4]:<8} {row[5]:<8} {row[6]:<8}")
+                print(f"{'='*80}")
+                print(f"Total encontrado: {len(rows)} registros")
             else:
                 print("⚠️ Nenhuma leitura encontrada com esse critério.")
             cursor.close()
@@ -137,19 +144,76 @@ def consultar_por_umidade():
     except ValueError:
         print("❌ Valor de umidade inválido.")
 
+# === ESTATÍSTICAS DOS DADOS ===
+def mostrar_estatisticas():
+    print("\n📊 Estatísticas dos dados:")
+    conn, cursor = conectar_postgres()
+    if conn:
+        try:
+            cursor.execute(f"""
+                SELECT 
+                    COUNT(*) as total_registros,
+                    AVG(umidade) as umidade_media,
+                    MIN(umidade) as umidade_min,
+                    MAX(umidade) as umidade_max,
+                    AVG(temperatura) as temp_media,
+                    MIN(temperatura) as temp_min,
+                    MAX(temperatura) as temp_max,
+                    AVG(ph) as ph_medio,
+                    MIN(ph) as ph_min,
+                    MAX(ph) as ph_max
+                FROM {DatabaseConfig.SCHEMA}.leituras_sensores
+            """)
+            stats = cursor.fetchone()
+            
+            if stats and stats[0] > 0:
+                print(f"{'='*60}")
+                print(f"📈 ESTATÍSTICAS GERAIS")
+                print(f"{'='*60}")
+                print(f"Total de registros: {stats[0]}")
+                print(f"")
+                print(f"💧 UMIDADE:")
+                print(f"   Média: {stats[1]:.1f}%")
+                print(f"   Mínima: {stats[2]:.1f}%")
+                print(f"   Máxima: {stats[3]:.1f}%")
+                print(f"")
+                print(f"🌡️ TEMPERATURA:")
+                print(f"   Média: {stats[4]:.1f}°C")
+                print(f"   Mínima: {stats[5]:.1f}°C")
+                print(f"   Máxima: {stats[6]:.1f}°C")
+                print(f"")
+                print(f"⚗️ pH:")
+                print(f"   Médio: {stats[7]:.1f}")
+                print(f"   Mínimo: {stats[8]:.1f}")
+                print(f"   Máximo: {stats[9]:.1f}")
+                print(f"{'='*60}")
+            else:
+                print("⚠️ Nenhum dado disponível para estatísticas.")
+        except Exception as e:
+            print(f"❌ Erro ao calcular estatísticas: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
 # === MENU DO SISTEMA ===
 def menu():
     while True:
-        print("""
-================ MENU CRUD - BANCO ORACLE ================
+        print(f"""
+================ MENU CRUD - BANCO POSTGRESQL ================
+🏗️ Schema: {DatabaseConfig.SCHEMA}
+🖥️ Host: {DatabaseConfig.HOST}
+💾 Database: {DatabaseConfig.DATABASE}
+===============================================================
 1 - Inserir nova leitura manualmente
 2 - Listar todas as leituras enviadas pelo ESP32
 3 - Atualizar uma leitura manualmente
 4 - Remover uma leitura do banco de dados
 5 - Excluir todos os dados do banco de dados
 6 - Consultar leituras por umidade (acima/abaixo)
+7 - Mostrar estatísticas dos dados
+8 - Testar conexão com o banco
 0 - Sair
-===========================================================
+===============================================================
         """)
         opcao = input("Escolha uma opção: ")
 
@@ -162,17 +226,25 @@ def menu():
         elif opcao == '4':
             remover_dado()
         elif opcao == '5':
-            conn, cursor = conectar_db()
+            conn, cursor = conectar_postgres()
             if conn:
-                confirm = input("Tem certeza que deseja apagar todos os dados? (s/n): ").lower()
-                if confirm == 's':
-                    cursor.execute("DELETE FROM leituras_sensores")
+                confirm = input("⚠️ ATENÇÃO: Tem certeza que deseja apagar TODOS os dados? (digite 'CONFIRMAR'): ")
+                if confirm == 'CONFIRMAR':
+                    cursor.execute(f"DELETE FROM {DatabaseConfig.SCHEMA}.leituras_sensores")
+                    deleted_count = cursor.rowcount
                     conn.commit()
-                    print("🧹 Todos os dados foram apagados.")
+                    print(f"🧹 {deleted_count} registros foram apagados.")
+                else:
+                    print("❌ Operação cancelada.")
                 cursor.close()
                 conn.close()
         elif opcao == '6':
             consultar_por_umidade()
+        elif opcao == '7':
+            mostrar_estatisticas()
+        elif opcao == '8':
+            from config.database_config import testar_conexao
+            testar_conexao()
         elif opcao == '0':
             print("👋 Encerrando o programa. Até logo!")
             break
@@ -181,4 +253,16 @@ def menu():
 
 # === EXECUÇÃO PRINCIPAL ===
 if __name__ == "__main__":
-    menu()
+    print("🚀 Farm Tech Solutions - CRUD PostgreSQL")
+    print(f"📊 Usando configuração centralizada")
+    print(f"🏗️ Schema: {DatabaseConfig.SCHEMA}")
+    
+    # Testa conexão inicial
+    print("\n🔍 Testando conexão inicial...")
+    conn, cursor = conectar_postgres()
+    if conn:
+        cursor.close()
+        conn.close()
+        menu()
+    else:
+        print("❌ Não foi possível conectar ao banco. Verifique as configurações.")

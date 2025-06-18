@@ -144,23 +144,46 @@ void loop() {
                       "&ph=" + String(phValue) + "&fosforo=" + fosforo +
                       "&potassio=" + potassio + "&rele=" + releStatus;
 
-  String serverAddress = "http://192.168.0.12:8000/data?" + sensorData;
+  // --- Lista de servidores para envio dos dados ---
+  String servers[] = {
+    "http://192.168.0.12:8000/data",
+    "http://192.168.2.126:8000/data"
+  };
+  int numServers = sizeof(servers) / sizeof(servers[0]);
 
-  WiFiClient client;
-  HTTPClient http;
-  http.begin(client, serverAddress);
-  int httpResponseCode = http.GET();
+  // --- Envio dos dados para todos os servidores ---
+  for (int i = 0; i < numServers; i++) {
+    String serverAddress = servers[i] + "?" + sensorData;
+    
+    Serial.print("Enviando para servidor ");
+    Serial.print(i + 1);
+    Serial.print(": ");
+    Serial.println(servers[i]);
 
-  if (httpResponseCode > 0) {
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
-    String response = http.getString();
-    Serial.println("Response from server: " + response);
-  } else {
-    Serial.println("Erro na requisição HTTP: ");
-    Serial.println(http.errorToString(httpResponseCode));
+    WiFiClient client;
+    HTTPClient http;
+    http.begin(client, serverAddress);
+    int httpResponseCode = http.GET();
+
+    if (httpResponseCode > 0) {
+      Serial.print("✅ Servidor ");
+      Serial.print(i + 1);
+      Serial.print(" - HTTP Response code: ");
+      Serial.println(httpResponseCode);
+      String response = http.getString();
+      Serial.print("Response: ");
+      Serial.println(response);
+    } else {
+      Serial.print("❌ Erro no servidor ");
+      Serial.print(i + 1);
+      Serial.print(" - ");
+      Serial.println(http.errorToString(httpResponseCode));
+    }
+    http.end();
+    
+    // Pequena pausa entre requisições
+    delay(100);
   }
-  http.end();
 
   // --- Exibição no Display OLED ---
   display.clearDisplay();
