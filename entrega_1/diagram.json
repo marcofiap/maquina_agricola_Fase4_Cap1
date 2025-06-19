@@ -45,19 +45,19 @@
       "attrs": {}
     },
     {
-      "type": "board-ssd1306",
-      "id": "oled1",
-      "top": -246.46,
-      "left": 48.23,
-      "attrs": { "i2cAddress": "0x3c" }
-    },
-    {
       "type": "wokwi-pushbutton-6mm",
       "id": "btn3",
       "top": -171.8,
       "left": -264.8,
       "rotate": 90,
       "attrs": { "color": "green", "xray": "1" }
+    },
+    {
+      "type": "wokwi-lcd2004",
+      "id": "lcd1",
+      "top": -214.4,
+      "left": 72.8,
+      "attrs": { "pins": "i2c" }
     }
   ],
   "connections": [
@@ -77,14 +77,16 @@
     [ "ldr1:VCC", "bb1:bp.25", "red", [ "h115.2", "v240" ] ],
     [ "ldr1:GND", "bb1:bn.23", "black", [ "h124.8", "v278", "h-67.2" ] ],
     [ "esp:34", "ldr1:AO", "green", [ "h-9.45", "v-86.4", "h316.8", "v9.6" ] ],
-    [ "oled1:GND", "bb1:bn.22", "black", [ "v-19.2", "h-67.2", "v211.2", "h-86.4", "v-46.7" ] ],
-    [ "oled1:VCC", "bb1:bp.21", "red", [ "v-9.6", "h-57.45", "v220.8", "h-115.2", "v-75.9" ] ],
-    [ "esp:21", "oled1:SDA", "green", [ "h345.6", "v-268.8", "h-48" ] ],
-    [ "esp:22", "oled1:SCL", "green", [ "h364.8", "v-249.6", "h-76.8" ] ],
     [ "bb1:21b.j", "esp:2", "green", [ "v19.2", "h-19.2", "v220.8", "h-9.6" ] ],
     [ "bb1:bn.19", "bb1:23b.j", "black", [ "v0" ] ],
     [ "bb1:18b.j", "bb1:bn.15", "black", [ "v0" ] ],
     [ "bb1:16b.j", "esp:18", "green", [ "v182.4", "h-9.6" ] ],
+    [ "esp:15", "bb1:7b.j", "green", [ "h28.8", "v48", "h-144", "v-230.4", "h38.4" ] ],
+    [ "bb1:bn.7", "bb1:9b.j", "black", [ "v0" ] ],
+    [ "bb1:bp.21", "lcd1:VCC", "red", [ "v75.9", "h136", "v-144", "h57.6" ] ],
+    [ "bb1:bn.22", "lcd1:GND", "black", [ "v46.7", "h136", "v-134.4" ] ],
+    [ "esp:21", "lcd1:SDA", "magenta", [ "h230.4", "v-182.4", "h67.2" ] ],
+    [ "esp:22", "lcd1:SCL", "cyan", [ "h220.8", "v-144.3" ] ],
     [ "dht1:VCC", "bb1:27b.i", "", [ "$bb" ] ],
     [ "dht1:SDA", "bb1:28b.i", "", [ "$bb" ] ],
     [ "dht1:NC", "bb1:29b.i", "", [ "$bb" ] ],
@@ -101,12 +103,10 @@
     [ "led1:C", "bb1:12t.a", "", [ "$bb" ] ],
     [ "r1:1", "bb1:7t.c", "", [ "$bb" ] ],
     [ "r1:2", "bb1:13t.c", "", [ "$bb" ] ],
-    [ "esp:15", "bb1:7b.j", "green", [ "h28.8", "v48", "h-144", "v-230.4", "h38.4" ] ],
     [ "btn3:1.l", "bb1:9b.f", "", [ "$bb" ] ],
     [ "btn3:2.l", "bb1:7b.f", "", [ "$bb" ] ],
     [ "btn3:1.r", "bb1:9b.i", "", [ "$bb" ] ],
-    [ "btn3:2.r", "bb1:7b.i", "", [ "$bb" ] ],
-    [ "bb1:bn.7", "bb1:9b.j", "black", [ "v0" ] ]
+    [ "btn3:2.r", "bb1:7b.i", "", [ "$bb" ] ]
   ],
   "dependencies": {}
 }
