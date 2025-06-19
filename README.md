@@ -562,7 +562,7 @@ Este projeto é desenvolvido para fins acadêmicos como parte do curso da FIAP.
 
 ## 📞 **Contato**
 
-Para dúvidas sobre o projeto, entre em contato com qualquer membro do **Grupo 65**.
+Para dúvidas sobre o projeto, entre em contato com qualquer membro do **Grupo 56**.
 
 ---
 
