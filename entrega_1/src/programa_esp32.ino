@@ -101,7 +101,8 @@ void atualizarDisplay(float t, float h, uint8_t phValue, const char* releStatus,
 // --- Array de servidores para envio de dados ---
 const char* servidores[] = {
   "192.168.0.13:8000",
-  "192.168.2.126:8000"
+  "192.168.2.126:8000",
+  "192.168.100.161:8000"
 };
 const uint8_t NUM_SERVIDORES = sizeof(servidores) / sizeof(servidores[0]);
 
