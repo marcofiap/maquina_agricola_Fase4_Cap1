@@ -20,39 +20,86 @@ FLASK_SERVER_URL = "http://127.0.0.1:8000/get_data"
 # --- Função para consultar a API do tempo ---
 @st.cache_data(ttl=300)  # Cache por 5 minutos
 def get_clima_atual():
-    """Obtém dados climáticos da OpenWeatherMap"""
-    API_KEY = "SUA_SENHA"  # <-- Substitua pela sua chave da OpenWeatherMap
-    CIDADE = "Camopi"
-    URL = f"https://api.openweathermap.org/data/2.5/weather?q={CIDADE}&appid={API_KEY}&units=metric&lang=pt_br"
-
+    """Obtém dados climáticos simulados (API desabilitada temporariamente)"""
+    # API_KEY = "SUA_API_KEY_AQUI"  # <-- Para usar a API real, substitua pela sua chave da OpenWeatherMap
+    # CIDADE = "Camopi"
+    # URL = f"https://api.openweathermap.org/data/2.5/weather?q={CIDADE}&appid={API_KEY}&units=metric&lang=pt_br"
+    
+    # VERSÃO SIMULADA - Para usar API real, descomente o código acima e comente este bloco
     try:
-        response = requests.get(URL, timeout=5)
-        response.raise_for_status()
-        dados = response.json()
+        # Retorna dados simulados para demonstração
+        import random
+        from datetime import datetime
+        
+        # Simula condições climáticas variáveis
+        temp_base = 28
+        temp_variacao = random.uniform(-3, 3)
+        temperatura_atual = round(temp_base + temp_variacao, 1)
+        
+        umidade_atual = random.randint(60, 85)
+        
+        condicoes = ["Ensolarado", "Parcialmente nublado", "Nublado", "Céu limpo"]
+        condicao_atual = random.choice(condicoes)
+        
+        vento_atual = round(random.uniform(2, 8), 1)
+        
+        # 20% de chance de chuva para demonstrar o alerta
+        vai_chover_hoje = random.random() < 0.2
+        chuva_atual = round(random.uniform(0.5, 5.0), 1) if vai_chover_hoje else 0.0
 
         clima = {
-            'cidade': dados.get("name", "Desconhecida"),
-            'temperatura': dados.get("main", {}).get("temp", "N/A"),
-            'umidade': dados.get("main", {}).get("humidity", "N/A"),
-            'condicao': dados.get("weather", [{}])[0].get("description", "N/A").capitalize(),
-            'vento': dados.get("wind", {}).get("speed", "N/A"),
-            'chuva': dados.get("rain", {}).get("1h", 0.0)
+            'cidade': 'Camopi (Simulado)',
+            'temperatura': temperatura_atual,
+            'umidade': umidade_atual,
+            'condicao': condicao_atual,
+            'vento': vento_atual,
+            'chuva': chuva_atual,
+            'vai_chover': vai_chover_hoje
         }
 
-        clima['vai_chover'] = clima['chuva'] > 0
         return clima
 
     except Exception as e:
-        st.error(f"Erro ao consultar clima: {e}")
+        st.warning(f"⚠️ API climática temporariamente indisponível. Usando dados simulados.")
         return {
-            'cidade': 'Erro',
-            'temperatura': 'N/A',
-            'umidade': 'N/A',
-            'condicao': 'Erro ao consultar clima',
-            'vento': 'N/A',
-            'chuva': 'N/A',
+            'cidade': 'Camopi (Simulado)',
+            'temperatura': 26.5,
+            'umidade': 72,
+            'condicao': 'Parcialmente nublado',
+            'vento': 4.2,
+            'chuva': 0.0,
             'vai_chover': False
         }
+    
+    # CÓDIGO PARA USO REAL DA API (descomente para usar):
+    # try:
+    #     response = requests.get(URL, timeout=5)
+    #     response.raise_for_status()
+    #     dados = response.json()
+    #
+    #     clima = {
+    #         'cidade': dados.get("name", "Desconhecida"),
+    #         'temperatura': dados.get("main", {}).get("temp", "N/A"),
+    #         'umidade': dados.get("main", {}).get("humidity", "N/A"),
+    #         'condicao': dados.get("weather", [{}])[0].get("description", "N/A").capitalize(),
+    #         'vento': dados.get("wind", {}).get("speed", "N/A"),
+    #         'chuva': dados.get("rain", {}).get("1h", 0.0)
+    #     }
+    #
+    #     clima['vai_chover'] = clima['chuva'] > 0
+    #     return clima
+    #
+    # except Exception as e:
+    #     st.error(f"Erro ao consultar clima: {e}")
+    #     return {
+    #         'cidade': 'Erro',
+    #         'temperatura': 'N/A',
+    #         'umidade': 'N/A',
+    #         'condicao': 'Erro ao consultar clima',
+    #         'vento': 'N/A',
+    #         'chuva': 'N/A',
+    #         'vai_chover': False
+    #     }
 
 # --- Função para obter os dados do Flask ---
 @st.cache_data(ttl=5)  # Cache por 5 segundos
