@@ -28,14 +28,14 @@ except Exception as e:
 def converter_para_boolean(valor):
     """
     Converte string para boolean.
-    ESP32 enviará diretamente 'true' ou 'false'
+    ESP32 pode enviar: 'true'/'false', 'presente'/'ausente', 'on'/'off'
     """
     if isinstance(valor, bool):
         return valor
     
     if isinstance(valor, str):
         valor = valor.lower().strip()
-        return valor == 'true'
+        return valor in ['true', 'presente', 'on', '1', 'yes', 'sim']
     
     # Default para False se não conseguir determinar
     return False
@@ -151,9 +151,9 @@ def receive_data():
         print(f"🌡️  Temperatura: {temperatura}°C")
         print(f"💧 Umidade: {umidade}%")
         print(f"⚗️  pH: {ph}")
-        print(f"🧪 Fósforo: {fosforo} ({'✅ Detectado' if fosforo == 'true' else '❌ Não detectado'})")
-        print(f"🧪 Potássio: {potassio} ({'✅ Detectado' if potassio == 'true' else '❌ Não detectado'})")
-        print(f"🚰 Bomba: {rele} ({'✅ Ligada' if rele == 'true' else '❌ Desligada'})")
+        print(f"🧪 Fósforo: {fosforo} ({'✅ Detectado' if converter_para_boolean(fosforo) else '❌ Não detectado'})")
+        print(f"🧪 Potássio: {potassio} ({'✅ Detectado' if converter_para_boolean(potassio) else '❌ Não detectado'})")
+        print(f"🚰 Bomba: {rele} ({'✅ Ligada' if converter_para_boolean(rele) else '❌ Desligada'})")
 
         if umidade and temperatura and ph and fosforo and potassio and rele:
             # Converte fósforo e potássio para boolean

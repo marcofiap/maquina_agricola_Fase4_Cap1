@@ -98,6 +98,13 @@ void atualizarDisplay(float t, float h, uint8_t phValue, const char* releStatus,
   }
 }
 
+// --- Array de servidores para envio de dados ---
+const char* servidores[] = {
+  "192.168.0.13:8000",
+  "192.168.2.126:8000"
+};
+const uint8_t NUM_SERVIDORES = sizeof(servidores) / sizeof(servidores[0]);
+
 // --- Função para enviar dados ao servidor ---
 void enviarDadosServidor(float t, float h, uint8_t phValue, const char* fosforo, const char* potassio, const char* releStatus) {
   if (millis() - ultimoEnvioHTTP >= INTERVALO_HTTP) {
@@ -115,36 +122,66 @@ void enviarDadosServidor(float t, float h, uint8_t phValue, const char* fosforo,
       httpInicializado = true;
     }
     
-    // OTIMIZAÇÃO: Usando snprintf em vez de concatenação de String para economizar heap
-    char urlBuffer[256]; // Buffer fixo para URL
-    snprintf(urlBuffer, sizeof(urlBuffer), 
-             "http://192.168.0.12:8000/data?umidade=%.1f&temperatura=%.1f&ph=%d&fosforo=%s&potassio=%s&rele=%s",
-             h, t, phValue, fosforo, potassio, releStatus);
-
-    // OTIMIZAÇÃO: Reutiliza a conexão HTTP
-    http.begin(httpClient, urlBuffer);
+    // OTIMIZAÇÃO: Tenta enviar para cada servidor no array
+    bool envioSucesso = false;
     
-    int httpResponseCode = http.GET();
+    for (uint8_t i = 0; i < NUM_SERVIDORES && !envioSucesso; i++) {
+      // OTIMIZAÇÃO: Usando snprintf em vez de concatenação de String para economizar heap
+      char urlBuffer[256]; // Buffer fixo para URL
+      snprintf(urlBuffer, sizeof(urlBuffer), 
+               "http://%s/data?umidade=%.1f&temperatura=%.1f&ph=%d&fosforo=%s&potassio=%s&rele=%s",
+               servidores[i], h, t, phValue, fosforo, potassio, releStatus);
 
-    if (httpResponseCode > 0) {
-      // OTIMIZAÇÃO: Não lê a resposta completa se não for necessário
-      if (httpResponseCode == 200) {
-        Serial.print("HTTP OK: ");
-        Serial.println(httpResponseCode);
+      Serial.print("🔄 Tentando servidor [");
+      Serial.print(i + 1);
+      Serial.print("/");
+      Serial.print(NUM_SERVIDORES);
+      Serial.print("]: ");
+      Serial.println(servidores[i]);
+
+      // OTIMIZAÇÃO: Reutiliza a conexão HTTP
+      http.begin(httpClient, urlBuffer);
+      
+      int httpResponseCode = http.GET();
+
+      if (httpResponseCode > 0) {
+        // OTIMIZAÇÃO: Não lê a resposta completa se não for necessário
+        if (httpResponseCode == 200) {
+          Serial.print("✅ HTTP OK [");
+          Serial.print(servidores[i]);
+          Serial.print("]: ");
+          Serial.println(httpResponseCode);
+          envioSucesso = true;
+        } else {
+          Serial.print("⚠️ HTTP Response [");
+          Serial.print(servidores[i]);
+          Serial.print("]: ");
+          Serial.println(httpResponseCode);
+          // Só lê a resposta se houver erro
+          String response = http.getString();
+          Serial.println("Response: " + response);
+        }
       } else {
-        Serial.print("HTTP Response: ");
-        Serial.println(httpResponseCode);
-        // Só lê a resposta se houver erro
-        String response = http.getString();
-        Serial.println("Response: " + response);
+        Serial.print("❌ HTTP Error [");
+        Serial.print(servidores[i]);
+        Serial.print("]: ");
+        Serial.println(http.errorToString(httpResponseCode));
       }
-    } else {
-      Serial.print("HTTP Error: ");
-      Serial.println(http.errorToString(httpResponseCode));
+      
+      // OTIMIZAÇÃO: Fecha a conexão imediatamente
+      http.end();
+      
+      // Se não conseguiu enviar, aguarda um pouco antes de tentar o próximo
+      if (!envioSucesso && i < NUM_SERVIDORES - 1) {
+        delay(500); // 500ms entre tentativas
+      }
     }
     
-    // OTIMIZAÇÃO: Fecha a conexão imediatamente
-    http.end();
+    if (envioSucesso) {
+      Serial.println("📡 Dados enviados com sucesso!");
+    } else {
+      Serial.println("❌ Falha ao enviar para todos os servidores");
+    }
   }
 }
 
