@@ -7,6 +7,12 @@ from datetime import datetime
 import time
 import sys
 import os
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, accuracy_score, classification_report
+from sklearn.preprocessing import StandardScaler
+import joblib
 
 # Importa as configurações do banco
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -826,6 +832,823 @@ def pagina_crud():
         except Exception as e:
             st.error(f"❌ Erro ao buscar dados: {e}")
 
+# === FUNÇÕES PARA MACHINE LEARNING COM SCIKIT-LEARN ===
+
+def preparar_dados_ml():
+    """Prepara dados do banco para Machine Learning com dados meteorológicos"""
+    try:
+        conn, cursor = conectar_postgres()
+        if conn:
+            # Primeiro tenta usar dados integrados (com meteorologia)
+            cursor.execute(f"""
+                SELECT COUNT(*) FROM {DatabaseConfig.SCHEMA}.leituras_integradas
+            """)
+            count_integradas = cursor.fetchone()[0]
+            
+            if count_integradas > 10:
+                # Usa dados integrados completos
+                cursor.execute(f"""
+                    SELECT umidade_solo, temperatura_solo, ph_solo, fosforo, potassio, bomba_dagua,
+                           temperatura_externa, umidade_ar, pressao_atmosferica, velocidade_vento,
+                           probabilidade_chuva, quantidade_chuva, diferenca_temperatura,
+                           deficit_umidade, fator_evapotranspiracao, hora_do_dia, dia_semana,
+                           mes, vai_chover_hoje, vento_forte, dia_quente
+                    FROM {DatabaseConfig.SCHEMA}.view_ml_completa
+                    WHERE umidade_solo IS NOT NULL AND temperatura_solo IS NOT NULL
+                    ORDER BY data_hora_leitura DESC
+                    LIMIT 1000
+                """)
+                rows = cursor.fetchall()
+                
+                if rows:
+                    df = pd.DataFrame(rows, columns=[
+                        'umidade_solo', 'temperatura_solo', 'ph_solo', 'fosforo', 'potassio', 
+                        'bomba_dagua', 'temperatura_externa', 'umidade_ar', 'pressao_atmosferica',
+                        'velocidade_vento', 'probabilidade_chuva', 'quantidade_chuva',
+                        'diferenca_temperatura', 'deficit_umidade', 'fator_evapotranspiracao',
+                        'hora_do_dia', 'dia_semana', 'mes', 'vai_chover_hoje', 'vento_forte', 'dia_quente'
+                    ])
+                    
+                    # Renomeia colunas para compatibilidade
+                    df = df.rename(columns={
+                        'umidade_solo': 'umidade',
+                        'temperatura_solo': 'temperatura', 
+                        'ph_solo': 'ph'
+                    })
+                    
+                    cursor.close()
+                    conn.close()
+                    st.success(f"✅ Usando dados INTEGRADOS com meteorologia: {len(df)} registros")
+                    return df
+            
+            # Fallback: usa dados básicos dos sensores
+            cursor.execute(f"""
+                SELECT umidade, temperatura, ph, fosforo, potassio, bomba_dagua,
+                       EXTRACT(HOUR FROM data_hora_leitura) as hora_do_dia,
+                       EXTRACT(DOW FROM data_hora_leitura) as dia_semana,
+                       EXTRACT(MONTH FROM data_hora_leitura) as mes
+                FROM {DatabaseConfig.SCHEMA}.leituras_sensores 
+                WHERE umidade IS NOT NULL AND temperatura IS NOT NULL AND ph IS NOT NULL
+                ORDER BY data_hora_leitura DESC
+                LIMIT 1000
+            """)
+            rows = cursor.fetchall()
+            
+            if len(rows) > 10:  # Mínimo de dados para ML
+                df = pd.DataFrame(rows, columns=[
+                    'umidade', 'temperatura', 'ph', 'fosforo', 'potassio', 
+                    'bomba_dagua', 'hora_do_dia', 'dia_semana', 'mes'
+                ])
+                
+                # Converte booleanos para numérico
+                df['fosforo'] = df['fosforo'].astype(int)
+                df['potassio'] = df['potassio'].astype(int)
+                df['bomba_dagua'] = df['bomba_dagua'].astype(int)
+                
+                cursor.close()
+                conn.close()
+                st.info(f"ℹ️ Usando dados BÁSICOS (sem meteorologia): {len(df)} registros")
+                return df
+            else:
+                st.warning("⚠️ Dados insuficientes para Machine Learning (mínimo 10 registros)")
+                cursor.close()
+                conn.close()
+                return None
+    except Exception as e:
+        st.error(f"❌ Erro ao preparar dados para ML: {e}")
+        return None
+
+def treinar_modelo_irrigacao(df):
+    """Treina modelo para prever necessidade de irrigação com dados meteorológicos"""
+    try:
+        # Features básicas
+        features_basicas = ['temperatura', 'ph', 'fosforo', 'potassio', 'hora_do_dia', 'dia_semana', 'mes']
+        
+        # Features meteorológicas (se disponíveis)
+        features_meteorologicas = [
+            'temperatura_externa', 'umidade_ar', 'pressao_atmosferica', 'velocidade_vento',
+            'probabilidade_chuva', 'quantidade_chuva', 'diferenca_temperatura', 
+            'deficit_umidade', 'fator_evapotranspiracao', 'vai_chover_hoje', 'vento_forte', 'dia_quente'
+        ]
+        
+        # Verifica quais features estão disponíveis
+        features_disponiveis = []
+        for feat in features_basicas:
+            if feat in df.columns:
+                features_disponiveis.append(feat)
+        
+        for feat in features_meteorologicas:
+            if feat in df.columns:
+                features_disponiveis.append(feat)
+        
+        X = df[features_disponiveis]
+        
+        # Log das features utilizadas
+        if any(feat in df.columns for feat in features_meteorologicas):
+            st.info(f"🌤️ Usando {len(features_disponiveis)} features (incluindo meteorologia)")
+        else:
+            st.info(f"📊 Usando {len(features_disponiveis)} features básicas")
+        
+        # Target (variável dependente) - bomba de irrigação
+        y = df['bomba_dagua']
+        
+        # Divide dados em treino e teste
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        # Treina modelo Random Forest
+        modelo = RandomForestClassifier(n_estimators=100, random_state=42)
+        modelo.fit(X_train, y_train)
+        
+        # Avalia modelo
+        y_pred = modelo.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        
+        # Importância das features
+        feature_importance = pd.DataFrame({
+            'feature': features_disponiveis,
+            'importance': modelo.feature_importances_
+        }).sort_values('importance', ascending=False)
+        
+        return modelo, accuracy, feature_importance, X_test, y_test, y_pred
+        
+    except Exception as e:
+        st.error(f"❌ Erro ao treinar modelo: {e}")
+        return None, None, None, None, None, None
+
+def treinar_modelo_umidade(df):
+    """Treina modelo para prever umidade futura com dados meteorológicos"""
+    try:
+        # Features básicas para prever umidade
+        features_basicas = ['temperatura', 'ph', 'fosforo', 'potassio', 'bomba_dagua', 'hora_do_dia', 'mes']
+        
+        # Features meteorológicas que afetam umidade do solo
+        features_meteorologicas = [
+            'temperatura_externa', 'umidade_ar', 'pressao_atmosferica', 'velocidade_vento',
+            'probabilidade_chuva', 'quantidade_chuva', 'diferenca_temperatura', 
+            'fator_evapotranspiracao', 'vai_chover_hoje', 'vento_forte', 'dia_quente'
+        ]
+        
+        # Verifica quais features estão disponíveis
+        features_disponiveis = []
+        for feat in features_basicas:
+            if feat in df.columns:
+                features_disponiveis.append(feat)
+        
+        for feat in features_meteorologicas:
+            if feat in df.columns:
+                features_disponiveis.append(feat)
+        
+        X = df[features_disponiveis]
+        y = df['umidade']
+        
+        # Divide dados
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        # Normaliza dados
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        
+        # Treina modelo
+        modelo = RandomForestRegressor(n_estimators=100, random_state=42)
+        modelo.fit(X_train_scaled, y_train)
+        
+        # Avalia modelo
+        y_pred = modelo.predict(X_test_scaled)
+        mse = mean_squared_error(y_test, y_pred)
+        rmse = np.sqrt(mse)
+        
+        # Importância das features
+        feature_importance = pd.DataFrame({
+            'feature': features_disponiveis,
+            'importance': modelo.feature_importances_
+        }).sort_values('importance', ascending=False)
+        
+        return modelo, scaler, rmse, feature_importance, X_test, y_test, y_pred
+        
+    except Exception as e:
+        st.error(f"❌ Erro ao treinar modelo de umidade: {e}")
+        return None, None, None, None, None, None, None
+
+def prever_irrigacao_inteligente(modelo_irrigacao, modelo_umidade, scaler, hora_atual=None):
+    """Faz previsões inteligentes de irrigação"""
+    try:
+        if hora_atual is None:
+            hora_atual = datetime.now().hour
+        
+        # Cenários de teste
+        cenarios = [
+            {"temperatura": 25, "ph": 6.5, "fosforo": 1, "potassio": 1, "hora_do_dia": hora_atual, "dia_semana": 1},
+            {"temperatura": 30, "ph": 6.0, "fosforo": 0, "potassio": 1, "hora_do_dia": hora_atual, "dia_semana": 1},
+            {"temperatura": 35, "ph": 7.0, "fosforo": 1, "potassio": 0, "hora_do_dia": hora_atual, "dia_semana": 1},
+        ]
+        
+        resultados = []
+        
+        for i, cenario in enumerate(cenarios):
+            # Previsão de irrigação
+            X_irrig = np.array([[cenario["temperatura"], cenario["ph"], cenario["fosforo"], 
+                               cenario["potassio"], cenario["hora_do_dia"], cenario["dia_semana"]]])
+            prob_irrigacao = modelo_irrigacao.predict_proba(X_irrig)[0][1]  # Probabilidade de irrigar
+            
+            # Previsão de umidade (com e sem irrigação)
+            X_umid_sem = np.array([[cenario["temperatura"], cenario["ph"], cenario["fosforo"], 
+                                  cenario["potassio"], 0, cenario["hora_do_dia"]]])
+            X_umid_com = np.array([[cenario["temperatura"], cenario["ph"], cenario["fosforo"], 
+                                  cenario["potassio"], 1, cenario["hora_do_dia"]]])
+            
+            X_umid_sem_scaled = scaler.transform(X_umid_sem)
+            X_umid_com_scaled = scaler.transform(X_umid_com)
+            
+            umidade_sem_irrigacao = modelo_umidade.predict(X_umid_sem_scaled)[0]
+            umidade_com_irrigacao = modelo_umidade.predict(X_umid_com_scaled)[0]
+            
+            # Recomendação inteligente
+            if prob_irrigacao > 0.5 or umidade_sem_irrigacao < 30:
+                recomendacao = "🟢 IRRIGAR"
+                motivo = f"Prob: {prob_irrigacao:.2f} | Umidade esperada sem irrigação: {umidade_sem_irrigacao:.1f}%"
+            else:
+                recomendacao = "🔴 NÃO IRRIGAR"
+                motivo = f"Prob: {prob_irrigacao:.2f} | Umidade atual suficiente: {umidade_sem_irrigacao:.1f}%"
+            
+            resultados.append({
+                "cenario": f"Cenário {i+1}",
+                "temperatura": cenario["temperatura"],
+                "ph": cenario["ph"],
+                "nutrientes": f"P:{cenario['fosforo']} K:{cenario['potassio']}",
+                "prob_irrigacao": prob_irrigacao,
+                "umidade_sem_irrig": umidade_sem_irrigacao,
+                "umidade_com_irrig": umidade_com_irrigacao,
+                "recomendacao": recomendacao,
+                "motivo": motivo
+            })
+        
+        return resultados
+        
+    except Exception as e:
+        st.error(f"❌ Erro nas previsões: {e}")
+        return []
+
+def pagina_ml_scikit():
+    """Página dedicada ao Machine Learning com Scikit-learn"""
+    st.title("🤖 Machine Learning com Scikit-learn")
+    st.markdown("**Modelo preditivo inteligente para irrigação automatizada**")
+    
+    # Botão para voltar ao dashboard
+    if st.button("🏠 Voltar ao Dashboard", type="primary"):
+        st.session_state.current_page = "dashboard"
+        st.rerun()
+    
+    st.markdown("---")
+    
+    # Informações do sistema
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.info(f"🧠 **Algoritmo:** Random Forest")
+    with col2:
+        st.info(f"📊 **Biblioteca:** Scikit-learn")
+    with col3:
+        st.info(f"🎯 **Objetivo:** Irrigação Inteligente")
+    
+    st.markdown("---")
+    
+    # Preparar dados
+    with st.spinner("📊 Carregando dados para Machine Learning..."):
+        df = preparar_dados_ml()
+    
+    if df is not None and len(df) > 10:
+        st.success(f"✅ Dados carregados: {len(df)} registros para análise ML")
+        
+        # Estatísticas dos dados
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("📊 Total Registros", len(df))
+        with col2:
+            irrigacoes = df['bomba_dagua'].sum()
+            st.metric("💧 Irrigações", f"{irrigacoes}")
+        with col3:
+            umidade_media = df['umidade'].mean()
+            st.metric("📈 Umidade Média", f"{umidade_media:.1f}%")
+        with col4:
+            temp_media = df['temperatura'].mean()
+            st.metric("🌡️ Temp Média", f"{temp_media:.1f}°C")
+        
+        st.markdown("---")
+        
+        # Seleção de modelos
+        ml_opcao = st.selectbox(
+            "**Selecione o modelo de Machine Learning:**",
+            [
+                "Selecione um modelo...",
+                "🎯 Modelo de Previsão de Irrigação",
+                "📊 Modelo de Previsão de Umidade",
+                "🤖 Sistema Inteligente Completo",
+                "📈 Análise de Importância das Variáveis"
+            ]
+        )
+        
+        st.markdown("---")
+        
+        if ml_opcao == "🎯 Modelo de Previsão de Irrigação":
+            st.subheader("🎯 Previsão de Necessidade de Irrigação")
+            
+            if st.button("🚀 Treinar Modelo de Irrigação", use_container_width=True):
+                with st.spinner("🧠 Treinando modelo Random Forest..."):
+                    modelo, accuracy, feature_importance, X_test, y_test, y_pred = treinar_modelo_irrigacao(df)
+                
+                if modelo is not None:
+                    st.success(f"✅ Modelo treinado com sucesso!")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("🎯 Acurácia do Modelo", f"{accuracy:.3f}")
+                        
+                        # Matriz de confusão simples
+                        from sklearn.metrics import confusion_matrix
+                        cm = confusion_matrix(y_test, y_pred)
+                        st.text("📊 Matriz de Confusão:")
+                        st.dataframe(pd.DataFrame(cm, 
+                                               columns=['Pred: Não Irrigar', 'Pred: Irrigar'],
+                                               index=['Real: Não Irrigar', 'Real: Irrigar']))
+                    
+                    with col2:
+                        st.text("📈 Importância das Variáveis:")
+                        fig_importance = px.bar(feature_importance, 
+                                              x='importance', 
+                                              y='feature',
+                                              orientation='h',
+                                              title="Importância das Features")
+                        st.plotly_chart(fig_importance, use_container_width=True)
+        
+        elif ml_opcao == "📊 Modelo de Previsão de Umidade":
+            st.subheader("📊 Previsão de Umidade do Solo")
+            
+            if st.button("🚀 Treinar Modelo de Umidade", use_container_width=True):
+                with st.spinner("🧠 Treinando modelo Random Forest..."):
+                    modelo, scaler, rmse, feature_importance, X_test, y_test, y_pred = treinar_modelo_umidade(df)
+                
+                if modelo is not None:
+                    st.success(f"✅ Modelo de umidade treinado!")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("📏 RMSE", f"{rmse:.2f}%")
+                        
+                        # Gráfico de predição vs real
+                        fig_pred = px.scatter(x=y_test, y=y_pred,
+                                            labels={'x': 'Umidade Real (%)', 'y': 'Umidade Prevista (%)'},
+                                            title="Predição vs Realidade")
+                        fig_pred.add_shape(type="line", x0=y_test.min(), y0=y_test.min(), 
+                                         x1=y_test.max(), y1=y_test.max(), line=dict(color="red", dash="dash"))
+                        st.plotly_chart(fig_pred, use_container_width=True)
+                    
+                    with col2:
+                        st.text("📈 Importância das Variáveis:")
+                        fig_importance = px.bar(feature_importance, 
+                                              x='importance', 
+                                              y='feature',
+                                              orientation='h',
+                                              title="Importância das Features")
+                        st.plotly_chart(fig_importance, use_container_width=True)
+        
+        elif ml_opcao == "🤖 Sistema Inteligente Completo":
+            st.subheader("🤖 Sistema de Irrigação Inteligente")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🚀 Treinar Modelo de Irrigação", use_container_width=True):
+                    with st.spinner("🧠 Treinando modelo de irrigação..."):
+                        modelo_irrig, accuracy, _, _, _, _ = treinar_modelo_irrigacao(df)
+                        if modelo_irrig:
+                            st.session_state.modelo_irrigacao = modelo_irrig
+                            st.success(f"✅ Modelo irrigação: {accuracy:.3f}")
+            
+            with col2:
+                if st.button("🚀 Treinar Modelo de Umidade", use_container_width=True):
+                    with st.spinner("🧠 Treinando modelo de umidade..."):
+                        modelo_umid, scaler, rmse, _, _, _, _ = treinar_modelo_umidade(df)
+                        if modelo_umid:
+                            st.session_state.modelo_umidade = modelo_umid
+                            st.session_state.scaler_umidade = scaler
+                            st.success(f"✅ Modelo umidade: RMSE {rmse:.2f}")
+            
+            st.markdown("---")
+            
+            # Sistema de recomendações
+            if st.button("🔮 Gerar Recomendações Inteligentes", use_container_width=True):
+                if (hasattr(st.session_state, 'modelo_irrigacao') and 
+                    hasattr(st.session_state, 'modelo_umidade') and
+                    hasattr(st.session_state, 'scaler_umidade')):
+                    
+                    with st.spinner("🤖 Calculando recomendações..."):
+                        recomendacoes = prever_irrigacao_inteligente(
+                            st.session_state.modelo_irrigacao,
+                            st.session_state.modelo_umidade,
+                            st.session_state.scaler_umidade
+                        )
+                    
+                    if recomendacoes:
+                        st.subheader("🎯 Recomendações de Irrigação")
+                        
+                        for rec in recomendacoes:
+                            with st.expander(f"{rec['cenario']} - {rec['recomendacao']}"):
+                                col1, col2, col3 = st.columns(3)
+                                with col1:
+                                    st.write(f"🌡️ **Temperatura:** {rec['temperatura']}°C")
+                                    st.write(f"⚗️ **pH:** {rec['ph']}")
+                                    st.write(f"🧪 **Nutrientes:** {rec['nutrientes']}")
+                                
+                                with col2:
+                                    st.write(f"📊 **Prob. Irrigação:** {rec['prob_irrigacao']:.3f}")
+                                    st.write(f"💧 **Umidade sem irrigação:** {rec['umidade_sem_irrig']:.1f}%")
+                                    st.write(f"💧 **Umidade com irrigação:** {rec['umidade_com_irrig']:.1f}%")
+                                
+                                with col3:
+                                    st.write(f"**{rec['recomendacao']}**")
+                                    st.write(rec['motivo'])
+                
+                else:
+                    st.warning("⚠️ Treine ambos os modelos primeiro!")
+        
+        elif ml_opcao == "📈 Análise de Importância das Variáveis":
+            st.subheader("📈 Análise de Features")
+            
+            if st.button("📊 Analisar Importância", use_container_width=True):
+                modelo_irrig, _, feat_irrig, _, _, _ = treinar_modelo_irrigacao(df)
+                modelo_umid, _, _, feat_umid, _, _, _ = treinar_modelo_umidade(df)
+                
+                if modelo_irrig and modelo_umid:
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.text("🎯 Importância para Irrigação:")
+                        fig1 = px.bar(feat_irrig, x='importance', y='feature', orientation='h',
+                                     title="Features mais importantes para Irrigação")
+                        st.plotly_chart(fig1, use_container_width=True)
+                    
+                    with col2:
+                        st.text("💧 Importância para Umidade:")
+                        fig2 = px.bar(feat_umid, x='importance', y='feature', orientation='h',
+                                     title="Features mais importantes para Umidade")
+                        st.plotly_chart(fig2, use_container_width=True)
+        
+        else:
+            st.info("👆 Selecione um modelo no menu acima para começar")
+            
+            # Informações sobre Machine Learning
+            st.subheader("🤖 Sobre os Modelos de Machine Learning")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("""
+                **🎯 Modelo de Irrigação:**
+                - Algoritmo: Random Forest Classifier
+                - Objetivo: Prever se deve irrigar (Sim/Não)
+                - Features: Temperatura, pH, Nutrientes, Hora
+                - Métrica: Acurácia
+                """)
+            
+            with col2:
+                st.markdown("""
+                **📊 Modelo de Umidade:**
+                - Algoritmo: Random Forest Regressor
+                - Objetivo: Prever nível de umidade
+                - Features: Temperatura, pH, Bomba, Hora
+                - Métrica: RMSE (Erro Quadrático Médio)
+                """)
+            
+            st.markdown("""
+            **🧠 Sistema Inteligente:**
+            
+            O sistema combina ambos os modelos para tomar decisões inteligentes:
+            1. **Coleta dados** dos sensores (temperatura, pH, nutrientes)
+            2. **Coleta dados meteorológicos** (chuva, vento, pressão)
+            3. **Calcula probabilidade** de necessidade de irrigação
+            4. **Prevê umidade** com e sem irrigação
+            5. **Gera recomendação** baseada em múltiplos fatores
+            6. **Aprende continuamente** com novos dados
+            
+            **Benefícios com Meteorologia:**
+            - ✅ Não irriga se vai chover
+            - ✅ Considera evaporação por vento
+            - ✅ Otimiza baseado na pressão atmosférica
+            - ✅ Ajusta para umidade do ar
+            - ✅ Economia de água inteligente
+            """)
+        
+        # Seção sobre dados meteorológicos
+        st.subheader("🌤️ Integração Meteorológica")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            **📊 Dados Coletados:**
+            - 🌡️ Temperatura externa
+            - 💧 Umidade do ar
+            - 🌪️ Velocidade do vento
+            - 📊 Pressão atmosférica
+            - 🌧️ Probabilidade de chuva
+            - ☀️ Índice UV
+            """)
+        
+        with col2:
+            st.markdown("""
+            **🧠 Como a IA Usa:**
+            - Se prob. chuva > 70% → NÃO irrigar
+            - Se vento forte → Aumentar irrigação
+            - Se pressão baixa → Aguardar chuva
+            - Se temp. alta → Irrigar mais cedo
+            - Se umidade ar baixa → Irrigar mais
+            """)
+    
+    else:
+        st.error("❌ Dados insuficientes para Machine Learning")
+        st.info("💡 Aguarde mais dados serem coletados pelos sensores ou insira dados manualmente via CRUD")
+        
+        # Botão para popular dados de teste
+        if st.button("🎲 Gerar Dados de Teste para ML", use_container_width=True):
+            with st.spinner("🔄 Gerando dados de teste..."):
+                dados_gerados = gerar_dados_teste_ml()
+                if dados_gerados > 0:
+                    st.success(f"✅ {dados_gerados} registros de teste gerados!")
+                    st.info("🔄 Recarregue a página para treinar os modelos")
+
+def gerar_dados_teste_ml():
+    """Gera dados de teste para demonstrar o ML"""
+    try:
+        import random
+        from datetime import datetime, timedelta
+        
+        dados_gerados = 0
+        
+        # Gera 50 registros de teste dos últimos 7 dias
+        for i in range(50):
+            # Data aleatória nos últimos 7 dias
+            data_base = datetime.now() - timedelta(days=random.randint(0, 7))
+            data_base = data_base - timedelta(
+                hours=random.randint(0, 23),
+                minutes=random.randint(0, 59)
+            )
+            
+            # Dados dos sensores
+            umidade = random.uniform(20, 80)
+            temperatura = random.uniform(18, 35)
+            ph = random.uniform(5.5, 8.0)
+            fosforo = random.choice([True, False])
+            potassio = random.choice([True, False])
+            
+            # Lógica para bomba (baseada em umidade)
+            bomba = umidade < 35 or (umidade < 50 and temperatura > 30)
+            
+            # Dados meteorológicos simulados
+            temp_externa = temperatura + random.uniform(-3, 5)
+            umidade_ar = random.uniform(45, 95)
+            pressao = random.uniform(1000, 1025)
+            vento = random.uniform(2, 20)
+            prob_chuva = random.uniform(0, 100)
+            chuva = random.uniform(0, 8) if prob_chuva > 70 else 0
+            
+            dados_meteorologicos = {
+                'temperatura_externa': temp_externa,
+                'umidade_ar': umidade_ar,
+                'pressao_atmosferica': pressao,
+                'velocidade_vento': vento,
+                'direcao_vento': random.choice(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']),
+                'condicao_clima': random.choice(['Ensolarado', 'Nublado', 'Chuva leve', 'Chuva']),
+                'probabilidade_chuva': prob_chuva,
+                'quantidade_chuva': chuva,
+                'indice_uv': random.uniform(0, 11),
+                'visibilidade': random.uniform(5, 30),
+                'cidade': 'Camopi (Teste)',
+                'fonte_dados': 'Dados de Teste'
+            }
+            
+            dados_sensores = {
+                'umidade': umidade,
+                'temperatura': temperatura,
+                'ph': ph,
+                'fosforo': fosforo,
+                'potassio': potassio,
+                'bomba_dagua': bomba
+            }
+            
+            # Salva dados meteorológicos
+            if salvar_dados_meteorologicos(dados_meteorologicos):
+                # Cria leitura integrada
+                if criar_leitura_integrada(dados_sensores, dados_meteorologicos):
+                    dados_gerados += 1
+        
+        return dados_gerados
+        
+    except Exception as e:
+        st.error(f"❌ Erro ao gerar dados de teste: {e}")
+        return 0
+
+# === FUNÇÕES PARA DADOS METEOROLÓGICOS ===
+
+@st.cache_data(ttl=300)  # Cache por 5 minutos
+def coletar_dados_meteorologicos():
+    """Coleta dados meteorológicos da API OpenWeatherMap"""
+    try:
+        # Para demonstração, vamos usar dados simulados mais realistas
+        # Em produção, descomente e configure a API real
+        
+        import random
+        from datetime import datetime
+        
+        # Simula condições climáticas mais realistas baseadas na hora
+        hora_atual = datetime.now().hour
+        
+        # Temperatura varia conforme o horário
+        if 6 <= hora_atual <= 12:  # Manhã
+            temp_base = 24 + random.uniform(-2, 3)
+        elif 12 <= hora_atual <= 18:  # Tarde
+            temp_base = 29 + random.uniform(-3, 4)
+        elif 18 <= hora_atual <= 22:  # Noite
+            temp_base = 26 + random.uniform(-2, 2)
+        else:  # Madrugada
+            temp_base = 22 + random.uniform(-1, 2)
+        
+        # Umidade do ar inversamente relacionada à temperatura
+        umidade_ar = max(45, min(95, 85 - (temp_base - 22) * 2 + random.uniform(-5, 5)))
+        
+        # Pressão atmosférica com variação realista
+        pressao = 1013.25 + random.uniform(-15, 15)
+        
+        # Vento com padrões diurnos
+        if 10 <= hora_atual <= 16:  # Ventos mais fortes durante o dia
+            vento = random.uniform(8, 18)
+        else:  # Ventos mais calmos à noite
+            vento = random.uniform(3, 12)
+        
+        # Probabilidade de chuva baseada em umidade e pressão
+        if umidade_ar > 80 and pressao < 1010:
+            prob_chuva = random.uniform(60, 95)
+        elif umidade_ar > 70:
+            prob_chuva = random.uniform(20, 60)
+        else:
+            prob_chuva = random.uniform(0, 20)
+        
+        # Quantidade de chuva se probabilidade for alta
+        if prob_chuva > 70:
+            chuva = random.uniform(0.5, 8.0)
+        elif prob_chuva > 40:
+            chuva = random.uniform(0.0, 2.0)
+        else:
+            chuva = 0.0
+        
+        # Condições climáticas baseadas em chuva e temperatura
+        if chuva > 2:
+            condicao = random.choice(["Chuva forte", "Tempestade", "Chuva"])
+        elif chuva > 0:
+            condicao = random.choice(["Chuva leve", "Garoa", "Chuvisco"])
+        elif temp_base > 30:
+            condicao = random.choice(["Ensolarado", "Muito quente", "Céu limpo"])
+        elif umidade_ar > 80:
+            condicao = random.choice(["Nublado", "Muito úmido", "Neblina"])
+        else:
+            condicao = random.choice(["Parcialmente nublado", "Ensolarado", "Céu limpo"])
+        
+        # Direção do vento
+        direcoes = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+        direcao_vento = random.choice(direcoes)
+        
+        # Índice UV baseado na hora e condições
+        if 10 <= hora_atual <= 16 and "Ensolarado" in condicao:
+            indice_uv = random.uniform(6, 11)
+        elif 8 <= hora_atual <= 18:
+            indice_uv = random.uniform(2, 8)
+        else:
+            indice_uv = random.uniform(0, 2)
+        
+        # Visibilidade baseada em chuva e umidade
+        if chuva > 5:
+            visibilidade = random.uniform(2, 8)
+        elif umidade_ar > 85:
+            visibilidade = random.uniform(8, 15)
+        else:
+            visibilidade = random.uniform(15, 30)
+        
+        dados_meteorologicos = {
+            'temperatura_externa': round(temp_base, 1),
+            'umidade_ar': round(umidade_ar, 1),
+            'pressao_atmosferica': round(pressao, 2),
+            'velocidade_vento': round(vento, 1),
+            'direcao_vento': direcao_vento,
+            'condicao_clima': condicao,
+            'probabilidade_chuva': round(prob_chuva, 1),
+            'quantidade_chuva': round(chuva, 1),
+            'indice_uv': round(indice_uv, 1),
+            'visibilidade': round(visibilidade, 1),
+            'cidade': 'Camopi (Simulado)',
+            'fonte_dados': 'Simulação Inteligente'
+        }
+        
+        return dados_meteorologicos
+        
+    except Exception as e:
+        st.error(f"❌ Erro ao coletar dados meteorológicos: {e}")
+        return None
+
+def salvar_dados_meteorologicos(dados_met):
+    """Salva dados meteorológicos no banco PostgreSQL"""
+    try:
+        conn, cursor = conectar_postgres()
+        if conn and dados_met:
+            cursor.execute(f"""
+                INSERT INTO {DatabaseConfig.SCHEMA}.dados_meteorologicos 
+                (temperatura_externa, umidade_ar, pressao_atmosferica, velocidade_vento, 
+                 direcao_vento, condicao_clima, probabilidade_chuva, quantidade_chuva,
+                 indice_uv, visibilidade, cidade, fonte_dados)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                dados_met['temperatura_externa'],
+                dados_met['umidade_ar'], 
+                dados_met['pressao_atmosferica'],
+                dados_met['velocidade_vento'],
+                dados_met['direcao_vento'],
+                dados_met['condicao_clima'],
+                dados_met['probabilidade_chuva'],
+                dados_met['quantidade_chuva'],
+                dados_met['indice_uv'],
+                dados_met['visibilidade'],
+                dados_met['cidade'],
+                dados_met['fonte_dados']
+            ))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return True
+    except Exception as e:
+        st.error(f"❌ Erro ao salvar dados meteorológicos: {e}")
+        return False
+
+def calcular_fatores_evapotranspiracao(temp_solo, temp_externa, umidade_ar, vento):
+    """Calcula fatores que afetam a evapotranspiração"""
+    try:
+        # Diferença de temperatura (externa - solo)
+        diferenca_temp = temp_externa - temp_solo
+        
+        # Déficit de umidade (ar - solo) - aproximação
+        # Assumindo que umidade do solo ideal é ~40-60%
+        deficit_umidade = umidade_ar - 50  # Referência
+        
+        # Fator de evapotranspiração baseado em Penman-Monteith simplificado
+        # ET = f(temperatura, vento, déficit de umidade)
+        fator_et = (temp_externa * 0.3) + (vento * 0.2) - (umidade_ar * 0.1)
+        fator_et = max(0, fator_et)  # Não pode ser negativo
+        
+        return diferenca_temp, deficit_umidade, fator_et
+        
+    except Exception:
+        return 0, 0, 0
+
+def criar_leitura_integrada(dados_sensores, dados_meteorologicos):
+    """Combina dados dos sensores com dados meteorológicos"""
+    try:
+        # Calcula fatores derivados
+        diferenca_temp, deficit_umidade, fator_et = calcular_fatores_evapotranspiracao(
+            dados_sensores.get('temperatura', 25),
+            dados_meteorologicos.get('temperatura_externa', 25),
+            dados_meteorologicos.get('umidade_ar', 70),
+            dados_meteorologicos.get('velocidade_vento', 5)
+        )
+        
+        conn, cursor = conectar_postgres()
+        if conn:
+            cursor.execute(f"""
+                INSERT INTO {DatabaseConfig.SCHEMA}.leituras_integradas 
+                (umidade_solo, temperatura_solo, ph_solo, fosforo, potassio, bomba_dagua,
+                 temperatura_externa, umidade_ar, pressao_atmosferica, velocidade_vento,
+                 condicao_clima, probabilidade_chuva, quantidade_chuva,
+                 diferenca_temperatura, deficit_umidade, fator_evapotranspiracao)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                dados_sensores.get('umidade', 0),
+                dados_sensores.get('temperatura', 0),
+                dados_sensores.get('ph', 7.0),
+                dados_sensores.get('fosforo', False),
+                dados_sensores.get('potassio', False),
+                dados_sensores.get('bomba_dagua', False),
+                dados_meteorologicos.get('temperatura_externa', 25),
+                dados_meteorologicos.get('umidade_ar', 70),
+                dados_meteorologicos.get('pressao_atmosferica', 1013),
+                dados_meteorologicos.get('velocidade_vento', 5),
+                dados_meteorologicos.get('condicao_clima', 'Desconhecido'),
+                dados_meteorologicos.get('probabilidade_chuva', 0),
+                dados_meteorologicos.get('quantidade_chuva', 0),
+                diferenca_temp,
+                deficit_umidade,
+                fator_et
+            ))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return True
+    except Exception as e:
+        st.error(f"❌ Erro ao criar leitura integrada: {e}")
+        return False
+
 # --- Função para consultar a API do tempo ---
 @st.cache_data(ttl=300)  # Cache por 5 minutos
 def get_clima_atual():
@@ -947,11 +1770,11 @@ def main():
     # Título principal
     st.title("🌱 FarmTech Solutions Dashboard")
     
-    # Botões de navegação principal
-    col1, col2, col3 = st.columns([1, 1, 1])
+    # Botões de navegação principal - Agora com 4 colunas
+    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
     
     with col1:
-        if st.button("🗃️ Gerenciamento de Registros", use_container_width=True, type="primary"):
+        if st.button("🗃️ Gerenciamento CRUD", use_container_width=True, type="primary"):
             st.session_state.current_page = "crud"
             st.rerun()
     
@@ -971,14 +1794,19 @@ def main():
                 font-weight: 400;
                 padding: 0 12px;
             ">
-                📈 Ver Gráficos Avançados (Live Plotter)
+                📈 Live Plotter
             </button>
         </a>
         """, unsafe_allow_html=True)
     
     with col3:
-        if st.button("🤖 Análise Estatística (R)", use_container_width=True, type="secondary"):
+        if st.button("🤖 Análise R", use_container_width=True, type="secondary"):
             st.session_state.current_page = "analytics"
+            st.rerun()
+    
+    with col4:
+        if st.button("🧠 Machine Learning", use_container_width=True, type="secondary"):
+            st.session_state.current_page = "ml"
             st.rerun()
     
     st.markdown("---")
@@ -991,6 +1819,9 @@ def main():
     elif current_page == "analytics":
         pagina_analytics_r()
         return  # Sai da função para não mostrar o dashboard
+    elif current_page == "ml":
+        pagina_ml_scikit()
+        return  # Sai da função para não mostrar o dashboard
     
     # === DASHBOARD PRINCIPAL ===
     
@@ -1000,9 +1831,22 @@ def main():
         auto_refresh = st.checkbox("🔄 Atualização Automática", value=True)
         refresh_interval = st.slider("Intervalo (segundos)", 3, 60, 45)
         
+        # Checkbox para coleta automática de dados meteorológicos
+        coletar_meteorologia = st.checkbox("🌤️ Coletar Meteorologia", value=True)
+        
         if st.button("🔄 Atualizar Dados"):
             st.cache_data.clear()
             st.rerun()
+        
+        # Se habilitado, coleta e salva dados meteorológicos
+        if coletar_meteorologia:
+            dados_met = coletar_dados_meteorologicos()
+            if dados_met:
+                # Salva no banco a cada 10 minutos (para não sobrecarregar)
+                if st.session_state.get('ultimo_salvamento_met', 0) + 600 < time.time():
+                    if salvar_dados_meteorologicos(dados_met):
+                        st.session_state.ultimo_salvamento_met = time.time()
+                        st.success("☁️ Meteorologia salva!", icon="🌤️")
         
         st.markdown("---")
         st.header("📊 Servidor")

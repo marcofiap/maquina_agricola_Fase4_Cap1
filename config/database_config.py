@@ -107,14 +107,101 @@ def criar_schema_e_tabela():
                     bomba_dagua BOOLEAN
                 )
             """)
+            
+            # Cria tabela de dados meteorológicos
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {_config.SCHEMA}.dados_meteorologicos (
+                    id SERIAL PRIMARY KEY,
+                    data_hora_coleta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    temperatura_externa DECIMAL(5,2),
+                    umidade_ar DECIMAL(5,2),
+                    pressao_atmosferica DECIMAL(8,2),
+                    velocidade_vento DECIMAL(5,2),
+                    direcao_vento VARCHAR(10),
+                    condicao_clima VARCHAR(50),
+                    probabilidade_chuva DECIMAL(5,2),
+                    quantidade_chuva DECIMAL(5,2) DEFAULT 0.0,
+                    indice_uv DECIMAL(4,2),
+                    visibilidade DECIMAL(5,1),
+                    cidade VARCHAR(100) DEFAULT 'Camopi',
+                    fonte_dados VARCHAR(50) DEFAULT 'Simulado'
+                )
+            """)
+            
+            # Cria tabela de leituras integradas
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {_config.SCHEMA}.leituras_integradas (
+                    id SERIAL PRIMARY KEY,
+                    data_hora_leitura TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    -- Dados dos sensores IoT
+                    umidade_solo DECIMAL(5,2) NOT NULL,
+                    temperatura_solo DECIMAL(5,2) NOT NULL,
+                    ph_solo DECIMAL(4,2) NOT NULL,
+                    fosforo BOOLEAN NOT NULL,
+                    potassio BOOLEAN NOT NULL,
+                    bomba_dagua BOOLEAN NOT NULL,
+                    -- Dados meteorológicos
+                    temperatura_externa DECIMAL(5,2),
+                    umidade_ar DECIMAL(5,2),
+                    pressao_atmosferica DECIMAL(8,2),
+                    velocidade_vento DECIMAL(5,2),
+                    condicao_clima VARCHAR(50),
+                    probabilidade_chuva DECIMAL(5,2),
+                    quantidade_chuva DECIMAL(5,2) DEFAULT 0.0,
+                    -- Dados calculados
+                    diferenca_temperatura DECIMAL(5,2), -- temp_externa - temp_solo
+                    deficit_umidade DECIMAL(5,2), -- umidade_ar - umidade_solo
+                    fator_evapotranspiracao DECIMAL(5,2) -- calculado com base em vento + temperatura
+                )
+            """)
+            
+            # Criar view para análise ML
+            cursor.execute(f"""
+                CREATE OR REPLACE VIEW {_config.SCHEMA}.view_ml_completa AS
+                SELECT 
+                    li.id,
+                    li.data_hora_leitura,
+                    li.umidade_solo,
+                    li.temperatura_solo,
+                    li.ph_solo,
+                    li.fosforo::int as fosforo,
+                    li.potassio::int as potassio,
+                    li.bomba_dagua::int as bomba_dagua,
+                    li.temperatura_externa,
+                    li.umidade_ar,
+                    li.pressao_atmosferica,
+                    li.velocidade_vento,
+                    li.probabilidade_chuva,
+                    li.quantidade_chuva,
+                    li.diferenca_temperatura,
+                    li.deficit_umidade,
+                    li.fator_evapotranspiracao,
+                    EXTRACT(HOUR FROM li.data_hora_leitura) as hora_do_dia,
+                    EXTRACT(DOW FROM li.data_hora_leitura) as dia_semana,
+                    EXTRACT(MONTH FROM li.data_hora_leitura) as mes,
+                    CASE 
+                        WHEN li.probabilidade_chuva > 70 THEN 1 
+                        ELSE 0 
+                    END as vai_chover_hoje,
+                    CASE 
+                        WHEN li.velocidade_vento > 15 THEN 1 
+                        ELSE 0 
+                    END as vento_forte,
+                    CASE 
+                        WHEN li.temperatura_externa > 30 THEN 1 
+                        ELSE 0 
+                    END as dia_quente
+                FROM {_config.SCHEMA}.leituras_integradas li
+                ORDER BY li.data_hora_leitura DESC
+            """)
+            
             conn.commit()
-            print(f"✅ Schema e tabela '{_config.SCHEMA}.leituras_sensores' verificados/criados com nova estrutura.")
-            print("📋 Estrutura da tabela:")
-            print("   • id (SERIAL PRIMARY KEY) - Chave primária autoincremento")
-            print("   • data_hora_leitura (TIMESTAMP) - Horário da leitura do sensor")
-            print("   • criacaots (TIMESTAMP DEFAULT CURRENT_TIMESTAMP) - Horário de inserção no banco")
-            print("   • umidade, temperatura, ph (DECIMAL) - Valores numéricos dos sensores")
-            print("   • fosforo, potassio, bomba_dagua (BOOLEAN) - Estados dos sensores e bomba (true/false)")
+            print(f"✅ Schema e tabelas '{_config.SCHEMA}' verificados/criados com nova estrutura.")
+            print("📋 Estrutura das tabelas:")
+            print("   • leituras_sensores - Dados básicos dos sensores")
+            print("   • dados_meteorologicos - Dados do clima")
+            print("   • leituras_integradas - Dados combinados para ML")
+            print("   • view_ml_completa - View para análise com 20+ features")
             return True
             
         except psycopg2.Error as error:
@@ -173,8 +260,8 @@ if __name__ == "__main__":
     
     # Testa conexão
     if testar_conexao():
-        # Executa migração para nova estrutura
-        print("\n🔄 Verificando se é necessário migrar para nova estrutura...")
-        migrar_tabela_para_nova_estrutura()
+        # Cria estrutura do banco
+        print("\n🔄 Criando estrutura do banco...")
+        criar_schema_e_tabela()
     else:
         print("❌ Configure as credenciais do banco antes de continuar.") 

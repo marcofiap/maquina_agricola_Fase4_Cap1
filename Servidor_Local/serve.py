@@ -3,6 +3,13 @@ import sys
 import os
 from datetime import datetime
 import pytz
+import random
+import math
+import psycopg2
+from psycopg2 import sql, pool
+import threading
+import time
+import atexit
 
 # --- INÍCIO: Adicionado para o Plotter ---
 # Template HTML para a página do plotter.
@@ -422,6 +429,55 @@ except Exception as e:
     print(f"⚠️ Aviso: Não foi possível conectar ao banco: {e}")
     print("🔄 Servidor continuará rodando. Você pode configurar o banco depois.")
 
+# === POOL DE CONEXÕES PARA PERFORMANCE ===
+connection_pool = None
+
+def inicializar_pool_conexoes():
+    """Inicializa pool de conexões para performance ultra-rápida."""
+    global connection_pool
+    try:
+        connection_pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn=2,  # Mínimo 2 conexões sempre abertas
+            maxconn=10, # Máximo 10 conexões simultâneas
+            **DatabaseConfig.get_connection_params()
+        )
+        print("🚀 Pool de conexões PostgreSQL inicializado (2-10 conexões)")
+        return True
+    except Exception as e:
+        print(f"❌ Erro ao inicializar pool: {e}")
+        return False
+
+def obter_conexao_pool():
+    """Obtém conexão do pool (ULTRA-RÁPIDO)."""
+    global connection_pool
+    if connection_pool:
+        try:
+            conn = connection_pool.getconn()
+            if conn:
+                cursor = conn.cursor()
+                # Configurações rápidas
+                cursor.execute(f"SET search_path TO {DatabaseConfig.SCHEMA}, public")
+                return conn, cursor
+        except Exception as e:
+            print(f"⚠️ Erro ao obter conexão do pool: {e}")
+    return None, None
+
+def devolver_conexao_pool(conn):
+    """Devolve conexão para o pool."""
+    global connection_pool
+    if connection_pool and conn:
+        connection_pool.putconn(conn)
+
+def fechar_pool_conexoes():
+    """Fecha o pool de conexões."""
+    global connection_pool
+    if connection_pool:
+        connection_pool.closeall()
+        print("🔒 Pool de conexões fechado")
+
+# Registra função para fechar pool ao encerrar aplicação
+atexit.register(fechar_pool_conexoes)
+
 def converter_para_boolean(valor):
     """
     Converte string para boolean.
@@ -540,9 +596,120 @@ def get_all_data():
         "dados": dados
     })
 
+def processar_meteorologia_background(umidade, temperatura, ph, fosforo, potassio, bomba_dagua, timestamp):
+    """
+    Processa dados meteorológicos em background thread.
+    Não bloqueia a resposta para o ESP32.
+    """
+    try:
+        print("🌤️ BACKGROUND: Iniciando processamento meteorológico...")
+        
+        # Pequeno delay para garantir que dados básicos foram salvos
+        time.sleep(0.1)
+        
+        # Usa timestamp do ESP32 se fornecido
+        if timestamp:
+            if isinstance(timestamp, str):
+                data_hora = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+            else:
+                data_hora = timestamp
+        else:
+            data_hora = datetime.now()
+        
+        # Organiza dados dos sensores
+        dados_sensores = {
+            'umidade': umidade,
+            'temperatura': temperatura,
+            'ph': ph,
+            'fosforo': fosforo,
+            'potassio': potassio,
+            'bomba_dagua': bomba_dagua
+        }
+        
+        # Coleta dados meteorológicos
+        dados_meteo = coletar_dados_meteorologicos()
+        
+        # Conecta ao banco para salvar dados meteorológicos e integrados
+        conn, cursor = conectar_postgres()
+        if conn and cursor:
+            try:
+                # Salva dados meteorológicos
+                cursor.execute(f"""
+                    INSERT INTO {DatabaseConfig.SCHEMA}.dados_meteorologicos 
+                    (data_hora_coleta, temperatura_externa, umidade_ar, pressao_atmosferica, 
+                     velocidade_vento, direcao_vento, condicao_clima, probabilidade_chuva, 
+                     quantidade_chuva, indice_uv, visibilidade, cidade, fonte_dados)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    data_hora,
+                    dados_meteo['temperatura_externa'],
+                    dados_meteo['umidade_ar'],
+                    dados_meteo['pressao_atmosferica'],
+                    dados_meteo['velocidade_vento'],
+                    dados_meteo['direcao_vento'],
+                    dados_meteo['condicao_clima'],
+                    dados_meteo['probabilidade_chuva'],
+                    dados_meteo['quantidade_chuva'],
+                    dados_meteo['indice_uv'],
+                    dados_meteo['visibilidade'],
+                    dados_meteo['cidade'],
+                    dados_meteo['fonte_dados']
+                ))
+                
+                # Calcula fatores derivados
+                diferenca_temp = dados_meteo['temperatura_externa'] - dados_sensores['temperatura']
+                deficit_umidade = dados_meteo['umidade_ar'] - dados_sensores['umidade']
+                fator_evapo = (
+                    (dados_meteo['temperatura_externa'] * 0.4) +
+                    (dados_meteo['velocidade_vento'] * 0.3) +
+                    ((100 - dados_meteo['umidade_ar']) * 0.3)
+                ) / 10
+                
+                # Salva dados integrados
+                cursor.execute(f"""
+                    INSERT INTO {DatabaseConfig.SCHEMA}.leituras_integradas 
+                    (data_hora_leitura, umidade_solo, temperatura_solo, ph_solo, fosforo, potassio, bomba_dagua,
+                     temperatura_externa, umidade_ar, pressao_atmosferica, velocidade_vento, condicao_clima,
+                     probabilidade_chuva, quantidade_chuva, diferenca_temperatura, deficit_umidade, fator_evapotranspiracao)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    data_hora,
+                    dados_sensores['umidade'],
+                    dados_sensores['temperatura'],
+                    dados_sensores['ph'],
+                    dados_sensores['fosforo'],
+                    dados_sensores['potassio'],
+                    dados_sensores['bomba_dagua'],
+                    dados_meteo['temperatura_externa'],
+                    dados_meteo['umidade_ar'],
+                    dados_meteo['pressao_atmosferica'],
+                    dados_meteo['velocidade_vento'],
+                    dados_meteo['condicao_clima'],
+                    dados_meteo['probabilidade_chuva'],
+                    dados_meteo['quantidade_chuva'],
+                    round(diferenca_temp, 2),
+                    round(deficit_umidade, 2),
+                    round(fator_evapo, 2)
+                ))
+                
+                conn.commit()
+                print(f"✅ BACKGROUND: Dados meteorológicos e integrados salvos! ({dados_meteo['condicao_clima']})")
+                
+            except Exception as e:
+                print(f"❌ BACKGROUND: Erro ao salvar dados meteorológicos: {e}")
+                conn.rollback()
+            finally:
+                cursor.close()
+                conn.close()
+        else:
+            print("❌ BACKGROUND: Erro de conexão com banco")
+            
+    except Exception as e:
+        print(f"❌ BACKGROUND: Erro geral no processamento: {e}")
+
 @app.route('/data', methods=['GET'])
 def receive_data():
-    """Recebe dados do ESP32 via GET parameters."""
+    """Recebe dados do ESP32 via GET parameters com RESPOSTA ULTRA-RÁPIDA."""
     if request.method == 'GET':
         timestamp = request.args.get('timestamp')    # Timestamp do ESP32
         umidade = request.args.get('umidade')
@@ -551,33 +718,40 @@ def receive_data():
         fosforo = request.args.get('fosforo')
         potassio = request.args.get('potassio')
         rele = request.args.get('rele')
+        bomba_dagua = request.args.get('bomba_dagua')
+        
+        # Compatibilidade: aceita tanto 'rele' quanto 'bomba_dagua'
+        bomba_param = rele if rele is not None else bomba_dagua
 
-        print("\n🔄 DADOS RECEBIDOS DO ESP32:")
-        if timestamp:
-            print(f"🕐 Timestamp ESP32: {timestamp}")
-        else:
-            print("⚠️ Timestamp não fornecido pelo ESP32 - usando timestamp do servidor")
-        print(f"🌡️  Temperatura: {temperatura}°C")
-        print(f"💧 Umidade: {umidade}%")
-        print(f"⚗️  pH: {ph}")
-        print(f"🧪 Fósforo: {fosforo} ({'✅ Detectado' if converter_para_boolean(fosforo) else '❌ Não detectado'})")
-        print(f"🧪 Potássio: {potassio} ({'✅ Detectado' if converter_para_boolean(potassio) else '❌ Não detectado'})")
-        print(f"🚰 Bomba: {rele} ({'✅ Ligada' if converter_para_boolean(rele) else '❌ Desligada'})")
+        # LOG MÍNIMO
+        print(f"⚡ ESP32: {umidade}%/{temperatura}°C/pH{ph}")
 
-        if umidade and temperatura and ph and fosforo and potassio and rele:
-            # Converte fósforo e potássio para boolean
+        if umidade and temperatura and ph and fosforo and potassio and bomba_param:
+            # Converte para tipos corretos (minimal processing)
             fosforo_bool = converter_para_boolean(fosforo)
             potassio_bool = converter_para_boolean(potassio)
-            bomba_bool = converter_para_boolean(rele)
+            bomba_bool = converter_para_boolean(bomba_param)
             
-            sucesso = inserir_dados(float(umidade), float(temperatura), float(ph), 
-                                  fosforo_bool, potassio_bool, bomba_bool, timestamp)
-            if sucesso:
-                return f"✅ Dados recebidos e armazenados no PostgreSQL ({DatabaseConfig.SCHEMA}) com sucesso!", 200
+            # RESPOSTA ULTRA-RÁPIDA: Pool de conexões
+            sucesso_basico = inserir_dados_ultra_rapido(float(umidade), float(temperatura), float(ph), 
+                                                       fosforo_bool, potassio_bool, bomba_bool, timestamp)
+            
+            if sucesso_basico:
+                # INICIA PROCESSAMENTO EM BACKGROUND (NÃO BLOQUEIA RESPOSTA)
+                thread_meteorologia = threading.Thread(
+                    target=processar_meteorologia_background,
+                    args=(float(umidade), float(temperatura), float(ph), 
+                          fosforo_bool, potassio_bool, bomba_bool, timestamp),
+                    daemon=True
+                )
+                thread_meteorologia.start()
+                
+                # RESPOSTA MÍNIMA E RÁPIDA
+                return "OK", 200
             else:
-                return "❌ Erro ao armazenar dados no PostgreSQL!", 500
+                return "ERROR", 500
         else:
-            return "❌ Erro: Parâmetros ausentes na requisição!", 400
+            return "MISSING_PARAMS", 400
 
 @app.route('/', methods=['GET'])
 def home():
@@ -624,12 +798,13 @@ def status():
 
 @app.route('/stats', methods=['GET'])
 def get_statistics():
-    """Retorna estatísticas dos dados."""
+    """Retorna estatísticas dos dados incluindo dados integrados."""
     conn, cursor = conectar_postgres()
     stats = {}
     
     if conn and cursor:
         try:
+            # Estatísticas da tabela básica
             cursor.execute(f"""
                 SELECT 
                     COUNT(*) as total_registros,
@@ -646,24 +821,59 @@ def get_statistics():
             """)
             result = cursor.fetchone()
             
+            # Estatísticas da tabela meteorológica
+            cursor.execute(f"""
+                SELECT 
+                    COUNT(*) as total_meteo,
+                    AVG(temperatura_externa) as temp_ext_media,
+                    AVG(umidade_ar) as umidade_ar_media,
+                    AVG(probabilidade_chuva) as prob_chuva_media
+                FROM {DatabaseConfig.SCHEMA}.dados_meteorologicos
+            """)
+            meteo_result = cursor.fetchone()
+            
+            # Estatísticas da tabela integrada
+            cursor.execute(f"""
+                SELECT 
+                    COUNT(*) as total_integrado,
+                    AVG(fator_evapotranspiracao) as evapo_media,
+                    COUNT(CASE WHEN probabilidade_chuva > 70 THEN 1 END) as previsoes_chuva
+                FROM {DatabaseConfig.SCHEMA}.leituras_integradas
+            """)
+            integrado_result = cursor.fetchone()
+            
             if result and result[0] > 0:
                 stats = {
-                    "total_registros": result[0],
-                    "umidade": {
-                        "media": round(float(result[1]), 1) if result[1] else 0,
-                        "minima": round(float(result[2]), 1) if result[2] else 0,
-                        "maxima": round(float(result[3]), 1) if result[3] else 0
+                    "sensores": {
+                        "total_registros": result[0],
+                        "umidade": {
+                            "media": round(float(result[1]), 1) if result[1] else 0,
+                            "minima": round(float(result[2]), 1) if result[2] else 0,
+                            "maxima": round(float(result[3]), 1) if result[3] else 0
+                        },
+                        "temperatura": {
+                            "media": round(float(result[4]), 1) if result[4] else 0,
+                            "minima": round(float(result[5]), 1) if result[5] else 0,
+                            "maxima": round(float(result[6]), 1) if result[6] else 0
+                        },
+                        "ph": {
+                            "medio": round(float(result[7]), 1) if result[7] else 0,
+                            "minimo": round(float(result[8]), 1) if result[8] else 0,
+                            "maximo": round(float(result[9]), 1) if result[9] else 0
+                        }
                     },
-                    "temperatura": {
-                        "media": round(float(result[4]), 1) if result[4] else 0,
-                        "minima": round(float(result[5]), 1) if result[5] else 0,
-                        "maxima": round(float(result[6]), 1) if result[6] else 0
+                    "meteorologia": {
+                        "total_registros": meteo_result[0] if meteo_result else 0,
+                        "temperatura_externa_media": round(float(meteo_result[1]), 1) if meteo_result and meteo_result[1] else 0,
+                        "umidade_ar_media": round(float(meteo_result[2]), 1) if meteo_result and meteo_result[2] else 0,
+                        "probabilidade_chuva_media": round(float(meteo_result[3]), 1) if meteo_result and meteo_result[3] else 0
                     },
-                    "ph": {
-                        "medio": round(float(result[7]), 1) if result[7] else 0,
-                        "minimo": round(float(result[8]), 1) if result[8] else 0,
-                        "maximo": round(float(result[9]), 1) if result[9] else 0
-                    }
+                    "integrado": {
+                        "total_registros": integrado_result[0] if integrado_result else 0,
+                        "evapotranspiracao_media": round(float(integrado_result[1]), 1) if integrado_result and integrado_result[1] else 0,
+                        "previsoes_chuva": integrado_result[2] if integrado_result else 0
+                    },
+                    "status_integracao": "✅ Ativo" if (meteo_result and meteo_result[0] > 0) else "⚠️ Sem dados meteorológicos"
                 }
             else:
                 stats = {"erro": "Nenhum dado disponível"}
@@ -678,12 +888,523 @@ def get_statistics():
     
     return jsonify(stats)
 
+@app.route('/test_integration', methods=['GET'])
+def test_integration():
+    """
+    Rota para testar o sistema de integração automática.
+    Simula uma leitura completa de sensores + meteorologia.
+    """
+    print("\n🧪 TESTE DE INTEGRAÇÃO AUTOMÁTICA:")
+    
+    # Dados simulados do ESP32
+    dados_teste = {
+        'umidade': 65.5,
+        'temperatura': 24.2,
+        'ph': 6.8,
+        'fosforo': True,
+        'potassio': False,
+        'bomba_dagua': False
+    }
+    
+    print("🔬 Simulando leitura do ESP32:")
+    for key, value in dados_teste.items():
+        emoji = "🌡️" if key == "temperatura" else "💧" if key == "umidade" else "⚗️" if key == "ph" else "🧪" if "fosforo" in key or "potassio" in key else "🚰"
+        print(f"   {emoji} {key}: {value}")
+    
+    # Executa o processo integrado
+    sucesso = inserir_dados_completo(
+        dados_teste['umidade'],
+        dados_teste['temperatura'], 
+        dados_teste['ph'],
+        dados_teste['fosforo'],
+        dados_teste['potassio'],
+        dados_teste['bomba_dagua']
+    )
+    
+    if sucesso:
+        return jsonify({
+            "status": "sucesso",
+            "message": "✅ Teste de integração concluído com sucesso!",
+            "dados_testados": dados_teste,
+            "processos_executados": [
+                "1. Salvamento dados sensores",
+                "2. Coleta dados meteorológicos",
+                "3. Salvamento dados meteorológicos", 
+                "4. Cálculo fatores ML",
+                "5. Criação entrada integrada"
+            ],
+            "tabelas_afetadas": ["leituras_sensores", "dados_meteorologicos", "leituras_integradas"]
+        })
+    else:
+        return jsonify({
+            "status": "erro",
+            "message": "❌ Falha no teste de integração",
+            "dados_testados": dados_teste
+        }), 500
+
+@app.route('/integrated_data', methods=['GET'])
+def get_integrated_data():
+    """Retorna dados da tabela integrada para análise ML."""
+    conn, cursor = conectar_postgres()
+    registros = []
+    
+    if conn and cursor:
+        try:
+            cursor.execute(f"""
+                SELECT * FROM {DatabaseConfig.SCHEMA}.view_ml_completa 
+                ORDER BY data_hora_leitura DESC
+                LIMIT 50
+            """)
+            colunas = [desc[0] for desc in cursor.description]
+            for row in cursor:
+                registro = dict(zip(colunas, row))
+                # Converte timestamps para string
+                if registro.get('data_hora_leitura'):
+                    registro['data_hora_leitura'] = registro['data_hora_leitura'].isoformat()
+                registros.append(registro)
+                
+        except Exception as error:
+            print(f"❌ Erro ao listar dados integrados: {error}")
+        finally:
+            cursor.close()
+            conn.close()
+    
+    return jsonify({
+        "schema": DatabaseConfig.SCHEMA,
+        "view": "view_ml_completa",
+        "total_features": len(registros[0]) if registros else 0,
+        "total_registros": len(registros),
+        "dados": registros
+    })
+
+# === NOVAS FUNÇÕES PARA DADOS METEOROLÓGICOS AUTOMÁTICOS ===
+def coletar_dados_meteorologicos():
+    """
+    Coleta dados meteorológicos usando a MESMA LÓGICA do dashboard.
+    Garante consistência entre dashboard e sistema de integração.
+    """
+    try:
+        # USA A MESMA LÓGICA DO DASHBOARD (get_clima_atual)
+        # Para manter consistência entre os sistemas
+        
+        import random
+        from datetime import datetime
+        
+        # Simula condições climáticas variáveis (MESMA LÓGICA DO DASHBOARD)
+        hora_atual = datetime.now().hour
+        
+        # Temperatura varia conforme o horário (SINCRONIZADO COM DASHBOARD)
+        if 6 <= hora_atual <= 12:  # Manhã
+            temp_base = 24 + random.uniform(-2, 3)
+        elif 12 <= hora_atual <= 18:  # Tarde
+            temp_base = 29 + random.uniform(-3, 4)
+        elif 18 <= hora_atual <= 22:  # Noite
+            temp_base = 26 + random.uniform(-2, 2)
+        else:  # Madrugada
+            temp_base = 22 + random.uniform(-1, 2)
+        
+        # Umidade do ar inversamente relacionada à temperatura (MESMA LÓGICA)
+        umidade_ar = max(45, min(95, 85 - (temp_base - 22) * 2 + random.uniform(-5, 5)))
+        
+        # Pressão atmosférica com variação realista (MESMA LÓGICA)
+        pressao = 1013.25 + random.uniform(-15, 15)
+        
+        # Vento com padrões diurnos (MESMA LÓGICA)
+        if 10 <= hora_atual <= 16:  # Ventos mais fortes durante o dia
+            vento = random.uniform(8, 18)
+        else:  # Ventos mais calmos à noite
+            vento = random.uniform(3, 12)
+        
+        # Probabilidade de chuva baseada em umidade e pressão (MESMA LÓGICA)
+        if umidade_ar > 80 and pressao < 1010:
+            prob_chuva = random.uniform(60, 95)
+        elif umidade_ar > 70:
+            prob_chuva = random.uniform(20, 60)
+        else:
+            prob_chuva = random.uniform(0, 20)
+        
+        # Quantidade de chuva se probabilidade for alta (MESMA LÓGICA)
+        if prob_chuva > 70:
+            chuva = random.uniform(0.5, 8.0)
+        elif prob_chuva > 40:
+            chuva = random.uniform(0.0, 2.0)
+        else:
+            chuva = 0.0
+        
+        # Condições climáticas baseadas em chuva e temperatura (MESMA LÓGICA)
+        if chuva > 2:
+            condicao = random.choice(["Chuva forte", "Tempestade", "Chuva"])
+        elif chuva > 0:
+            condicao = random.choice(["Chuva leve", "Garoa", "Chuvisco"])
+        elif temp_base > 30:
+            condicao = random.choice(["Ensolarado", "Muito quente", "Céu limpo"])
+        elif umidade_ar > 80:
+            condicao = random.choice(["Nublado", "Muito úmido", "Neblina"])
+        else:
+            condicao = random.choice(["Parcialmente nublado", "Ensolarado", "Céu limpo"])
+        
+        # Direção do vento (MESMA LÓGICA)
+        direcoes = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+        direcao_vento = random.choice(direcoes)
+        
+        # Índice UV baseado na hora e condições (MESMA LÓGICA)
+        if 10 <= hora_atual <= 16 and "Ensolarado" in condicao:
+            indice_uv = random.uniform(6, 11)
+        elif 8 <= hora_atual <= 18:
+            indice_uv = random.uniform(2, 8)
+        else:
+            indice_uv = random.uniform(0, 2)
+        
+        # Visibilidade baseada em chuva e umidade (MESMA LÓGICA)
+        if chuva > 5:
+            visibilidade = random.uniform(2, 8)
+        elif umidade_ar > 85:
+            visibilidade = random.uniform(8, 15)
+        else:
+            visibilidade = random.uniform(15, 30)
+        
+        dados_meteorologicos = {
+            'temperatura_externa': round(temp_base, 1),
+            'umidade_ar': round(umidade_ar, 1),
+            'pressao_atmosferica': round(pressao, 2),
+            'velocidade_vento': round(vento, 1),
+            'direcao_vento': direcao_vento,
+            'condicao_clima': condicao,
+            'probabilidade_chuva': round(prob_chuva, 1),
+            'quantidade_chuva': round(chuva, 1),
+            'indice_uv': round(indice_uv, 1),
+            'visibilidade': round(visibilidade, 1),
+            'cidade': 'Camopi (Sistema Integrado)',
+            'fonte_dados': 'Sistema Unificado Dashboard+API'
+        }
+        
+        print(f"🌤️ Dados meteorológicos coletados (SISTEMA INTEGRADO): {dados_meteorologicos['condicao_clima']}, "
+              f"{dados_meteorologicos['temperatura_externa']}°C, "
+              f"Chuva: {dados_meteorologicos['probabilidade_chuva']}%")
+        
+        return dados_meteorologicos
+        
+    except Exception as e:
+        print(f"❌ Erro ao coletar dados meteorológicos: {e}")
+        # Retorna dados padrão em caso de erro
+        return {
+            'temperatura_externa': 25.0,
+            'umidade_ar': 70.0,
+            'pressao_atmosferica': 1013.25,
+            'velocidade_vento': 5.0,
+            'direcao_vento': 'E',
+            'condicao_clima': 'Não disponível',
+            'probabilidade_chuva': 30.0,
+            'quantidade_chuva': 0.0,
+            'indice_uv': 5.0,
+            'visibilidade': 10.0,
+            'cidade': 'Camopi',
+            'fonte_dados': 'Dados Padrão'
+        }
+
+def salvar_dados_meteorologicos(dados_meteo, timestamp=None):
+    """
+    Salva dados meteorológicos na tabela dados_meteorologicos.
+    """
+    conn, cursor = conectar_postgres()
+    if conn and cursor:
+        try:
+            data_coleta = timestamp if timestamp else datetime.now(BRASIL_TZ)
+            
+            cursor.execute(f"""
+                INSERT INTO {DatabaseConfig.SCHEMA}.dados_meteorologicos 
+                (data_hora_coleta, temperatura_externa, umidade_ar, pressao_atmosferica, 
+                 velocidade_vento, direcao_vento, condicao_clima, probabilidade_chuva, 
+                 quantidade_chuva, indice_uv, visibilidade, cidade, fonte_dados)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                data_coleta,
+                dados_meteo['temperatura_externa'],
+                dados_meteo['umidade_ar'],
+                dados_meteo['pressao_atmosferica'],
+                dados_meteo['velocidade_vento'],
+                dados_meteo['direcao_vento'],
+                dados_meteo['condicao_clima'],
+                dados_meteo['probabilidade_chuva'],
+                dados_meteo['quantidade_chuva'],
+                dados_meteo['indice_uv'],
+                dados_meteo['visibilidade'],
+                dados_meteo['cidade'],
+                dados_meteo['fonte_dados']
+            ))
+            
+            conn.commit()
+            print("✅ Dados meteorológicos salvos no banco!")
+            return True
+            
+        except Exception as error:
+            print(f"❌ Erro ao salvar dados meteorológicos: {error}")
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+    return False
+
+def calcular_fatores_avancados(dados_sensores, dados_meteo):
+    """
+    Calcula fatores derivados para análise ML avançada.
+    """
+    try:
+        # Diferença de temperatura (externa - solo)
+        diferenca_temp = dados_meteo['temperatura_externa'] - dados_sensores['temperatura']
+        
+        # Déficit de umidade (ar - solo)
+        deficit_umidade = dados_meteo['umidade_ar'] - dados_sensores['umidade']
+        
+        # Fator de evapotranspiração simplificado
+        # Baseado em temperatura, vento e umidade
+        fator_evapo = (
+            (dados_meteo['temperatura_externa'] * 0.4) +
+            (dados_meteo['velocidade_vento'] * 0.3) +
+            ((100 - dados_meteo['umidade_ar']) * 0.3)
+        ) / 10
+        
+        return {
+            'diferenca_temperatura': round(diferenca_temp, 2),
+            'deficit_umidade': round(deficit_umidade, 2),
+            'fator_evapotranspiracao': round(fator_evapo, 2)
+        }
+        
+    except Exception as e:
+        print(f"⚠️ Erro ao calcular fatores: {e}")
+        return {
+            'diferenca_temperatura': 0.0,
+            'deficit_umidade': 0.0,
+            'fator_evapotranspiracao': 5.0
+        }
+
+def criar_leitura_integrada(dados_sensores, dados_meteo, fatores, timestamp=None):
+    """
+    Cria uma entrada na tabela leituras_integradas combinando todos os dados.
+    """
+    conn, cursor = conectar_postgres()
+    if conn and cursor:
+        try:
+            data_leitura = timestamp if timestamp else datetime.now(BRASIL_TZ)
+            
+            cursor.execute(f"""
+                INSERT INTO {DatabaseConfig.SCHEMA}.leituras_integradas 
+                (data_hora_leitura, umidade_solo, temperatura_solo, ph_solo, fosforo, potassio, bomba_dagua,
+                 temperatura_externa, umidade_ar, pressao_atmosferica, velocidade_vento, condicao_clima,
+                 probabilidade_chuva, quantidade_chuva, diferenca_temperatura, deficit_umidade, fator_evapotranspiracao)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                data_leitura,
+                dados_sensores['umidade'],
+                dados_sensores['temperatura'],
+                dados_sensores['ph'],
+                dados_sensores['fosforo'],
+                dados_sensores['potassio'],
+                dados_sensores['bomba_dagua'],
+                dados_meteo['temperatura_externa'],
+                dados_meteo['umidade_ar'],
+                dados_meteo['pressao_atmosferica'],
+                dados_meteo['velocidade_vento'],
+                dados_meteo['condicao_clima'],
+                dados_meteo['probabilidade_chuva'],
+                dados_meteo['quantidade_chuva'],
+                fatores['diferenca_temperatura'],
+                fatores['deficit_umidade'],
+                fatores['fator_evapotranspiracao']
+            ))
+            
+            conn.commit()
+            print("✅ Leitura integrada (sensores + meteorologia) salva!")
+            return True
+            
+        except Exception as error:
+            print(f"❌ Erro ao salvar leitura integrada: {error}")
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+    return False
+
+def inserir_dados_completo(umidade, temperatura, ph, fosforo, potassio, bomba_dagua, timestamp_esp32=None):
+    """
+    Versão OTIMIZADA que salva dados de sensores + meteorologia rapidamente.
+    
+    FLUXO OTIMIZADO:
+    1. Uma única conexão ao banco
+    2. Processamento paralelo de dados
+    3. Transação única para garantir consistência
+    4. Resposta rápida para o ESP32
+    """
+    # Usa timestamp do ESP32 se fornecido, senão usa timestamp do servidor
+    if timestamp_esp32:
+        if isinstance(timestamp_esp32, str):
+            try:
+                data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                try:
+                    data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    print(f"⚠️ Formato de timestamp inválido: {timestamp_esp32}")
+                    data_hora_leitura = datetime.now()
+        else:
+            data_hora_leitura = timestamp_esp32
+    else:
+        data_hora_leitura = datetime.now()
+        
+    # Organiza dados dos sensores
+    dados_sensores = {
+        'umidade': umidade,
+        'temperatura': temperatura,
+        'ph': ph,
+        'fosforo': fosforo,
+        'potassio': potassio,
+        'bomba_dagua': bomba_dagua
+    }
+    
+    print(f"🚀 PROCESSO OTIMIZADO: Salvando dados em transação única...")
+    
+    # OTIMIZAÇÃO: Uma única conexão para tudo
+    conn, cursor = conectar_postgres()
+    if not conn or not cursor:
+        print("❌ Erro de conexão com banco!")
+        return False
+    
+    try:
+        # Inicia transação
+        cursor.execute("BEGIN")
+        
+        # 1. Salva dados dos sensores (RÁPIDO)
+        cursor.execute(f"""
+            INSERT INTO {DatabaseConfig.SCHEMA}.leituras_sensores 
+            (data_hora_leitura, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            data_hora_leitura, umidade, temperatura, ph, fosforo, potassio, bomba_dagua
+        ))
+        
+        # 2. Coleta dados meteorológicos (RÁPIDO - sem I/O)
+        dados_meteo = coletar_dados_meteorologicos()
+        
+        # 3. Salva dados meteorológicos (RÁPIDO)
+        cursor.execute(f"""
+            INSERT INTO {DatabaseConfig.SCHEMA}.dados_meteorologicos 
+            (data_hora_coleta, temperatura_externa, umidade_ar, pressao_atmosferica, 
+             velocidade_vento, direcao_vento, condicao_clima, probabilidade_chuva, 
+             quantidade_chuva, indice_uv, visibilidade, cidade, fonte_dados)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            data_hora_leitura,
+            dados_meteo['temperatura_externa'],
+            dados_meteo['umidade_ar'],
+            dados_meteo['pressao_atmosferica'],
+            dados_meteo['velocidade_vento'],
+            dados_meteo['direcao_vento'],
+            dados_meteo['condicao_clima'],
+            dados_meteo['probabilidade_chuva'],
+            dados_meteo['quantidade_chuva'],
+            dados_meteo['indice_uv'],
+            dados_meteo['visibilidade'],
+            dados_meteo['cidade'],
+            dados_meteo['fonte_dados']
+        ))
+        
+        # 4. Calcula fatores derivados (RÁPIDO - apenas matemática)
+        diferenca_temp = dados_meteo['temperatura_externa'] - dados_sensores['temperatura']
+        deficit_umidade = dados_meteo['umidade_ar'] - dados_sensores['umidade']
+        fator_evapo = (
+            (dados_meteo['temperatura_externa'] * 0.4) +
+            (dados_meteo['velocidade_vento'] * 0.3) +
+            ((100 - dados_meteo['umidade_ar']) * 0.3)
+        ) / 10
+        
+        # 5. Cria entrada integrada (RÁPIDO)
+        cursor.execute(f"""
+            INSERT INTO {DatabaseConfig.SCHEMA}.leituras_integradas 
+            (data_hora_leitura, umidade_solo, temperatura_solo, ph_solo, fosforo, potassio, bomba_dagua,
+             temperatura_externa, umidade_ar, pressao_atmosferica, velocidade_vento, condicao_clima,
+             probabilidade_chuva, quantidade_chuva, diferenca_temperatura, deficit_umidade, fator_evapotranspiracao)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            data_hora_leitura,
+            dados_sensores['umidade'],
+            dados_sensores['temperatura'],
+            dados_sensores['ph'],
+            dados_sensores['fosforo'],
+            dados_sensores['potassio'],
+            dados_sensores['bomba_dagua'],
+            dados_meteo['temperatura_externa'],
+            dados_meteo['umidade_ar'],
+            dados_meteo['pressao_atmosferica'],
+            dados_meteo['velocidade_vento'],
+            dados_meteo['condicao_clima'],
+            dados_meteo['probabilidade_chuva'],
+            dados_meteo['quantidade_chuva'],
+            round(diferenca_temp, 2),
+            round(deficit_umidade, 2),
+            round(fator_evapo, 2)
+        ))
+        
+        # Confirma transação
+        conn.commit()
+        
+        print(f"✅ OTIMIZADO: Dados salvos em 3 tabelas simultaneamente!")
+        print(f"🌤️ Meteorologia: {dados_meteo['condicao_clima']}, {dados_meteo['temperatura_externa']}°C")
+        
+        return True
+        
+    except Exception as error:
+        print(f"❌ Erro na transação otimizada: {error}")
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+
+def inserir_dados_ultra_rapido(umidade, temperatura, ph, fosforo, potassio, bomba_dagua, timestamp_esp32=None):
+    """Versão ULTRA-RÁPIDA usando pool de conexões."""
+    conn, cursor = obter_conexao_pool()
+    if conn and cursor:
+        # Timestamp processing (minimal)
+        if timestamp_esp32 and isinstance(timestamp_esp32, str):
+            try:
+                data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                data_hora_leitura = datetime.now()
+        else:
+            data_hora_leitura = datetime.now()
+            
+        try:
+            # Ultra-fast insert usando pool
+            cursor.execute(f"""
+                INSERT INTO {DatabaseConfig.SCHEMA}.leituras_sensores 
+                (data_hora_leitura, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (data_hora_leitura, umidade, temperatura, ph, fosforo, potassio, bomba_dagua))
+            conn.commit()
+            return True
+        except Exception:
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            devolver_conexao_pool(conn)
+    return False
+
 if __name__ == '__main__':
     print("🚀 Iniciando Farm Tech Solutions - Servidor PostgreSQL")
     print(f"📊 Usando configuração centralizada")
     print(f"💾 Database: {DatabaseConfig.DATABASE}")
     print(f"🏗️ Schema: {DatabaseConfig.SCHEMA}")
     print(f"🖥️ Host: {DatabaseConfig.HOST}")
+    
+    # Inicializa pool de conexões para performance
+    if inicializar_pool_conexoes():
+        print("⚡ Sistema otimizado para resposta ultra-rápida ao ESP32!")
+    else:
+        print("⚠️ Pool não inicializado, usando conexões individuais")
+    
     print("🌐 Servidor disponível em:")
     print("   - http://127.0.0.1:8000")
     print("   - http://192.168.2.126:8000")
