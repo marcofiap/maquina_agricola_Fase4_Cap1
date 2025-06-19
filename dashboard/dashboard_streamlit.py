@@ -102,7 +102,7 @@ def get_clima_atual():
     #     }
 
 # --- Função para obter os dados do Flask ---
-@st.cache_data(ttl=5)  # Cache por 5 segundos
+@st.cache_data(ttl=2)  # Cache por 2 segundos para refresh mais rápido
 def get_sensor_data():
     """Obtém dados dos sensores do servidor Flask"""
     try:
@@ -409,9 +409,15 @@ def main():
         status_placeholder.error("❌ Erro ao conectar com o servidor ou sem dados")
         st.error("Verifique se o servidor Flask está rodando em http://127.0.0.1:8000")
     
-    # Auto-refresh mais limpo
+    # Auto-refresh otimizado
     if auto_refresh:
-        time.sleep(refresh_interval)
+        # Mostra próxima atualização
+        with st.empty():
+            for i in range(refresh_interval, 0, -1):
+                st.caption(f"🔄 Próxima atualização em {i} segundos...")
+                time.sleep(1)
+        
+        # Limpa cache e recarrega
         st.cache_data.clear()
         st.rerun()
 
