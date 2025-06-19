@@ -172,7 +172,7 @@ PLOTTER_HTML = """
     
     <!-- Navigation -->
     <div class="navigation">
-        <a href="http://localhost:8502" class="btn-dashboard" target="_blank">
+        <a href="http://localhost:8501" class="btn-dashboard" target="_self">
             ← Voltar ao Dashboard Principal
         </a>
     </div>
