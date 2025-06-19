@@ -30,6 +30,9 @@ if 'current_page' not in st.session_state:
 if 'crud_opcao' not in st.session_state:
     st.session_state.crud_opcao = "Selecione uma operação..."
 
+if 'analytics_opcao' not in st.session_state:
+    st.session_state.analytics_opcao = "Selecione uma análise..."
+
 # URL do servidor Flask local
 FLASK_SERVER_URL = "http://127.0.0.1:8000/get_data"
 
@@ -420,6 +423,319 @@ def crud_consulta_umidade():
         except Exception as e:
             st.error(f"❌ Erro na consulta: {e}")
 
+# === FUNÇÕES PARA ANÁLISE ESTATÍSTICA COM R ===
+
+def exportar_dados_para_r():
+    """Exporta dados do PostgreSQL para CSV que será usado pelo R"""
+    try:
+        conn, cursor = conectar_postgres()
+        if conn:
+            # Query para buscar todos os dados necessários para análise
+            cursor.execute(f"""
+                SELECT data_hora_leitura as timestamp, umidade, temperatura, ph, fosforo, potassio, bomba_dagua 
+                FROM {DatabaseConfig.SCHEMA}.leituras_sensores 
+                ORDER BY data_hora_leitura
+            """)
+            rows = cursor.fetchall()
+            
+            if rows:
+                # Converte para DataFrame
+                df = pd.DataFrame(rows, columns=[
+                    'timestamp', 'umidade', 'temperatura', 'ph', 'fosforo', 'potassio', 'bomba_dagua'
+                ])
+                
+                # Salva no diretório de análise estatística
+                output_path = os.path.join(parent_dir, 'analise_estatistica', 'leituras_sensores.csv')
+                df.to_csv(output_path, index=False)
+                
+                st.success(f"✅ Dados exportados com sucesso! {len(rows)} registros salvos em:")
+                st.code(output_path)
+                return True
+            else:
+                st.warning("⚠️ Nenhum dado encontrado para exportar")
+                return False
+            
+            cursor.close()
+            conn.close()
+    except Exception as e:
+        st.error(f"❌ Erro ao exportar dados: {e}")
+        return False
+
+def executar_script_r():
+    """Executa o script R de análise estatística"""
+    try:
+        # Caminho para o script R
+        script_path = os.path.join(parent_dir, 'analise_estatistica', 'AnaliseEstatisticaBD.R')
+        analise_dir = os.path.join(parent_dir, 'analise_estatistica')
+        
+        if not os.path.exists(script_path):
+            st.error(f"❌ Script R não encontrado: {script_path}")
+            return False
+            
+        # Executa o script R
+        import subprocess
+        
+        with st.spinner("🔄 Executando análise estatística com R..."):
+            result = subprocess.run(['Rscript', script_path], 
+                                  cwd=analise_dir,
+                                  capture_output=True, 
+                                  text=True,
+                                  timeout=60)
+        
+        if result.returncode == 0:
+            st.success("✅ Análise R executada com sucesso!")
+            if result.stdout:
+                st.text("📋 Output do R:")
+                st.code(result.stdout)
+            return True
+        else:
+            st.error("❌ Erro na execução do script R:")
+            st.code(result.stderr)
+            return False
+            
+    except subprocess.TimeoutExpired:
+        st.error("❌ Timeout: Script R demorou mais de 60 segundos")
+        return False
+    except FileNotFoundError:
+        st.error("❌ R não encontrado no sistema. Certifique-se de que o R está instalado e no PATH")
+        return False
+    except Exception as e:
+        st.error(f"❌ Erro ao executar script R: {e}")
+        return False
+
+def mostrar_resumo_estatistico():
+    """Mostra o resumo estatístico gerado pelo R"""
+    try:
+        resumo_path = os.path.join(parent_dir, 'analise_estatistica', 'resumo_estatistico.csv')
+        
+        if os.path.exists(resumo_path):
+            df_resumo = pd.read_csv(resumo_path)
+            st.subheader("📊 Resumo Estatístico (Gerado pelo R)")
+            st.dataframe(df_resumo, use_container_width=True)
+            
+            # Botão para download
+            csv_data = df_resumo.to_csv(index=False)
+            st.download_button(
+                label="📥 Download Resumo Estatístico",
+                data=csv_data,
+                file_name="resumo_estatistico.csv",
+                mime="text/csv"
+            )
+            return True
+        else:
+            st.warning("⚠️ Arquivo de resumo estatístico não encontrado. Execute a análise primeiro.")
+            return False
+            
+    except Exception as e:
+        st.error(f"❌ Erro ao ler resumo estatístico: {e}")
+        return False
+
+def verificar_ambiente_r():
+    """Verifica se o ambiente R está configurado corretamente"""
+    try:
+        import subprocess
+        result = subprocess.run(['R', '--version'], capture_output=True, text=True, timeout=10)
+        
+        if result.returncode == 0:
+            st.success("✅ R está instalado e funcionando")
+            st.text("📋 Versão do R:")
+            st.code(result.stdout.split('\n')[0])
+            return True
+        else:
+            st.error("❌ Problema com a instalação do R")
+            return False
+            
+    except FileNotFoundError:
+        st.error("❌ R não encontrado. Instale o R para usar as análises estatísticas.")
+        st.markdown("""
+        **Como instalar o R:**
+        - **macOS**: `brew install r` ou baixe de https://cran.r-project.org/
+        - **Ubuntu**: `sudo apt-get install r-base`
+        - **Windows**: Baixe de https://cran.r-project.org/
+        """)
+        return False
+    except Exception as e:
+        st.error(f"❌ Erro ao verificar R: {e}")
+        return False
+
+def pagina_analytics_r():
+    """Página dedicada à análise estatística com R"""
+    st.title("🤖 Análise Estatística com R")
+    st.markdown("**Análise preditiva e estatística usando linguagem R**")
+    
+    # Botão para voltar ao dashboard
+    if st.button("🏠 Voltar ao Dashboard", type="primary"):
+        st.session_state.current_page = "dashboard"
+        st.session_state.analytics_opcao = "Selecione uma análise..."
+        st.rerun()
+    
+    st.markdown("---")
+    
+    # Informações do sistema
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.info(f"🏗️ **Schema:** {DatabaseConfig.SCHEMA}")
+    with col2:
+        st.info(f"📊 **Linguagem:** R + Python")
+    with col3:
+        st.info(f"📁 **Pasta:** analise_estatistica/")
+    
+    st.markdown("---")
+    
+    # Verificação do ambiente R
+    st.subheader("🔍 Verificação do Ambiente")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("🔍 Verificar Instalação do R", use_container_width=True):
+            verificar_ambiente_r()
+    
+    with col2:
+        if st.button("📤 Exportar Dados para R", use_container_width=True):
+            exportar_dados_para_r()
+    
+    st.markdown("---")
+    
+    # Seleção de análises
+    analytics_opcao = st.selectbox(
+        "**Selecione a análise desejada:**",
+        [
+            "Selecione uma análise...",
+            "📊 Executar Análise Estatística Completa",
+            "📈 Ver Resumo Estatístico",
+            "📋 Status dos Arquivos R",
+            "🔧 Configurar Ambiente R"
+        ],
+        key="analytics_page_selectbox"
+    )
+    
+    st.markdown("---")
+    
+    # Executa a operação selecionada
+    if analytics_opcao == "📊 Executar Análise Estatística Completa":
+        st.subheader("📊 Análise Estatística Completa")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("1️⃣ Exportar Dados", use_container_width=True):
+                exportar_dados_para_r()
+        
+        with col2:
+            if st.button("2️⃣ Executar Script R", use_container_width=True):
+                if executar_script_r():
+                    st.balloons()
+        
+        st.markdown("---")
+        st.info("💡 **Processo completo:** 1) Exporte os dados → 2) Execute o script R → 3) Veja os resultados")
+        
+    elif analytics_opcao == "📈 Ver Resumo Estatístico":
+        mostrar_resumo_estatistico()
+        
+    elif analytics_opcao == "📋 Status dos Arquivos R":
+        st.subheader("📋 Status dos Arquivos R")
+        
+        # Verifica arquivos na pasta analise_estatistica
+        analise_dir = os.path.join(parent_dir, 'analise_estatistica')
+        
+        arquivos_r = {
+            "AnaliseEstatisticaBD.R": "Script principal de análise",
+            "leituras_sensores.csv": "Dados exportados para análise",
+            "resumo_estatistico.csv": "Resumo gerado pelo R",
+            "requirements.txt": "Dependências R"
+        }
+        
+        for arquivo, descricao in arquivos_r.items():
+            arquivo_path = os.path.join(analise_dir, arquivo)
+            if os.path.exists(arquivo_path):
+                st.success(f"✅ **{arquivo}** - {descricao}")
+            else:
+                st.error(f"❌ **{arquivo}** - {descricao} (não encontrado)")
+        
+    elif analytics_opcao == "🔧 Configurar Ambiente R":
+        st.subheader("🔧 Configuração do Ambiente R")
+        
+        st.markdown("""
+        **Pacotes R necessários:**
+        ```r
+        install.packages(c("readr", "dplyr", "ggplot2", "lubridate", "forecast"))
+        ```
+        
+        **Para instalar os pacotes automaticamente:**
+        """)
+        
+        if st.button("📦 Instalar Pacotes R", use_container_width=True):
+            try:
+                import subprocess
+                
+                # Script R melhorado para instalação
+                install_script = '''
+                # Função para instalar pacotes
+                install_and_load <- function(package) {
+                  if (!require(package, character.only = TRUE, quietly = TRUE)) {
+                    cat("Instalando pacote:", package, "\\n")
+                    install.packages(package, repos = "https://cran.rstudio.com/")
+                    if (require(package, character.only = TRUE, quietly = TRUE)) {
+                      cat("✅", package, "instalado com sucesso\\n")
+                    } else {
+                      cat("❌ Erro ao instalar", package, "\\n")
+                    }
+                  } else {
+                    cat("✅", package, "já está instalado\\n")
+                  }
+                }
+
+                # Instalar pacotes necessários
+                packages <- c("readr", "dplyr", "ggplot2", "lubridate", "forecast")
+                cat("=== INSTALANDO PACOTES R ===\\n")
+                
+                for (pkg in packages) {
+                  install_and_load(pkg)
+                }
+                
+                cat("=== INSTALAÇÃO CONCLUÍDA ===\\n")
+                '''
+                
+                install_cmd = ['Rscript', '-e', install_script]
+                
+                with st.spinner("📦 Instalando pacotes R... (pode demorar alguns minutos)"):
+                    result = subprocess.run(install_cmd, capture_output=True, text=True, timeout=300)
+                
+                if result.returncode == 0:
+                    st.success("✅ Pacotes R instalados com sucesso!")
+                    st.text("📋 Log da instalação:")
+                    st.code(result.stdout)
+                else:
+                    st.error("❌ Erro na instalação dos pacotes:")
+                    st.code(result.stderr)
+                    st.info("💡 Tente executar manualmente no R: install.packages(c('readr', 'dplyr', 'ggplot2', 'lubridate', 'forecast'))")
+            except subprocess.TimeoutExpired:
+                st.error("❌ Timeout: Instalação demorou mais de 5 minutos")
+            except Exception as e:
+                st.error(f"❌ Erro: {e}")
+        
+    else:
+        st.info("👆 Selecione uma análise no menu acima para começar")
+        
+        # Preview da estrutura do projeto R
+        st.subheader("📁 Estrutura do Projeto R")
+        st.markdown("""
+        ```
+        analise_estatistica/
+        ├── 📄 AnaliseEstatisticaBD.R       # Script principal
+        ├── 📊 leituras_sensores.csv        # Dados para análise  
+        ├── 📈 resumo_estatistico.csv       # Resultados gerados
+        ├── 📦 requirements.txt             # Dependências R
+        └── 📋 README.md                    # Documentação
+        ```
+        
+        **Funcionalidades disponíveis:**
+        - ✅ Estatísticas descritivas
+        - ✅ Correlações entre variáveis
+        - ✅ Visualizações com ggplot2
+        - ✅ Previsões ARIMA para umidade
+        - ✅ Análise de séries temporais
+        """)
+
 def pagina_crud():
     """Página dedicada ao CRUD"""
     st.title("🗃️ Gerenciamento de Registros")
@@ -619,6 +935,9 @@ def init_session_state():
     
     if 'crud_opcao' not in st.session_state:
         st.session_state.crud_opcao = "Selecione uma operação..."
+    
+    if 'analytics_opcao' not in st.session_state:
+        st.session_state.analytics_opcao = "Selecione uma análise..."
 
 # --- Interface principal ---
 def main():
@@ -658,7 +977,9 @@ def main():
         """, unsafe_allow_html=True)
     
     with col3:
-        st.empty()  # Coluna vazia para manter o layout
+        if st.button("🤖 Análise Estatística (R)", use_container_width=True, type="secondary"):
+            st.session_state.current_page = "analytics"
+            st.rerun()
     
     st.markdown("---")
     
@@ -666,6 +987,9 @@ def main():
     current_page = getattr(st.session_state, 'current_page', 'dashboard')
     if current_page == "crud":
         pagina_crud()
+        return  # Sai da função para não mostrar o dashboard
+    elif current_page == "analytics":
+        pagina_analytics_r()
         return  # Sai da função para não mostrar o dashboard
     
     # === DASHBOARD PRINCIPAL ===

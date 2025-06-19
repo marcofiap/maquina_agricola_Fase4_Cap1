@@ -1,7 +1,7 @@
-"","  timestamp","   umidade"," temperatura","      ph","  fosforo","  potassio","bomba_dagua"
-"","Min.   :2025-05-18 19:59:56.00  ","Min.   :25.5  ","Min.   :-32.20  ","Min.   :3  ","Length:567        ","Length:567        ","Length:567        "
-"","1st Qu.:2025-05-18 20:28:26.00  ","1st Qu.:27.5  ","1st Qu.: 24.00  ","1st Qu.:3  ","Class :character  ","Class :character  ","Class :character  "
-"","Median :2025-05-18 23:01:24.00  ","Median :34.5  ","Median : 24.00  ","Median :3  ","Mode  :character  ","Mode  :character  ","Mode  :character  "
-"","Mean   :2025-05-18 21:50:49.53  ","Mean   :32.5  ","Mean   : 28.79  ","Mean   :3  ",NA,NA,NA
-"","3rd Qu.:2025-05-18 23:07:13.00  ","3rd Qu.:34.5  ","3rd Qu.: 36.80  ","3rd Qu.:3  ",NA,NA,NA
-"","Max.   :2025-05-18 23:13:01.00  ","Max.   :53.0  ","Max.   : 62.30  ","Max.   :3  ",NA,NA,NA
+"","  timestamp","   umidade"," temperatura","      ph","   fosforo","   potassio"," bomba_dagua"
+"","Min.   :2025-06-19 00:28:16.00  ","Min.   :19.50  ","Min.   :-3.30  ","Min.   :2.000  ","Min.   :0.00000  ","Min.   :0.000000  ","Min.   :0.0000  "
+"","1st Qu.:2025-06-19 14:44:50.08  ","1st Qu.:34.50  ","1st Qu.:24.00  ","1st Qu.:6.000  ","1st Qu.:0.00000  ","1st Qu.:0.000000  ","1st Qu.:0.0000  "
+"","Median :2025-06-19 15:19:56.00  ","Median :40.00  ","Median :29.40  ","Median :6.000  ","Median :0.00000  ","Median :0.000000  ","Median :0.0000  "
+"","Mean   :2025-06-19 14:56:17.07  ","Mean   :40.49  ","Mean   :32.64  ","Mean   :5.956  ","Mean   :0.01054  ","Mean   :0.007905  ","Mean   :0.2701  "
+"","3rd Qu.:2025-06-19 16:19:12.25  ","3rd Qu.:54.00  ","3rd Qu.:41.10  ","3rd Qu.:6.000  ","3rd Qu.:0.00000  ","3rd Qu.:0.000000  ","3rd Qu.:1.0000  "
+"","Max.   :2025-06-19 16:34:33.00  ","Max.   :65.50  ","Max.   :60.00  ","Max.   :9.000  ","Max.   :1.00000  ","Max.   :1.000000  ","Max.   :1.0000  "
