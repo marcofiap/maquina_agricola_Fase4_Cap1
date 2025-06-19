@@ -17,21 +17,165 @@ PLOTTER_HTML = """
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; color: #333; }
-        h1 { text-align: center; color: #2c3e50; }
-        .chart-container {
-            width: 80%;
-            max-width: 900px;
-            margin: 30px auto;
+        /* Estilo inspirado no Streamlit */
+        body { 
+            font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #262730; 
+            margin: 0;
             padding: 20px;
-            background-color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 { 
+            color: #ff6b6b; 
+            font-weight: 600;
+            font-size: 2.5rem;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: #555;
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+        }
+        
+        .navigation {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-dashboard {
+            background: #ff6b6b;
+            color: white;
+            padding: 12px 24px;
+            border: none;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+        }
+        
+        .btn-dashboard:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 107, 107, 0.4);
+        }
+        
+        .chart-container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-left: 4px solid #ff6b6b;
+            transition: transform 0.2s ease;
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+        
+        .chart-container h2 {
+            color: #262730;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+        }
+        
+        .chart-container h2::before {
+            content: "📊";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        
+        /* Estilos específicos para cada tipo de gráfico */
+        .chart-container:nth-child(3) h2::before { content: "🌡️💧"; }
+        .chart-container:nth-child(4) h2::before { content: "⚗️"; }
+        .chart-container:nth-child(5) h2::before { content: "🔧"; }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .chart-container {
+                width: 95%;
+                padding: 15px;
+                margin: 15px auto;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            body {
+                padding: 10px;
+            }
+        }
+        
+        /* Loading animation */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        /* Status indicator */
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+            z-index: 1000;
+        }
+        
+        .status-indicator::before {
+            content: "🟢";
+            margin-right: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>🌱 Farm Tech - Live Data Plotter</h1>
+    <!-- Status indicator -->
+    <div class="status-indicator">Live Data</div>
+    
+    <!-- Header section -->
+    <div class="header">
+        <h1>🌱 Farm Tech Solutions</h1>
+        <div class="subtitle">Live Data Plotter - Visualização Avançada</div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="navigation">
+        <a href="http://localhost:8502" class="btn-dashboard" target="_blank">
+            ← Voltar ao Dashboard Principal
+        </a>
+    </div>
 
     <div class="chart-container">
         <h2>Temperatura & Umidade</h2>
@@ -62,18 +206,28 @@ PLOTTER_HTML = """
                     {
                         label: 'Temperatura (°C)',
                         data: [],
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
                         yAxisID: 'yTemp',
-                        tension: 0.1
+                        tension: 0.3,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ff6b6b',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
                     },
                     {
                         label: 'Umidade (%)',
                         data: [],
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: '#4ecdc4',
+                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
                         yAxisID: 'yHumidity',
-                        tension: 0.1
+                        tension: 0.3,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#4ecdc4',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
                     }
                 ]
             },
@@ -104,13 +258,18 @@ PLOTTER_HTML = """
             type: 'line',
             data: {
                 labels: [],
-                datasets: [{
-                    label: 'pH',
-                    data: [],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }]
+                            datasets: [{
+                label: 'pH',
+                data: [],
+                borderColor: '#45b7d1',
+                backgroundColor: 'rgba(69, 183, 209, 0.1)',
+                tension: 0.3,
+                borderWidth: 3,
+                pointBackgroundColor: '#45b7d1',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5
+            }]
             },
             options: { scales: { x: { type: 'time', time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } } } } }
         });
@@ -121,9 +280,42 @@ PLOTTER_HTML = """
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'Bomba', data: [], borderColor: 'rgba(153, 102, 255, 1)', steppped: true },
-                    { label: 'Fósforo', data: [], borderColor: 'rgba(255, 159, 64, 1)', steppped: true },
-                    { label: 'Potássio', data: [], borderColor: 'rgba(255, 205, 86, 1)', steppped: true }
+                    { 
+                        label: 'Bomba', 
+                        data: [], 
+                        borderColor: '#ff6b6b', 
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        stepped: true,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ff6b6b',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    },
+                    { 
+                        label: 'Fósforo', 
+                        data: [], 
+                        borderColor: '#ffa726', 
+                        backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                        stepped: true,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffa726',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    },
+                    { 
+                        label: 'Potássio', 
+                        data: [], 
+                        borderColor: '#66bb6a', 
+                        backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                        stepped: true,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#66bb6a',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }
                 ]
             },
             options: {
@@ -147,6 +339,9 @@ PLOTTER_HTML = """
         // Função para buscar dados e atualizar os gráficos
         async function updateCharts() {
             try {
+                // Mostra indicador de loading
+                document.querySelector('.status-indicator').textContent = '🔄 Atualizando...';
+                
                 const response = await fetch('/get_data');
                 const result = await response.json();
                 let data = result.dados;
@@ -186,10 +381,14 @@ PLOTTER_HTML = """
                 statusChart.data.datasets[1].data = phosphorusStatus;
                 statusChart.data.datasets[2].data = potassiumStatus;
                 statusChart.update();
-
+                
+                // Atualiza indicador de sucesso
+                document.querySelector('.status-indicator').textContent = '🟢 Live Data';
 
             } catch (error) {
                 console.error('Erro ao buscar ou atualizar dados:', error);
+                document.querySelector('.status-indicator').textContent = '🔴 Erro';
+                document.querySelector('.status-indicator').style.background = '#f44336';
             }
         }
 
