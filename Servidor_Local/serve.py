@@ -1,8 +1,206 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import sys
 import os
 from datetime import datetime
 import pytz
+
+# --- INÍCIO: Adicionado para o Plotter ---
+# Template HTML para a página do plotter.
+# Contém HTML, CSS e JavaScript (com Chart.js) em um só lugar.
+PLOTTER_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Tech - Live Plotter</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; color: #333; }
+        h1 { text-align: center; color: #2c3e50; }
+        .chart-container {
+            width: 80%;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>🌱 Farm Tech - Live Data Plotter</h1>
+
+    <div class="chart-container">
+        <h2>Temperatura & Umidade</h2>
+        <canvas id="tempHumidityChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <h2>Nível de pH</h2>
+        <canvas id="phChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h2>Status dos Componentes</h2>
+        <canvas id="statusChart"></canvas>
+    </div>
+
+    <script>
+        // Função para converter booleano de string ('true'/'false') para número (1/0)
+        const boolToNum = (val) => val === true || val === 'true' ? 1 : 0;
+
+        // Configuração inicial dos gráficos
+        const tempHumidityCtx = document.getElementById('tempHumidityChart').getContext('2d');
+        const tempHumidityChart = new Chart(tempHumidityCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Temperatura (°C)',
+                        data: [],
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        yAxisID: 'yTemp',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Umidade (%)',
+                        data: [],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        yAxisID: 'yHumidity',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { 
+                        type: 'time', 
+                        time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } },
+                        title: { display: true, text: 'Horário da Leitura' }
+                    },
+                    yTemp: {
+                        type: 'linear',
+                        position: 'left',
+                        title: { display: true, text: 'Temperatura (°C)' }
+                    },
+                    yHumidity: {
+                        type: 'linear',
+                        position: 'right',
+                        title: { display: true, text: 'Umidade (%)' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        const phCtx = document.getElementById('phChart').getContext('2d');
+        const phChart = new Chart(phCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'pH',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: { scales: { x: { type: 'time', time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } } } } }
+        });
+        
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Bomba', data: [], borderColor: 'rgba(153, 102, 255, 1)', steppped: true },
+                    { label: 'Fósforo', data: [], borderColor: 'rgba(255, 159, 64, 1)', steppped: true },
+                    { label: 'Potássio', data: [], borderColor: 'rgba(255, 205, 86, 1)', steppped: true }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { type: 'time', time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } } },
+                    y: {
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value === 1 ? 'Ligado/Detectado' : 'Desligado';
+                            }
+                        },
+                        max: 1.2,
+                        min: -0.2
+                    }
+                }
+            }
+        });
+
+
+        // Função para buscar dados e atualizar os gráficos
+        async function updateCharts() {
+            try {
+                const response = await fetch('/get_data');
+                const result = await response.json();
+                let data = result.dados;
+
+                // Os dados vêm em ordem decrescente, vamos invertê-los para o gráfico
+                data.reverse();
+                
+                // Limita a 20 pontos de dados para não sobrecarregar a tela
+                const maxDataPoints = 20;
+                if(data.length > maxDataPoints) {
+                    data = data.slice(data.length - maxDataPoints);
+                }
+
+                // Extrai os dados para os gráficos
+                const labels = data.map(d => new Date(d.data_hora_leitura));
+                const temperatures = data.map(d => d.temperatura);
+                const humidities = data.map(d => d.umidade);
+                const phs = data.map(d => d.ph);
+                const pumpStatus = data.map(d => boolToNum(d.bomba_dagua));
+                const phosphorusStatus = data.map(d => boolToNum(d.fosforo));
+                const potassiumStatus = data.map(d => boolToNum(d.potassio));
+
+                // Atualiza o gráfico de Temperatura e Umidade
+                tempHumidityChart.data.labels = labels;
+                tempHumidityChart.data.datasets[0].data = temperatures;
+                tempHumidityChart.data.datasets[1].data = humidities;
+                tempHumidityChart.update();
+
+                // Atualiza o gráfico de pH
+                phChart.data.labels = labels;
+                phChart.data.datasets[0].data = phs;
+                phChart.update();
+                
+                // Atualiza o gráfico de Status
+                statusChart.data.labels = labels;
+                statusChart.data.datasets[0].data = pumpStatus;
+                statusChart.data.datasets[1].data = phosphorusStatus;
+                statusChart.data.datasets[2].data = potassiumStatus;
+                statusChart.update();
+
+
+            } catch (error) {
+                console.error('Erro ao buscar ou atualizar dados:', error);
+            }
+        }
+
+        // Inicia a atualização e a repete a cada 5 segundos
+        updateCharts();
+        setInterval(updateCharts, 5000); // 5000 ms = 5 segundos
+    </script>
+</body>
+</html>
+"""
+# --- FIM: Adicionado para o Plotter ---
 
 # Adiciona o diretório raiz ao path para importar o config
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -118,6 +316,12 @@ def listar_dados():
             cursor.close()
             conn.close()
     return registros
+
+# --- ROTA PARA O PLOTTER ---
+@app.route('/plotter')
+def plotter():
+    """Serve a página HTML do plotter."""
+    return Response(PLOTTER_HTML, mimetype='text/html')
 
 @app.route('/get_data', methods=['GET'])
 def get_all_data():

@@ -208,7 +208,9 @@ void loop() {
   // --- Lista de servidores para envio dos dados ---
   String servers[] = {
     "http://192.168.0.12:8000/data",
-    "http://192.168.2.126:8000/data"
+    "http://192.168.2.126:8000/data",
+    "http://192.168.100.161:8000/data",
+
   };
   int numServers = sizeof(servers) / sizeof(servers[0]);
 
