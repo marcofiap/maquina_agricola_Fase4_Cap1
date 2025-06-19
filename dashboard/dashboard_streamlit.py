@@ -409,9 +409,10 @@ def main():
         status_placeholder.error("❌ Erro ao conectar com o servidor ou sem dados")
         st.error("Verifique se o servidor Flask está rodando em http://127.0.0.1:8000")
     
-    # Auto-refresh
+    # Auto-refresh mais limpo
     if auto_refresh:
         time.sleep(refresh_interval)
+        st.cache_data.clear()
         st.rerun()
 
 # --- Execução principal ---
