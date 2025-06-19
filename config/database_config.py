@@ -5,15 +5,35 @@ Farm Tech Solutions - FIAP Fase 4 Cap 1
 
 import psycopg2
 import os
+from .settings import settings
 
 # === CONFIGURAÇÕES DO BANCO DE DADOS POSTGRESQL ===
 class DatabaseConfig:
-    HOST = "52.86.250.115"
-    PORT = 5432
-    DATABASE = "fiap"
-    USER = "fiap"
-    PASSWORD = "fiap123456"
-    SCHEMA = "Fase4Cap1"
+    """Configuração do banco que usa settings.py como fonte."""
+    
+    @property
+    def HOST(self):
+        return settings.POSTGRES_HOST
+    
+    @property
+    def PORT(self):
+        return settings.POSTGRES_PORT
+    
+    @property
+    def DATABASE(self):
+        return settings.POSTGRES_DB
+    
+    @property
+    def USER(self):
+        return settings.POSTGRES_USER
+    
+    @property
+    def PASSWORD(self):
+        return settings.POSTGRES_PASSWORD
+    
+    @property
+    def SCHEMA(self):
+        return settings.POSTGRES_SCHEMA
     
     # Para ambiente de desenvolvimento local (opcional)
     LOCAL_SQLITE = "leituras_sensores.db"
@@ -21,18 +41,23 @@ class DatabaseConfig:
     @classmethod
     def get_connection_params(cls):
         """Retorna os parâmetros de conexão como dicionário."""
+        config = cls()
         return {
-            'host': cls.HOST,
-            'port': cls.PORT,
-            'database': cls.DATABASE,
-            'user': cls.USER,
-            'password': cls.PASSWORD
+            'host': config.HOST,
+            'port': config.PORT,
+            'database': config.DATABASE,
+            'user': config.USER,
+            'password': config.PASSWORD
         }
     
     @classmethod
     def get_connection_string(cls):
         """Retorna string de conexão PostgreSQL."""
-        return f"postgresql://{cls.USER}:{cls.PASSWORD}@{cls.HOST}:{cls.PORT}/{cls.DATABASE}"
+        config = cls()
+        return f"postgresql://{config.USER}:{config.PASSWORD}@{config.HOST}:{config.PORT}/{config.DATABASE}"
+
+# Instância global para compatibilidade com código existente
+_config = DatabaseConfig()
 
 # === FUNÇÕES UTILITÁRIAS DE CONEXÃO ===
 def conectar_postgres():
@@ -45,10 +70,12 @@ def conectar_postgres():
         cursor = conn.cursor()
         
         # Define o schema de busca
-        cursor.execute(f"SET search_path TO {DatabaseConfig.SCHEMA}, public")
+        cursor.execute(f"SET search_path TO {_config.SCHEMA}, public")
+        # Define timezone para Brasil
+        cursor.execute("SET timezone = 'America/Sao_Paulo'")
         conn.commit()
         
-        print(f"✅ Conectado ao PostgreSQL - Schema: {DatabaseConfig.SCHEMA}")
+        print(f"✅ Conectado ao PostgreSQL - Schema: {_config.SCHEMA}")
         return conn, cursor
         
     except psycopg2.Error as error:
@@ -58,27 +85,36 @@ def conectar_postgres():
 def criar_schema_e_tabela():
     """
     Cria o schema e tabela se não existirem.
+    Nova estrutura com id autoincremento, data_hora_leitura e criacaots.
     """
     conn, cursor = conectar_postgres()
     if conn and cursor:
         try:
             # Cria o schema se não existir
-            cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {DatabaseConfig.SCHEMA}")
+            cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {_config.SCHEMA}")
             
-            # Cria a tabela no schema específico
+            # Cria a tabela no schema específico com nova estrutura
             cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {DatabaseConfig.SCHEMA}.leituras_sensores (
-                    timestamp VARCHAR(255) PRIMARY KEY,
-                    umidade DECIMAL,
-                    temperatura DECIMAL,
-                    ph DECIMAL,
-                    fosforo VARCHAR(10),
-                    potassio VARCHAR(10),
-                    bomba_dagua VARCHAR(10)
+                CREATE TABLE IF NOT EXISTS {_config.SCHEMA}.leituras_sensores (
+                    id SERIAL PRIMARY KEY,
+                    data_hora_leitura TIMESTAMP NOT NULL,
+                    criacaots TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'America/Sao_Paulo'),
+                    umidade DECIMAL(5,2),
+                    temperatura DECIMAL(5,2),
+                    ph DECIMAL(4,2),
+                    fosforo BOOLEAN,
+                    potassio BOOLEAN,
+                    bomba_dagua BOOLEAN
                 )
             """)
             conn.commit()
-            print(f"✅ Schema e tabela '{DatabaseConfig.SCHEMA}.leituras_sensores' verificados/criados.")
+            print(f"✅ Schema e tabela '{_config.SCHEMA}.leituras_sensores' verificados/criados com nova estrutura.")
+            print("📋 Estrutura da tabela:")
+            print("   • id (SERIAL PRIMARY KEY) - Chave primária autoincremento")
+            print("   • data_hora_leitura (TIMESTAMP) - Horário da leitura do sensor")
+            print("   • criacaots (TIMESTAMP DEFAULT CURRENT_TIMESTAMP) - Horário de inserção no banco")
+            print("   • umidade, temperatura, ph (DECIMAL) - Valores numéricos dos sensores")
+            print("   • fosforo, potassio, bomba_dagua (BOOLEAN) - Estados dos sensores e bomba (true/false)")
             return True
             
         except psycopg2.Error as error:
@@ -97,6 +133,8 @@ def testar_conexao():
     Testa a conexão com o banco de dados.
     """
     print("🔍 Testando conexão com PostgreSQL...")
+    print(f"📊 Configuração: {_config.USER}@{_config.HOST}:{_config.PORT}/{_config.DATABASE}")
+    
     conn, cursor = conectar_postgres()
     
     if conn and cursor:
@@ -109,7 +147,7 @@ def testar_conexao():
             # Testa se a tabela existe
             cursor.execute(f"""
                 SELECT COUNT(*) FROM information_schema.tables 
-                WHERE table_schema = '{DatabaseConfig.SCHEMA}' 
+                WHERE table_schema = '{_config.SCHEMA}' 
                 AND table_name = 'leituras_sensores'
             """)
             table_exists = cursor.fetchone()[0] > 0
@@ -129,13 +167,14 @@ def testar_conexao():
 # === EXECUÇÃO DIRETA PARA TESTE ===
 if __name__ == "__main__":
     print("🚀 Testando configuração do banco de dados...")
-    print(f"🏗️ Schema: {DatabaseConfig.SCHEMA}")
-    print(f"🖥️ Host: {DatabaseConfig.HOST}")
-    print(f"💾 Database: {DatabaseConfig.DATABASE}")
+    print(f"🏗️ Schema: {_config.SCHEMA}")
+    print(f"🖥️ Host: {_config.HOST}")
+    print(f"💾 Database: {_config.DATABASE}")
     
     # Testa conexão
     if testar_conexao():
-        # Cria schema e tabela se necessário
-        criar_schema_e_tabela()
+        # Executa migração para nova estrutura
+        print("\n🔄 Verificando se é necessário migrar para nova estrutura...")
+        migrar_tabela_para_nova_estrutura()
     else:
         print("❌ Configure as credenciais do banco antes de continuar.") 

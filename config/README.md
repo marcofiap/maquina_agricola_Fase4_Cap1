@@ -6,10 +6,12 @@ Este package contém todas as configurações centralizadas do sistema Farm Tech
 
 ### `database_config.py`
 Configuração específica do banco PostgreSQL com funções utilitárias:
-- `DatabaseConfig`: Classe com configurações do banco
+- `DatabaseConfig`: Classe que obtém configurações do `settings.py`
 - `conectar_postgres()`: Função para conectar ao PostgreSQL
 - `criar_schema_e_tabela()`: Cria schema e tabela se não existirem
 - `testar_conexao()`: Testa a conexão com o banco
+
+**Importante:** `DatabaseConfig` agora usa `settings.py` como fonte de dados, permitindo configuração via variáveis de ambiente.
 
 ### `settings.py`
 Configurações gerais do sistema usando variáveis de ambiente:

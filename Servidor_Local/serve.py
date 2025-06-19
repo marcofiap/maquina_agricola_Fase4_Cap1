@@ -2,34 +2,83 @@ from flask import Flask, request, jsonify
 import sys
 import os
 from datetime import datetime
+import pytz
 
 # Adiciona o diretório raiz ao path para importar o config
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
-from config.database_config import DatabaseConfig, conectar_postgres, criar_schema_e_tabela
+from config.database_config import _config as DatabaseConfig, conectar_postgres, criar_schema_e_tabela
+
+# Timezone brasileiro
+BRASIL_TZ = pytz.timezone('America/Sao_Paulo')
 
 app = Flask(__name__)
 
-# Inicializa schema e tabela
-criar_schema_e_tabela()
+# Tenta inicializar schema e tabela, mas não trava se falhar
+print("🚀 Iniciando servidor Flask...")
+try:
+    criar_schema_e_tabela()
+    print("✅ Banco de dados inicializado com sucesso!")
+except Exception as e:
+    print(f"⚠️ Aviso: Não foi possível conectar ao banco: {e}")
+    print("🔄 Servidor continuará rodando. Você pode configurar o banco depois.")
 
-def inserir_dados(umidade, temperatura, ph, fosforo, potassio, bomba_dagua):
+def converter_para_boolean(valor):
+    """
+    Converte string para boolean.
+    ESP32 enviará diretamente 'true' ou 'false'
+    """
+    if isinstance(valor, bool):
+        return valor
+    
+    if isinstance(valor, str):
+        valor = valor.lower().strip()
+        return valor == 'true'
+    
+    # Default para False se não conseguir determinar
+    return False
+
+def inserir_dados(umidade, temperatura, ph, fosforo, potassio, bomba_dagua, timestamp_esp32=None):
     """Insere uma nova leitura de dados na tabela 'leituras_sensores' do PostgreSQL."""
     conn, cursor = conectar_postgres()
     if conn and cursor:
-        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Usa timestamp do ESP32 se fornecido, senão usa timestamp do servidor
+        if timestamp_esp32:
+            # Converte string para timestamp se necessário
+            if isinstance(timestamp_esp32, str):
+                try:
+                    data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    data_hora_leitura = datetime.now()
+            else:
+                data_hora_leitura = timestamp_esp32
+            timestamp_source = "ESP32"
+        else:
+            data_hora_leitura = datetime.now()
+            timestamp_source = "Servidor"
+            
         try:
+            # Nova estrutura: id (autoincremento), data_hora_leitura, criacaots (auto), dados sensores
+            # Força timestamp brasileiro para criacaots
+            timestamp_brasil = datetime.now(BRASIL_TZ)
+            
             cursor.execute(f"""
-                INSERT INTO {DatabaseConfig.SCHEMA}.leituras_sensores (timestamp, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO {DatabaseConfig.SCHEMA}.leituras_sensores 
+                (data_hora_leitura, criacaots, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            (timestamp_str, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
+            (data_hora_leitura, timestamp_brasil, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
             )
             conn.commit()
-            print(f"✅ Dados inseridos no PostgreSQL ({DatabaseConfig.SCHEMA}) em {timestamp_str}!")
-            print(f"📊 Umidade: {umidade}% | Temperatura: {temperatura}°C | pH: {ph} | Bomba: {bomba_dagua}")
+            print(f"✅ Dados inseridos no PostgreSQL ({DatabaseConfig.SCHEMA}) em {data_hora_leitura}!")
+            print(f"🕐 Timestamp fonte: {timestamp_source}")
+            print(f"📊 Umidade: {umidade}% | Temperatura: {temperatura}°C | pH: {ph}")
+            print(f"📊 Fósforo: {'✅ Detectado' if fosforo else '❌ Não detectado'}")
+            print(f"📊 Potássio: {'✅ Detectado' if potassio else '❌ Não detectado'}")
+            print(f"🚰 Bomba: {'✅ Ligada' if bomba_dagua else '❌ Desligada'}")
+            print("🆔 ID gerado automaticamente pelo banco | ⏰ Timestamp de criação definido automaticamente")
             return True
         except Exception as error:
             print(f"❌ Erro ao inserir dados no PostgreSQL: {error}")
@@ -48,10 +97,21 @@ def listar_dados():
     registros = []
     if conn and cursor:
         try:
-            cursor.execute(f"SELECT timestamp, umidade, temperatura, ph, fosforo, potassio, bomba_dagua FROM {DatabaseConfig.SCHEMA}.leituras_sensores ORDER BY timestamp DESC")
+            cursor.execute(f"""
+                SELECT id, data_hora_leitura, criacaots, umidade, temperatura, ph, fosforo, potassio, bomba_dagua 
+                FROM {DatabaseConfig.SCHEMA}.leituras_sensores 
+                ORDER BY data_hora_leitura DESC
+            """)
             colunas = [desc[0] for desc in cursor.description]
             for row in cursor:
-                registros.append(dict(zip(colunas, row)))
+                registro = dict(zip(colunas, row))
+                # Converte timestamps para string para serialização JSON
+                if registro['data_hora_leitura']:
+                    registro['data_hora_leitura'] = registro['data_hora_leitura'].isoformat()
+                if registro['criacaots']:
+                    registro['criacaots'] = registro['criacaots'].isoformat()
+                # Boolean já é serializado corretamente pelo JSON
+                registros.append(registro)
         except Exception as error:
             print(f"❌ Erro ao listar dados do PostgreSQL: {error}")
         finally:
@@ -75,6 +135,7 @@ def get_all_data():
 def receive_data():
     """Recebe dados do ESP32 via GET parameters."""
     if request.method == 'GET':
+        timestamp = request.args.get('timestamp')    # Timestamp do ESP32
         umidade = request.args.get('umidade')
         temperatura = request.args.get('temperatura')
         ph = request.args.get('ph')
@@ -83,14 +144,25 @@ def receive_data():
         rele = request.args.get('rele')
 
         print("\n🔄 DADOS RECEBIDOS DO ESP32:")
+        if timestamp:
+            print(f"🕐 Timestamp ESP32: {timestamp}")
+        else:
+            print("⚠️ Timestamp não fornecido pelo ESP32 - usando timestamp do servidor")
         print(f"🌡️  Temperatura: {temperatura}°C")
         print(f"💧 Umidade: {umidade}%")
         print(f"⚗️  pH: {ph}")
-        print(f"🧪 Fósforo: {fosforo} | Potássio: {potassio}")
-        print(f"🚰 Bomba: {rele}")
+        print(f"🧪 Fósforo: {fosforo} ({'✅ Detectado' if fosforo == 'true' else '❌ Não detectado'})")
+        print(f"🧪 Potássio: {potassio} ({'✅ Detectado' if potassio == 'true' else '❌ Não detectado'})")
+        print(f"🚰 Bomba: {rele} ({'✅ Ligada' if rele == 'true' else '❌ Desligada'})")
 
         if umidade and temperatura and ph and fosforo and potassio and rele:
-            sucesso = inserir_dados(float(umidade), float(temperatura), float(ph), fosforo, potassio, rele)
+            # Converte fósforo e potássio para boolean
+            fosforo_bool = converter_para_boolean(fosforo)
+            potassio_bool = converter_para_boolean(potassio)
+            bomba_bool = converter_para_boolean(rele)
+            
+            sucesso = inserir_dados(float(umidade), float(temperatura), float(ph), 
+                                  fosforo_bool, potassio_bool, bomba_bool, timestamp)
             if sucesso:
                 return f"✅ Dados recebidos e armazenados no PostgreSQL ({DatabaseConfig.SCHEMA}) com sucesso!", 200
             else:

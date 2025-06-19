@@ -7,19 +7,33 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
-from config.database_config import DatabaseConfig, conectar_postgres
+from config.database_config import _config as DatabaseConfig, conectar_postgres
 
 # === INSERE UMA NOVA LEITURA MANUAL ===
 def inserir_dados():
     print("\n📥 Inserir nova leitura:")
     try:
-        timestamp = input("Timestamp (YYYY-MM-DD HH:MM:SS): ")
+        # Permite timestamp personalizado ou usa atual
+        timestamp_input = input("Data/hora da leitura (YYYY-MM-DD HH:MM:SS) ou ENTER para atual: ").strip()
+        if not timestamp_input:
+            data_hora_leitura = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"🕐 Usando data/hora atual: {data_hora_leitura}")
+        else:
+            data_hora_leitura = timestamp_input
+            
         umidade = float(input("Umidade (%): "))
         temperatura = float(input("Temperatura (°C): "))
         ph = float(input("pH: "))
-        fosforo = input("Fósforo (presente/ausente): ").lower()
-        potassio = input("Potássio (presente/ausente): ").lower()
-        bomba = input("Bomba (on/off): ").lower()
+        
+        # Entrada para fósforo e potássio como boolean
+        fosforo_input = input("Fósforo detectado? (s/n ou true/false): ").lower().strip()
+        fosforo = fosforo_input in ['s', 'sim', 'true', '1', 'yes']
+        
+        potassio_input = input("Potássio detectado? (s/n ou true/false): ").lower().strip()
+        potassio = potassio_input in ['s', 'sim', 'true', '1', 'yes']
+        
+        bomba_input = input("Bomba ligada? (s/n ou true/false): ").lower().strip()
+        bomba = bomba_input in ['s', 'sim', 'true', '1', 'yes']
 
         # Validação de faixas (opcional)
         if not (0 <= umidade <= 100 and 0 <= ph <= 14):
@@ -28,12 +42,19 @@ def inserir_dados():
 
         conn, cursor = conectar_postgres()
         if conn:
+            # Insere dados com nova estrutura - id será autogerado, criacaots será timestamp atual
             cursor.execute(f"""
-                INSERT INTO {DatabaseConfig.SCHEMA}.leituras_sensores (timestamp, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
+                INSERT INTO {DatabaseConfig.SCHEMA}.leituras_sensores 
+                (data_hora_leitura, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, (timestamp, umidade, temperatura, ph, fosforo, potassio, bomba))
+            """, (data_hora_leitura, umidade, temperatura, ph, fosforo, potassio, bomba))
             conn.commit()
-            print("✅ Dados inseridos com sucesso.")
+            print(f"✅ Dados inseridos com sucesso!")
+            print(f"🕐 Data/hora da leitura: {data_hora_leitura}")
+            print(f"📊 Fósforo: {'✅ Detectado' if fosforo else '❌ Não detectado'}")
+            print(f"📊 Potássio: {'✅ Detectado' if potassio else '❌ Não detectado'}")
+            print(f"🚰 Bomba: {'✅ Ligada' if bomba else '❌ Desligada'}")
+            print("📊 ID será gerado automaticamente e timestamp de criação será definido pelo banco.")
     except ValueError:
         print("❌ Erro: valores numéricos inválidos.")
     except Exception as e:
@@ -48,15 +69,26 @@ def listar_dados():
     print("\n📄 Listando dados...")
     conn, cursor = conectar_postgres()
     if conn:
-        cursor.execute(f"SELECT * FROM {DatabaseConfig.SCHEMA}.leituras_sensores ORDER BY timestamp DESC")
+        cursor.execute(f"""
+            SELECT id, data_hora_leitura, criacaots, umidade, temperatura, ph, fosforo, potassio, bomba_dagua 
+            FROM {DatabaseConfig.SCHEMA}.leituras_sensores 
+            ORDER BY data_hora_leitura DESC
+        """)
         rows = cursor.fetchall()
         if rows:
-            print(f"\n{'='*80}")
-            print(f"{'TIMESTAMP':<20} {'UMID':<6} {'TEMP':<6} {'PH':<6} {'FÓSF':<8} {'POT':<8} {'BOMBA':<8}")
-            print(f"{'='*80}")
+            print(f"\n{'='*120}")
+            print(f"{'ID':<4} {'DATA/HORA LEITURA':<20} {'CRIAÇÃO TS':<20} {'UMID':<6} {'TEMP':<6} {'PH':<6} {'FÓSF':<8} {'POT':<8} {'BOMBA':<8}")
+            print(f"{'='*120}")
             for row in rows:
-                print(f"{str(row[0]):<20} {row[1]:<6} {row[2]:<6} {row[3]:<6} {row[4]:<8} {row[5]:<8} {row[6]:<8}")
-            print(f"{'='*80}")
+                # Formata as datas para exibição
+                data_leitura = row[1].strftime("%Y-%m-%d %H:%M:%S") if row[1] else "N/A"
+                data_criacao = row[2].strftime("%Y-%m-%d %H:%M:%S") if row[2] else "N/A"
+                # Converte boolean para texto amigável
+                fosforo_texto = "✅ Sim" if row[6] else "❌ Não"
+                potassio_texto = "✅ Sim" if row[7] else "❌ Não"
+                bomba_texto = "✅ Ligada" if row[8] else "❌ Desligada"
+                print(f"{row[0]:<4} {data_leitura:<20} {data_criacao:<20} {row[3]:<6} {row[4]:<6} {row[5]:<6} {fosforo_texto:<8} {potassio_texto:<8} {bomba_texto:<8}")
+            print(f"{'='*120}")
             print(f"Total de registros: {len(rows)}")
         else:
             print("⚠️ Nenhum dado encontrado.")
@@ -66,48 +98,113 @@ def listar_dados():
 # === ATUALIZA UMA LEITURA EXISTENTE ===
 def atualizar_dado():
     print("\n✏️ Atualizar leitura:")
-    timestamp = input("Timestamp da leitura que deseja atualizar: ")
     try:
-        nova_umidade = float(input("Nova umidade (%): "))
-        nova_temperatura = float(input("Nova temperatura (°C): "))
-        novo_ph = float(input("Novo pH: "))
-        novo_fosforo = input("Novo fósforo (presente/ausente): ").lower()
-        novo_potassio = input("Novo potássio (presente/ausente): ").lower()
-        novo_bomba = input("Novo estado da bomba (on/off): ").lower()
-
+        id_registro = int(input("ID do registro que deseja atualizar: "))
+        
+        # Mostra o registro atual
         conn, cursor = conectar_postgres()
         if conn:
             cursor.execute(f"""
+                SELECT id, data_hora_leitura, umidade, temperatura, ph, fosforo, potassio, bomba_dagua 
+                FROM {DatabaseConfig.SCHEMA}.leituras_sensores 
+                WHERE id = %s
+            """, (id_registro,))
+            registro_atual = cursor.fetchone()
+            
+            if not registro_atual:
+                print("⚠️ Nenhum registro encontrado com esse ID.")
+                cursor.close()
+                conn.close()
+                return
+                
+            print(f"\n📋 Registro atual (ID: {registro_atual[0]}):")
+            print(f"Data/Hora: {registro_atual[1]}")
+            print(f"Umidade: {registro_atual[2]}% | Temperatura: {registro_atual[3]}°C | pH: {registro_atual[4]}")
+            print(f"Fósforo: {'✅ Detectado' if registro_atual[5] else '❌ Não detectado'}")
+            print(f"Potássio: {'✅ Detectado' if registro_atual[6] else '❌ Não detectado'}")
+            print(f"🚰 Bomba: {'✅ Ligada' if registro_atual[7] else '❌ Desligada'}")
+            print()
+            
+            nova_umidade = float(input("Nova umidade (%): "))
+            nova_temperatura = float(input("Nova temperatura (°C): "))
+            novo_ph = float(input("Novo pH: "))
+            
+            # Entrada para fósforo e potássio como boolean
+            novo_fosforo_input = input("Novo fósforo detectado? (s/n ou true/false): ").lower().strip()
+            novo_fosforo = novo_fosforo_input in ['s', 'sim', 'true', '1', 'yes']
+            
+            novo_potassio_input = input("Novo potássio detectado? (s/n ou true/false): ").lower().strip()
+            novo_potassio = novo_potassio_input in ['s', 'sim', 'true', '1', 'yes']
+            
+            novo_bomba_input = input("Novo estado da bomba (s/n ou true/false): ").lower().strip()
+            novo_bomba = novo_bomba_input in ['s', 'sim', 'true', '1', 'yes']
+
+            cursor.execute(f"""
                 UPDATE {DatabaseConfig.SCHEMA}.leituras_sensores
                 SET umidade = %s, temperatura = %s, ph = %s, fosforo = %s, potassio = %s, bomba_dagua = %s
-                WHERE timestamp = %s
-            """, (nova_umidade, nova_temperatura, novo_ph, novo_fosforo, novo_potassio, novo_bomba, timestamp))
+                WHERE id = %s
+            """, (nova_umidade, nova_temperatura, novo_ph, novo_fosforo, novo_potassio, novo_bomba, id_registro))
+            
             if cursor.rowcount:
                 conn.commit()
                 print("✅ Leitura atualizada com sucesso.")
             else:
-                print("⚠️ Nenhuma leitura encontrada com esse timestamp.")
+                print("⚠️ Nenhuma leitura foi atualizada.")
+                
     except ValueError:
-        print("❌ Erro: valores numéricos inválidos.")
+        print("❌ Erro: ID deve ser um número inteiro ou valores numéricos inválidos.")
+    except Exception as e:
+        print(f"❌ Erro ao atualizar: {e}")
     finally:
         if conn:
             cursor.close()
             conn.close()
 
-# === REMOVE UMA LEITURA PELO TIMESTAMP ===
+# === REMOVE UMA LEITURA PELO ID ===
 def remover_dado():
     print("\n🗑️ Remover leitura:")
-    timestamp = input("Timestamp da leitura a remover: ")
-    conn, cursor = conectar_postgres()
-    if conn:
-        cursor.execute(f"DELETE FROM {DatabaseConfig.SCHEMA}.leituras_sensores WHERE timestamp = %s", (timestamp,))
-        if cursor.rowcount:
-            conn.commit()
-            print("✅ Leitura removida com sucesso.")
-        else:
-            print("⚠️ Nenhuma leitura encontrada com esse timestamp.")
-        cursor.close()
-        conn.close()
+    try:
+        id_registro = int(input("ID do registro a remover: "))
+        
+        conn, cursor = conectar_postgres()
+        if conn:
+            # Mostra o registro antes de remover
+            cursor.execute(f"""
+                SELECT id, data_hora_leitura, umidade, temperatura, ph, fosforo, potassio, bomba_dagua
+                FROM {DatabaseConfig.SCHEMA}.leituras_sensores 
+                WHERE id = %s
+            """, (id_registro,))
+            registro = cursor.fetchone()
+            
+            if registro:
+                print(f"\n📋 Registro a ser removido:")
+                print(f"ID: {registro[0]} | Data/Hora: {registro[1]}")
+                print(f"Umidade: {registro[2]}% | Temp: {registro[3]}°C | pH: {registro[4]}")
+                print(f"Fósforo: {'✅ Detectado' if registro[5] else '❌ Não detectado'}")
+                print(f"Potássio: {'✅ Detectado' if registro[6] else '❌ Não detectado'}")
+                print(f"🚰 Bomba: {'✅ Ligada' if registro[7] else '❌ Desligada'}")
+                confirmacao = input("\n⚠️ Confirma a remoção? (s/N): ").lower()
+                
+                if confirmacao == 's':
+                    cursor.execute(f"DELETE FROM {DatabaseConfig.SCHEMA}.leituras_sensores WHERE id = %s", (id_registro,))
+                    if cursor.rowcount:
+                        conn.commit()
+                        print("✅ Leitura removida com sucesso.")
+                    else:
+                        print("⚠️ Nenhuma leitura foi removida.")
+                else:
+                    print("❌ Operação cancelada.")
+            else:
+                print("⚠️ Nenhuma leitura encontrada com esse ID.")
+                
+    except ValueError:
+        print("❌ Erro: ID deve ser um número inteiro.")
+    except Exception as e:
+        print(f"❌ Erro ao remover: {e}")
+    finally:
+        if conn:
+            cursor.close()
+            conn.close()
 
 # === CONSULTA POR UMIDADE ACIMA/ABAIXO DE UM VALOR ===
 def consultar_por_umidade():
