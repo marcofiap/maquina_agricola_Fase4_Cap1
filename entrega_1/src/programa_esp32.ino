@@ -7,10 +7,17 @@
 // --- Bibliotecas de comunicação Wi-Fi e HTTP ---
 #include <WiFi.h>
 #include <HTTPClient.h>                // Para enviar dados via HTTP GET
+#include <time.h>                      // Biblioteca para sincronização de tempo via NTP
 
 // --- Credenciais da rede Wi-Fi (usada no Wokwi) ---
 const char* ssid = "Wokwi-GUEST";
 const char* password = "";
+
+// --- Configurações de NTP (Servidor de tempo) ---
+const char* ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = -3 * 3600;    // GMT-3 (horário de Brasília)
+const int daylightOffset_sec = 0;         // Sem horário de verão
+bool ntpSincronizado = false;
 
 // --- Definição de pinos ---
 #define BUTTON_FOSFORO 2              // Botão azul para simular sensor de fósforo
@@ -98,6 +105,31 @@ void atualizarDisplay(float t, float h, uint8_t phValue, const char* releStatus,
   }
 }
 
+// --- Função para obter timestamp formatado ---
+String obterTimestamp() {
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("⚠️ Falha ao obter timestamp - usando millis()");
+    // Fallback: usa millis() se NTP não funcionar
+    uint32_t segundos = millis() / 1000;
+    uint32_t minutos = segundos / 60;
+    uint32_t horas = minutos / 60;
+    segundos = segundos % 60;
+    minutos = minutos % 60;
+    horas = horas % 24;
+    
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), "2024-01-01T%02d:%02d:%02d", 
+             (int)horas, (int)minutos, (int)segundos);
+    return String(buffer);
+  }
+  
+  // Formata timestamp no padrão ISO: YYYY-MM-DDTHH:MM:SS (sem espaços)
+  char buffer[20];
+  strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+  return String(buffer);
+}
+
 // --- Array de servidores para envio de dados ---
 const char* servidores[] = {
   "192.168.0.13:8000",
@@ -125,12 +157,15 @@ void enviarDadosServidor(float t, float h, uint8_t phValue, const char* fosforo,
     // OTIMIZAÇÃO: Tenta enviar para cada servidor no array
     bool envioSucesso = false;
     
+    // Obtém timestamp atual para esta leitura
+    String timestamp = obterTimestamp();
+    
     for (uint8_t i = 0; i < NUM_SERVIDORES && !envioSucesso; i++) {
       // OTIMIZAÇÃO: Usando snprintf em vez de concatenação de String para economizar heap
-      char urlBuffer[256]; // Buffer fixo para URL
+      char urlBuffer[300]; // Buffer aumentado para incluir timestamp
       snprintf(urlBuffer, sizeof(urlBuffer), 
-               "http://%s/data?umidade=%.1f&temperatura=%.1f&ph=%d&fosforo=%s&potassio=%s&rele=%s",
-               servidores[i], h, t, phValue, fosforo, potassio, releStatus);
+               "http://%s/data?timestamp=%s&umidade=%.1f&temperatura=%.1f&ph=%d&fosforo=%s&potassio=%s&rele=%s",
+               servidores[i], timestamp.c_str(), h, t, phValue, fosforo, potassio, releStatus);
 
       Serial.print("🔄 Tentando servidor [");
       Serial.print(i + 1);
@@ -138,6 +173,8 @@ void enviarDadosServidor(float t, float h, uint8_t phValue, const char* fosforo,
       Serial.print(NUM_SERVIDORES);
       Serial.print("]: ");
       Serial.println(servidores[i]);
+      Serial.print("🕐 Timestamp: ");
+      Serial.println(timestamp);
 
       // OTIMIZAÇÃO: Reutiliza a conexão HTTP
       http.begin(httpClient, urlBuffer);
@@ -213,6 +250,28 @@ void setup() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nWi-Fi conectado!");
     Serial.println(WiFi.localIP());
+    
+    // Configura sincronização de tempo via NTP
+    Serial.println("🕐 Configurando NTP...");
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    
+    // Aguarda sincronização (até 10 segundos)
+    struct tm timeinfo;
+    uint8_t tentativasNTP = 0;
+    while(!getLocalTime(&timeinfo) && tentativasNTP < 20) {
+      delay(500);
+      Serial.print(".");
+      tentativasNTP++;
+    }
+    
+    if (getLocalTime(&timeinfo)) {
+      ntpSincronizado = true;
+      Serial.println("\n✅ NTP sincronizado!");
+      Serial.print("🕐 Data/Hora atual: ");
+      Serial.println(obterTimestamp());
+    } else {
+      Serial.println("\n⚠️ Falha na sincronização NTP - continuando sem timestamp real");
+    }
   } else {
     Serial.println("\nFalha na conexão Wi-Fi - continuando sem rede");
   }

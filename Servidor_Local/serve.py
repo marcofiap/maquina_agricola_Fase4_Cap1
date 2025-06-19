@@ -49,9 +49,15 @@ def inserir_dados(umidade, temperatura, ph, fosforo, potassio, bomba_dagua, time
             # Converte string para timestamp se necessário
             if isinstance(timestamp_esp32, str):
                 try:
-                    data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%d %H:%M:%S")
+                    # Tenta formato ISO primeiro (YYYY-MM-DDTHH:MM:SS)
+                    data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%dT%H:%M:%S")
                 except ValueError:
-                    data_hora_leitura = datetime.now()
+                    try:
+                        # Fallback para formato com espaço
+                        data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        print(f"⚠️ Formato de timestamp inválido: {timestamp_esp32}")
+                        data_hora_leitura = datetime.now()
             else:
                 data_hora_leitura = timestamp_esp32
             timestamp_source = "ESP32"
