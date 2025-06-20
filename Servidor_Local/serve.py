@@ -111,15 +111,15 @@ PLOTTER_HTML = """
         }
         
         .chart-container h2::before {
-            content: "📊";
+            content: "";
             margin-right: 10px;
             font-size: 1.2em;
         }
         
         /* Estilos específicos para cada tipo de gráfico */
-        .chart-container:nth-child(3) h2::before { content: "🌡️💧"; }
-        .chart-container:nth-child(4) h2::before { content: "⚗️"; }
-        .chart-container:nth-child(5) h2::before { content: "🔧"; }
+        .chart-container:nth-child(3) h2::before { content: ""; }
+        .chart-container:nth-child(4) h2::before { content: ""; }
+        .chart-container:nth-child(5) h2::before { content: ""; }
         
         /* Responsividade */
         @media (max-width: 768px) {
@@ -162,7 +162,7 @@ PLOTTER_HTML = """
         }
         
         .status-indicator::before {
-            content: "🟢";
+            content: "";
             margin-right: 5px;
         }
     </style>
@@ -173,14 +173,14 @@ PLOTTER_HTML = """
     
     <!-- Header section -->
     <div class="header">
-        <h1>🌱 Farm Tech Solutions</h1>
+        <h1>Farm Tech Solutions</h1>
         <div class="subtitle">Live Data Plotter - Visualização Avançada</div>
     </div>
     
     <!-- Navigation -->
     <div class="navigation">
         <a href="http://localhost:8501" class="btn-dashboard" target="_self">
-            ← Voltar ao Dashboard Principal
+            Voltar ao Dashboard Principal
         </a>
     </div>
 
@@ -347,7 +347,7 @@ PLOTTER_HTML = """
         async function updateCharts() {
             try {
                 // Mostra indicador de loading
-                document.querySelector('.status-indicator').textContent = '🔄 Atualizando...';
+                document.querySelector('.status-indicator').textContent = 'Atualizando...';
                 
                 const response = await fetch('/get_data');
                 const result = await response.json();
@@ -390,11 +390,11 @@ PLOTTER_HTML = """
                 statusChart.update();
                 
                 // Atualiza indicador de sucesso
-                document.querySelector('.status-indicator').textContent = '🟢 Live Data';
+                document.querySelector('.status-indicator').textContent = 'Live Data';
 
             } catch (error) {
                 console.error('Erro ao buscar ou atualizar dados:', error);
-                document.querySelector('.status-indicator').textContent = '🔴 Erro';
+                document.querySelector('.status-indicator').textContent = 'Erro';
                 document.querySelector('.status-indicator').style.background = '#f44336';
             }
         }
@@ -421,13 +421,13 @@ BRASIL_TZ = pytz.timezone('America/Sao_Paulo')
 app = Flask(__name__)
 
 # Tenta inicializar schema e tabela, mas não trava se falhar
-print("🚀 Iniciando servidor Flask...")
+print("Iniciando servidor Flask...")
 try:
     criar_schema_e_tabela()
-    print("✅ Banco de dados inicializado com sucesso!")
+    print("Banco de dados inicializado com sucesso!")
 except Exception as e:
-    print(f"⚠️ Aviso: Não foi possível conectar ao banco: {e}")
-    print("🔄 Servidor continuará rodando. Você pode configurar o banco depois.")
+    print(f"Aviso: Não foi possível conectar ao banco: {e}")
+    print("Servidor continuará rodando. Você pode configurar o banco depois.")
 
 # === POOL DE CONEXÕES PARA PERFORMANCE ===
 connection_pool = None
@@ -441,10 +441,10 @@ def inicializar_pool_conexoes():
             maxconn=10, # Máximo 10 conexões simultâneas
             **DatabaseConfig.get_connection_params()
         )
-        print("🚀 Pool de conexões PostgreSQL inicializado (2-10 conexões)")
+        print("Pool de conexões PostgreSQL inicializado (2-10 conexões)")
         return True
     except Exception as e:
-        print(f"❌ Erro ao inicializar pool: {e}")
+        print(f"Erro ao inicializar pool: {e}")
         return False
 
 def obter_conexao_pool():
@@ -459,7 +459,7 @@ def obter_conexao_pool():
                 cursor.execute(f"SET search_path TO {DatabaseConfig.SCHEMA}, public")
                 return conn, cursor
         except Exception as e:
-            print(f"⚠️ Erro ao obter conexão do pool: {e}")
+            print(f"Erro ao obter conexão do pool: {e}")
     return None, None
 
 def devolver_conexao_pool(conn):
@@ -473,7 +473,7 @@ def fechar_pool_conexoes():
     global connection_pool
     if connection_pool:
         connection_pool.closeall()
-        print("🔒 Pool de conexões fechado")
+        print("Pool de conexões fechado")
 
 # Registra função para fechar pool ao encerrar aplicação
 atexit.register(fechar_pool_conexoes)
@@ -509,7 +509,7 @@ def inserir_dados(umidade, temperatura, ph, fosforo, potassio, bomba_dagua, time
                         # Fallback para formato com espaço
                         data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%d %H:%M:%S")
                     except ValueError:
-                        print(f"⚠️ Formato de timestamp inválido: {timestamp_esp32}")
+                        print(f"Formato de timestamp inválido: {timestamp_esp32}")
                         data_hora_leitura = datetime.now()
             else:
                 data_hora_leitura = timestamp_esp32
@@ -531,23 +531,23 @@ def inserir_dados(umidade, temperatura, ph, fosforo, potassio, bomba_dagua, time
             (data_hora_leitura, timestamp_brasil, umidade, temperatura, ph, fosforo, potassio, bomba_dagua)
             )
             conn.commit()
-            print(f"✅ Dados inseridos no PostgreSQL ({DatabaseConfig.SCHEMA}) em {data_hora_leitura}!")
-            print(f"🕐 Timestamp fonte: {timestamp_source}")
-            print(f"📊 Umidade: {umidade}% | Temperatura: {temperatura}°C | pH: {ph}")
-            print(f"📊 Fósforo: {'✅ Detectado' if fosforo else '❌ Não detectado'}")
-            print(f"📊 Potássio: {'✅ Detectado' if potassio else '❌ Não detectado'}")
-            print(f"🚰 Bomba: {'✅ Ligada' if bomba_dagua else '❌ Desligada'}")
-            print("🆔 ID gerado automaticamente pelo banco | ⏰ Timestamp de criação definido automaticamente")
+            print(f"Dados inseridos no PostgreSQL ({DatabaseConfig.SCHEMA}) em {data_hora_leitura}!")
+            print(f"Timestamp fonte: {timestamp_source}")
+            print(f"Umidade: {umidade}% | Temperatura: {temperatura}%C | pH: {ph}")
+            print(f"Fosforo: {'Detectado' if fosforo else 'Nao detectado'}")
+            print(f"Potassio: {'Detectado' if potassio else 'Nao detectado'}")
+            print(f"Bomba: {'Ligada' if bomba_dagua else 'Desligada'}")
+            print("ID gerado automaticamente pelo banco | Timestamp de criacao definido automaticamente")
             return True
         except Exception as error:
-            print(f"❌ Erro ao inserir dados no PostgreSQL: {error}")
+            print(f"Erro ao inserir dados no PostgreSQL: {error}")
             conn.rollback()
             return False
         finally:
             cursor.close()
             conn.close()
     else:
-        print("❌ Não foi possível conectar ao banco de dados.")
+        print("Não foi possível conectar ao banco de dados.")
         return False
 
 def listar_dados():
@@ -572,7 +572,7 @@ def listar_dados():
                 # Boolean já é serializado corretamente pelo JSON
                 registros.append(registro)
         except Exception as error:
-            print(f"❌ Erro ao listar dados do PostgreSQL: {error}")
+            print(f"Erro ao listar dados do PostgreSQL: {error}")
         finally:
             cursor.close()
             conn.close()
@@ -602,7 +602,7 @@ def processar_meteorologia_background(umidade, temperatura, ph, fosforo, potassi
     Não bloqueia a resposta para o ESP32.
     """
     try:
-        print("🌤️ BACKGROUND: Iniciando processamento meteorológico...")
+        print("BACKGROUND: Iniciando processamento meteorológico...")
         
         # Pequeno delay para garantir que dados básicos foram salvos
         time.sleep(0.1)
@@ -693,19 +693,19 @@ def processar_meteorologia_background(umidade, temperatura, ph, fosforo, potassi
                 ))
                 
                 conn.commit()
-                print(f"✅ BACKGROUND: Dados meteorológicos e integrados salvos! ({dados_meteo['condicao_clima']})")
+                print(f"BACKGROUND: Dados meteorológicos e integrados salvos! ({dados_meteo['condicao_clima']})")
                 
             except Exception as e:
-                print(f"❌ BACKGROUND: Erro ao salvar dados meteorológicos: {e}")
+                print(f"BACKGROUND: Erro ao salvar dados meteorológicos: {e}")
                 conn.rollback()
             finally:
                 cursor.close()
                 conn.close()
         else:
-            print("❌ BACKGROUND: Erro de conexão com banco")
+            print("BACKGROUND: Erro de conexão com banco")
             
     except Exception as e:
-        print(f"❌ BACKGROUND: Erro geral no processamento: {e}")
+        print(f"BACKGROUND: Erro geral no processamento: {e}")
 
 @app.route('/data', methods=['GET'])
 def receive_data():
@@ -724,7 +724,7 @@ def receive_data():
         bomba_param = rele if rele is not None else bomba_dagua
 
         # LOG MÍNIMO
-        print(f"⚡ ESP32: {umidade}%/{temperatura}°C/pH{ph}")
+        print(f"ESP32: {umidade}%/{temperatura}°C/pH{ph}")
 
         if umidade and temperatura and ph and fosforo and potassio and bomba_param:
             # Converte para tipos corretos (minimal processing)
@@ -757,20 +757,20 @@ def receive_data():
 def home():
     """Página inicial com informações da API."""
     return f'''
-    <h1>🌱 Farm Tech Solutions - API PostgreSQL</h1>
-    <h2>📡 Endpoints Disponíveis:</h2>
+    <h1>Farm Tech Solutions - API PostgreSQL</h1>
+    <h2>Endpoints Disponíveis:</h2>
     <ul>
         <li><strong>GET /data</strong> - Recebe dados do ESP32</li>
         <li><strong>GET /get_data</strong> - Lista todos os dados armazenados</li>
         <li><strong>GET /status</strong> - Status do sistema</li>
         <li><strong>GET /stats</strong> - Estatísticas dos dados</li>
     </ul>
-    <h2>📊 Configuração:</h2>
-    <p>✅ Servidor rodando</p>
-    <p>💾 Banco: PostgreSQL</p>
-    <p>🖥️ Host: <strong>{DatabaseConfig.HOST}</strong></p>
-    <p>🏗️ Schema: <strong>{DatabaseConfig.SCHEMA}</strong></p>
-    <p>📁 Database: <strong>{DatabaseConfig.DATABASE}</strong></p>
+    <h2>Configuração:</h2>
+    <p>Servidor rodando</p>
+    <p>Banco: PostgreSQL</p>
+    <p>Host: <strong>{DatabaseConfig.HOST}</strong></p>
+    <p>Schema: <strong>{DatabaseConfig.SCHEMA}</strong></p>
+    <p>Database: <strong>{DatabaseConfig.DATABASE}</strong></p>
     '''
 
 @app.route('/status', methods=['GET'])
@@ -873,7 +873,7 @@ def get_statistics():
                         "evapotranspiracao_media": round(float(integrado_result[1]), 1) if integrado_result and integrado_result[1] else 0,
                         "previsoes_chuva": integrado_result[2] if integrado_result else 0
                     },
-                    "status_integracao": "✅ Ativo" if (meteo_result and meteo_result[0] > 0) else "⚠️ Sem dados meteorológicos"
+                    "status_integracao": "Ativo" if (meteo_result and meteo_result[0] > 0) else "Sem dados meteorológicos"
                 }
             else:
                 stats = {"erro": "Nenhum dado disponível"}
@@ -894,7 +894,7 @@ def test_integration():
     Rota para testar o sistema de integração automática.
     Simula uma leitura completa de sensores + meteorologia.
     """
-    print("\n🧪 TESTE DE INTEGRAÇÃO AUTOMÁTICA:")
+    print("\nTESTE DE INTEGRACAO AUTOMATICA:")
     
     # Dados simulados do ESP32
     dados_teste = {
@@ -906,10 +906,9 @@ def test_integration():
         'bomba_dagua': False
     }
     
-    print("🔬 Simulando leitura do ESP32:")
+    print("Simulando leitura do ESP32:")
     for key, value in dados_teste.items():
-        emoji = "🌡️" if key == "temperatura" else "💧" if key == "umidade" else "⚗️" if key == "ph" else "🧪" if "fosforo" in key or "potassio" in key else "🚰"
-        print(f"   {emoji} {key}: {value}")
+        print(f"   {key}: {value}")
     
     # Executa o processo integrado
     sucesso = inserir_dados_completo(
@@ -924,7 +923,7 @@ def test_integration():
     if sucesso:
         return jsonify({
             "status": "sucesso",
-            "message": "✅ Teste de integração concluído com sucesso!",
+            "message": "Teste de integração concluído com sucesso!",
             "dados_testados": dados_teste,
             "processos_executados": [
                 "1. Salvamento dados sensores",
@@ -938,7 +937,7 @@ def test_integration():
     else:
         return jsonify({
             "status": "erro",
-            "message": "❌ Falha no teste de integração",
+            "message": "Falha no teste de integração",
             "dados_testados": dados_teste
         }), 500
 
@@ -964,7 +963,7 @@ def get_integrated_data():
                 registros.append(registro)
                 
         except Exception as error:
-            print(f"❌ Erro ao listar dados integrados: {error}")
+            print(f"Erro ao listar dados integrados: {error}")
         finally:
             cursor.close()
             conn.close()
@@ -1078,14 +1077,14 @@ def coletar_dados_meteorologicos():
             'fonte_dados': 'Sistema Unificado Dashboard+API'
         }
         
-        print(f"🌤️ Dados meteorológicos coletados (SISTEMA INTEGRADO): {dados_meteorologicos['condicao_clima']}, "
+        print(f"Dados meteorologicos coletados (SISTEMA INTEGRADO): {dados_meteorologicos['condicao_clima']}, "
               f"{dados_meteorologicos['temperatura_externa']}°C, "
               f"Chuva: {dados_meteorologicos['probabilidade_chuva']}%")
         
         return dados_meteorologicos
         
     except Exception as e:
-        print(f"❌ Erro ao coletar dados meteorológicos: {e}")
+        print(f"Erro ao coletar dados meteorologicos: {e}")
         # Retorna dados padrão em caso de erro
         return {
             'temperatura_externa': 25.0,
@@ -1134,11 +1133,11 @@ def salvar_dados_meteorologicos(dados_meteo, timestamp=None):
             ))
             
             conn.commit()
-            print("✅ Dados meteorológicos salvos no banco!")
+            print("Dados meteorologicos salvos no banco!")
             return True
             
         except Exception as error:
-            print(f"❌ Erro ao salvar dados meteorológicos: {error}")
+            print(f"Erro ao salvar dados meteorologicos: {error}")
             conn.rollback()
             return False
         finally:
@@ -1172,7 +1171,7 @@ def calcular_fatores_avancados(dados_sensores, dados_meteo):
         }
         
     except Exception as e:
-        print(f"⚠️ Erro ao calcular fatores: {e}")
+        print(f"Erro ao calcular fatores: {e}")
         return {
             'diferenca_temperatura': 0.0,
             'deficit_umidade': 0.0,
@@ -1215,11 +1214,11 @@ def criar_leitura_integrada(dados_sensores, dados_meteo, fatores, timestamp=None
             ))
             
             conn.commit()
-            print("✅ Leitura integrada (sensores + meteorologia) salva!")
+            print("Leitura integrada (sensores + meteorologia) salva!")
             return True
             
         except Exception as error:
-            print(f"❌ Erro ao salvar leitura integrada: {error}")
+            print(f"Erro ao salvar leitura integrada: {error}")
             conn.rollback()
             return False
         finally:
@@ -1246,7 +1245,7 @@ def inserir_dados_completo(umidade, temperatura, ph, fosforo, potassio, bomba_da
                 try:
                     data_hora_leitura = datetime.strptime(timestamp_esp32, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
-                    print(f"⚠️ Formato de timestamp inválido: {timestamp_esp32}")
+                    print(f"Formato de timestamp inválido: {timestamp_esp32}")
                     data_hora_leitura = datetime.now()
         else:
             data_hora_leitura = timestamp_esp32
@@ -1263,12 +1262,12 @@ def inserir_dados_completo(umidade, temperatura, ph, fosforo, potassio, bomba_da
         'bomba_dagua': bomba_dagua
     }
     
-    print(f"🚀 PROCESSO OTIMIZADO: Salvando dados em transação única...")
+    print(f"PROCESSO OTIMIZADO: Salvando dados em transacao unica...")
     
     # OTIMIZAÇÃO: Uma única conexão para tudo
     conn, cursor = conectar_postgres()
     if not conn or not cursor:
-        print("❌ Erro de conexão com banco!")
+        print("Erro de conexão com banco!")
         return False
     
     try:
@@ -1349,13 +1348,13 @@ def inserir_dados_completo(umidade, temperatura, ph, fosforo, potassio, bomba_da
         # Confirma transação
         conn.commit()
         
-        print(f"✅ OTIMIZADO: Dados salvos em 3 tabelas simultaneamente!")
-        print(f"🌤️ Meteorologia: {dados_meteo['condicao_clima']}, {dados_meteo['temperatura_externa']}°C")
+        print(f"OTIMIZADO: Dados salvos em 3 tabelas simultaneamente!")
+        print(f"Meteorologia: {dados_meteo['condicao_clima']}, {dados_meteo['temperatura_externa']}%C")
         
         return True
         
     except Exception as error:
-        print(f"❌ Erro na transação otimizada: {error}")
+        print(f"Erro na transacao otimizada: {error}")
         conn.rollback()
         return False
     finally:
@@ -1393,21 +1392,21 @@ def inserir_dados_ultra_rapido(umidade, temperatura, ph, fosforo, potassio, bomb
     return False
 
 if __name__ == '__main__':
-    print("🚀 Iniciando Farm Tech Solutions - Servidor PostgreSQL")
-    print(f"📊 Usando configuração centralizada")
-    print(f"💾 Database: {DatabaseConfig.DATABASE}")
-    print(f"🏗️ Schema: {DatabaseConfig.SCHEMA}")
-    print(f"🖥️ Host: {DatabaseConfig.HOST}")
+    print("Iniciando Farm Tech Solutions - Servidor PostgreSQL")
+    print(f"Usando configuração centralizada")
+    print(f"Database: {DatabaseConfig.DATABASE}")
+    print(f"Schema: {DatabaseConfig.SCHEMA}")
+    print(f"Host: {DatabaseConfig.HOST}")
     
     # Inicializa pool de conexões para performance
     if inicializar_pool_conexoes():
-        print("⚡ Sistema otimizado para resposta ultra-rápida ao ESP32!")
+        print("Sistema otimizado para resposta ultra-rápida ao ESP32!")
     else:
-        print("⚠️ Pool não inicializado, usando conexões individuais")
+        print("Pool não inicializado, usando conexões individuais")
     
-    print("🌐 Servidor disponível em:")
+    print("Servidor disponível em:")
     print("   - http://127.0.0.1:8000")
     print("   - http://192.168.2.126:8000")
-    print("\n📡 Aguardando dados do ESP32...")
+    print("\nAguardando dados do ESP32...")
     
     app.run(host='0.0.0.0', port=8000, debug=True)
