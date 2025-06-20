@@ -43,7 +43,7 @@ A **FarmTech Solutions** é um sistema avançado de irrigação automatizada que
 - **Dashboard Interativo** com Streamlit
 - **Análise Estatística** com R
 - **Banco de Dados** PostgreSQL robusto
-- 🖥**Monitoramento em Tempo Real** com ESP32
+- **Monitoramento em Tempo Real** com ESP32
 
 ### **Objetivo Principal**
 Desenvolver um sistema completo que utilize dados de sensores IoT para tomar decisões inteligentes sobre irrigação, maximizando a eficiência hídrica e otimizando o crescimento das plantas.
