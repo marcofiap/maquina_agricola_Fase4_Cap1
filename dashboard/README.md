@@ -2,7 +2,14 @@
 
 ## Visão Geral do Projeto
 
-Nesta quarta fase do projeto FarmTech Solutions, a aplicação de irrigação inteligente foi aprimorada com a incorporação de análise de dados avançada e Machine Learning. O sistema agora utiliza um dashboard interativo construído com **Streamlit**, um modelo preditivo com **Scikit-learn** para otimizar o uso da água, e uma suíte de análise estatística com **R**. Além disso, a simulação no Wokwi foi aprimorada com a inclusão de um display LCD, permitindo o monitoramento local dos dados. Também foram realizadas otimizações no uso de memória do ESP32 e a utilização do Serial Plotter para análise dos dados em tempo real, proporcionando maior eficiência e melhor visualização dos resultados.
+Nesta quarta fase do projeto FarmTech Solutions, a aplicação de irrigação inteligente foi aprimorada com a incorporação de análise de dados avançada e Machine Learning. As principais melhorias incluem:
+
+-   **Dashboard Interativo:** Construído com Streamlit para visualização e interação em tempo real.
+-   **Modelo Preditivo:** Utilização do Scikit-learn para otimizar o uso da água com base em dados históricos.
+-   **Análise Estatística:** Uma suíte de análise com R para gerar relatórios detalhados.
+-   **Hardware Aprimorado:** Inclusão de um display LCD na simulação do Wokwi para monitoramento local.
+-   **Otimizações:** Melhorias no uso de memória do ESP32 e uso do Serial Plotter para análise de dados em tempo real.
+
 ---
 
 ## Grupo 65 - FIAP
@@ -61,11 +68,14 @@ Nesta quarta fase do projeto FarmTech Solutions, a aplicação de irrigação in
     ```
 
 **3. Dashboard Streamlit:**
+-   Abra um terminal na pasta raiz do projeto (`maquina_agricola_Fase4_Cap1`).
 -   Execute o dashboard com o seguinte comando:
     ```bash
-    streamlit run dashboard/dashboard_streamlit.py
+    
+    streamlit run dashboard_streamlit.py
+
     ```
--   Acesse a aplicação em seu navegador no endereço `http://localhost:8501`.
+-   Após a execução, o Streamlit irá fornecer um endereço local. Acesse a aplicação em seu navegador, geralmente em `http://localhost:8501`.
 
 ---
 
@@ -103,24 +113,19 @@ O dashboard permite gerar relatórios estatísticos em formato CSV e PDF utiliza
 ## Demonstrações
 
 ### Dashboard Principal
-*(Insira aqui um print da tela principal do dashboard Streamlit)*
-![placeholder](https://via.placeholder.com/800x400.png?text=Print+do+Dashboard+Principal)
+![Dashboard Principal](Imagens/dashboard-principal.png)
 
 ### Análise de Machine Learning
-*(Insira aqui um print da seção de Machine Learning, mostrando a acurácia e a matriz de confusão)*
-![placeholder](https://via.placeholder.com/800x400.png?text=Print+da+Análise+de+Machine+Learning)
+![Análise de Machine Learning](Imagens/machine-learning.png)
 
 ### Análise em R
-*(Insira aqui um print da seção de Análise R, mostrando os botões de download dos relatórios)*
-![placeholder](https://via.placeholder.com/800x400.png?text=Print+da+Análise+em+R)
+![Análise em R](Imagens/relatorio-r.png)
 
 ### Simulação no Wokwi com Display LCD
-*(Insira aqui um print da simulação no Wokwi, destacando o display LCD em funcionamento)*
-![placeholder](https://via.placeholder.com/800x400.png?text=Print+do+Wokwi+com+Display+LCD)
+![Simulação no Wokwi com Display LCD](Imagens/wokwi-lcd.png)
 
 ### Gráfico do Serial Plotter
-*(Insira aqui um print do Serial Plotter do Wokwi monitorando a umidade ou outra variável)*
-![placeholder](https://via.placeholder.com/800x400.png?text=Print+do+Serial+Plotter)
+![Gráfico do Serial Plotter](Imagens/serial-plotter.png)
 
 ---
 

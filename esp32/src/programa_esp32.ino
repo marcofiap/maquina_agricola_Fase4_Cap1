@@ -109,7 +109,7 @@ void atualizarDisplay(float t, float h, uint8_t phValue, const char* releStatus,
 String obterTimestamp() {
   struct tm timeinfo;
   if(!getLocalTime(&timeinfo)){
-    Serial.println("⚠️ Falha ao obter timestamp - usando millis()");
+    Serial.println("Falha ao obter timestamp - usando millis()");
     // Fallback: usa millis() se NTP não funcionar
     uint32_t segundos = millis() / 1000;
     uint32_t minutos = segundos / 60;
@@ -167,13 +167,13 @@ void enviarDadosServidor(float t, float h, uint8_t phValue, const char* fosforo,
                "http://%s/data?timestamp=%s&umidade=%.1f&temperatura=%.1f&ph=%d&fosforo=%s&potassio=%s&rele=%s",
                servidores[i], timestamp.c_str(), h, t, phValue, fosforo, potassio, releStatus);
 
-      Serial.print("🔄 Tentando servidor [");
+      Serial.print("Tentando servidor [");
       Serial.print(i + 1);
       Serial.print("/");
       Serial.print(NUM_SERVIDORES);
       Serial.print("]: ");
       Serial.println(servidores[i]);
-      Serial.print("🕐 Timestamp: ");
+      Serial.print("Timestamp: ");
       Serial.println(timestamp);
 
       // OTIMIZAÇÃO: Reutiliza a conexão HTTP
@@ -184,13 +184,13 @@ void enviarDadosServidor(float t, float h, uint8_t phValue, const char* fosforo,
       if (httpResponseCode > 0) {
         // OTIMIZAÇÃO: Não lê a resposta completa se não for necessário
         if (httpResponseCode == 200) {
-          Serial.print("✅ HTTP OK [");
+          Serial.print("HTTP OK [");
           Serial.print(servidores[i]);
           Serial.print("]: ");
           Serial.println(httpResponseCode);
           envioSucesso = true;
         } else {
-          Serial.print("⚠️ HTTP Response [");
+          Serial.print("HTTP Response [");
           Serial.print(servidores[i]);
           Serial.print("]: ");
           Serial.println(httpResponseCode);
@@ -199,7 +199,7 @@ void enviarDadosServidor(float t, float h, uint8_t phValue, const char* fosforo,
           Serial.println("Response: " + response);
         }
       } else {
-        Serial.print("❌ HTTP Error [");
+        Serial.print("HTTP Error [");
         Serial.print(servidores[i]);
         Serial.print("]: ");
         Serial.println(http.errorToString(httpResponseCode));
@@ -215,9 +215,9 @@ void enviarDadosServidor(float t, float h, uint8_t phValue, const char* fosforo,
     }
     
     if (envioSucesso) {
-      Serial.println("📡 Dados enviados com sucesso!");
+      Serial.println("Dados enviados com sucesso!");
     } else {
-      Serial.println("❌ Falha ao enviar para todos os servidores");
+      Serial.println("Falha ao enviar para todos os servidores");
     }
   }
 }
@@ -252,7 +252,7 @@ void setup() {
     Serial.println(WiFi.localIP());
     
     // Configura sincronização de tempo via NTP
-    Serial.println("🕐 Configurando NTP...");
+    Serial.println("Configurando NTP...");
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
     
     // Aguarda sincronização (até 10 segundos)
@@ -266,11 +266,11 @@ void setup() {
     
     if (getLocalTime(&timeinfo)) {
       ntpSincronizado = true;
-      Serial.println("\n✅ NTP sincronizado!");
-      Serial.print("🕐 Data/Hora atual: ");
+      Serial.println("\nNTP sincronizado!");
+      Serial.print("Data/Hora atual: ");
       Serial.println(obterTimestamp());
     } else {
-      Serial.println("\n⚠️ Falha na sincronização NTP - continuando sem timestamp real");
+      Serial.println("\nFalha na sincronização NTP - continuando sem timestamp real");
     }
   } else {
     Serial.println("\nFalha na conexão Wi-Fi - continuando sem rede");
