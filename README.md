@@ -81,7 +81,7 @@ graph TD
     end
 ```
 
-### 🗄**Arquitetura do Banco de Dados - 3 Tabelas Inteligentes**
+### **Arquitetura do Banco de Dados - 3 Tabelas Inteligentes**
 
 O sistema utiliza uma arquitetura híbrida com **3 tabelas especializadas** que trabalham em conjunto para fornecer dados otimizados para diferentes propósitos:
 
