@@ -161,7 +161,7 @@ CREATE TABLE leituras_integradas (
 Quando o ESP32 envia dados, o sistema executa automaticamente:
 
 ```
-📡 ESP32 → /data → Servidor Flask executa:
+ESP32 → /data → Servidor Flask executa:
 
 1. PASSO 1: Salva dados básicos em `leituras_sensores`
 2. PASSO 2: Coleta dados meteorológicos (MESMA LÓGICA do dashboard)
@@ -459,26 +459,25 @@ maquina_agricola_Fase4_Cap1/
 ## **Demonstração**
 
 ### **Dashboard Principal**
-![Dashboard funcionando](dashboard/Imagens/DashboardFuncioando.png)
+![Dashboard Principal](dashboard/Imagens/dashboard-principal.png)
 
-### **Live Plotter Avançado**
-- Interface integrada com gráficos Chart.js
-- Monitoramento em tempo real
-- Design consistente com dashboard
+### **Análise de Machine Learning**
+![Análise de Machine Learning](dashboard/Imagens/machine-learning.png)
 
-### **Machine Learning**
-- Modelos treinados com dados reais
-- Previsões inteligentes de irrigação
-- Análise de importância das variáveis
+### **Análise em R**
+![Análise em R](dashboard/Imagens/relatorio-r.png)
 
-### **Análise Estatística R**
-- Estatísticas descritivas completas
-- Correlações entre sensores
-- Previsões ARIMA para 24 horas
+### **Simulação no Wokwi com Display LCD**
+![Simulação no Wokwi com Display LCD](dashboard/Imagens/wokwi-lcd.png)
+
+### **Gráfico do Serial Plotter**
+![Gráfico do Serial Plotter](dashboard/Imagens/serial-plotter.png)
 
 ---
 
 ## **Vídeo**
+
+Assista ao vídeo de demonstração do projeto no YouTube:
 
 **[Demonstração do Sistema FarmTech Solutions - Fase 4](https://youtu.be/SEU_LINK_AQUI)**
 
