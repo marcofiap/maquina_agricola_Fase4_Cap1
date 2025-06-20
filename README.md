@@ -1,11 +1,11 @@
-# 🌱 FarmTech Solutions - Fase 4
+# FarmTech Solutions - Fase 4
 ## Sistema Inteligente de Irrigação Automatizada com IA e IoT
 
 <p align="center">
   <img src="imagens/logo-fiap.png" alt="FIAP Logo" width="200"/>
 </p>
 
-### 👥 **Grupo 56 - Turma: 2TDSPS**
+### **Grupo 56 - Turma: 2TDSPS**
 
 | Nome | RM |
 |------|-----|
@@ -15,13 +15,13 @@
 | Marco Aurélio Eberhardt Assumpção | RM558375 |
 | Paulo Henrique Senise | RM557712 |
 
-### 👨‍🏫 **Professores:**
+### **Professores:**
 - **Tutor:** Leonardo Ruiz Orabona
 - **Coordenador:** André Godoi
 
 ---
 
-## 📋 **Índice**
+## **Índice**
 - [Sobre o Projeto](#-sobre-o-projeto)
 - [Arquitetura do Sistema](#-arquitetura-do-sistema)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
@@ -35,22 +35,22 @@
 
 ---
 
-## 🎯 **Sobre o Projeto**
+## **Sobre o Projeto**
 
 A **FarmTech Solutions** é um sistema avançado de irrigação automatizada que combina IoT, Inteligência Artificial e análise de dados para otimizar o cultivo agrícola. Este projeto evolui da Fase 3, incorporando:
 
-- 🤖 **Machine Learning** com Scikit-learn para previsões inteligentes
-- 📊 **Dashboard Interativo** com Streamlit
-- 🔬 **Análise Estatística** com R
-- 💾 **Banco de Dados** PostgreSQL robusto
-- 🖥️ **Monitoramento em Tempo Real** com ESP32
+- **Machine Learning** com Scikit-learn para previsões inteligentes
+- **Dashboard Interativo** com Streamlit
+- **Análise Estatística** com R
+- **Banco de Dados** PostgreSQL robusto
+- 🖥**Monitoramento em Tempo Real** com ESP32
 
-### 🎯 **Objetivo Principal**
+### **Objetivo Principal**
 Desenvolver um sistema completo que utilize dados de sensores IoT para tomar decisões inteligentes sobre irrigação, maximizando a eficiência hídrica e otimizando o crescimento das plantas.
 
 ---
 
-## 🏗️ **Arquitetura do Sistema**
+## **Arquitetura do Sistema**
 
 ```mermaid
 graph TD
@@ -81,11 +81,11 @@ graph TD
     end
 ```
 
-### 🗄️ **Arquitetura do Banco de Dados - 3 Tabelas Inteligentes**
+### 🗄**Arquitetura do Banco de Dados - 3 Tabelas Inteligentes**
 
 O sistema utiliza uma arquitetura híbrida com **3 tabelas especializadas** que trabalham em conjunto para fornecer dados otimizados para diferentes propósitos:
 
-#### 📊 **Tabela 1: `leituras_sensores`** (Dados Puros do ESP32)
+#### **Tabela 1: `leituras_sensores`** (Dados Puros do ESP32)
 ```sql
 -- Função: Armazenar dados básicos dos sensores IoT
 CREATE TABLE leituras_sensores (
@@ -102,7 +102,7 @@ CREATE TABLE leituras_sensores (
 ```
 **Uso:** Histórico limpo e puro dos sensores, backup confiável, consultas específicas de hardware.
 
-#### 🌤️ **Tabela 2: `dados_meteorologicos`** (Dados Climáticos Integrados)
+#### **Tabela 2: `dados_meteorologicos`** (Dados Climáticos Integrados)
 ```sql
 -- Função: Dados meteorológicos usando MESMA LÓGICA do dashboard
 CREATE TABLE dados_meteorologicos (
@@ -124,7 +124,7 @@ CREATE TABLE dados_meteorologicos (
 ```
 **Uso:** Usa a **mesma lógica meteorológica** do dashboard "Condições Climáticas", garantindo consistência total entre os sistemas.
 
-#### 🤖 **Tabela 3: `leituras_integradas`** (Dados Completos para ML)
+#### **Tabela 3: `leituras_integradas`** (Dados Completos para ML)
 ```sql
 -- Função: Dados combinados + fatores calculados para Machine Learning
 CREATE TABLE leituras_integradas (
@@ -148,7 +148,7 @@ CREATE TABLE leituras_integradas (
     probabilidade_chuva DECIMAL(5,2),
     quantidade_chuva DECIMAL(5,2),
     
-    -- 🔢 FATORES CALCULADOS AUTOMATICAMENTE
+    -- FATORES CALCULADOS AUTOMATICAMENTE
     diferenca_temperatura DECIMAL(5,2),   -- temp_externa - temp_solo
     deficit_umidade DECIMAL(5,2),         -- umidade_ar - umidade_solo
     fator_evapotranspiracao DECIMAL(5,2)  -- Calculado por fórmula científica
@@ -156,27 +156,27 @@ CREATE TABLE leituras_integradas (
 ```
 **Uso:** Machine Learning, IA, decisões inteligentes, análise completa.
 
-### 🔄 **Processo Automático de Integração (5 Passos)**
+### **Processo Automático de Integração (5 Passos)**
 
 Quando o ESP32 envia dados, o sistema executa automaticamente:
 
 ```
 📡 ESP32 → /data → Servidor Flask executa:
 
-1. 📊 PASSO 1: Salva dados básicos em `leituras_sensores`
-2. 🌤️ PASSO 2: Coleta dados meteorológicos (MESMA LÓGICA do dashboard)
-3. 💾 PASSO 3: Salva dados climáticos em `dados_meteorologicos`
-4. 🔢 PASSO 4: Calcula fatores derivados:
+1. PASSO 1: Salva dados básicos em `leituras_sensores`
+2. PASSO 2: Coleta dados meteorológicos (MESMA LÓGICA do dashboard)
+3. PASSO 3: Salva dados climáticos em `dados_meteorologicos`
+4. PASSO 4: Calcula fatores derivados:
    • diferenca_temperatura = temp_externa - temp_solo
    • deficit_umidade = umidade_ar - umidade_solo  
    • fator_evapotranspiracao = fórmula científica baseada em temp + vento + umidade
-5. 🤖 PASSO 5: Cria entrada completa em `leituras_integradas`
+5. PASSO 5: Cria entrada completa em `leituras_integradas`
 
-✅ RESULTADO: 23 features prontas para Machine Learning!
-🔄 GARANTIA: Dados meteorológicos consistentes entre Dashboard e API!
+RESULTADO: 23 features prontas para Machine Learning!
+GARANTIA: Dados meteorológicos consistentes entre Dashboard e API!
 ```
 
-### 🧠 **View ML Otimizada: `view_ml_completa`**
+### **View ML Otimizada: `view_ml_completa`**
 
 ```sql
 -- View com 23 features para Machine Learning
@@ -197,7 +197,7 @@ SELECT
     EXTRACT(DOW FROM data_hora_leitura) as dia_semana,
     EXTRACT(MONTH FROM data_hora_leitura) as mes,
     
-    -- 🚩 FLAGS INTELIGENTES (calculadas automaticamente)
+    -- FLAGS INTELIGENTES (calculadas automaticamente)
     CASE WHEN probabilidade_chuva > 70 THEN 1 ELSE 0 END as vai_chover_hoje,
     CASE WHEN velocidade_vento > 15 THEN 1 ELSE 0 END as vento_forte,
     CASE WHEN temperatura_externa > 30 THEN 1 ELSE 0 END as dia_quente
@@ -205,46 +205,46 @@ SELECT
 FROM leituras_integradas;
 ```
 
-### 🎯 **Vantagens da Arquitetura com 3 Tabelas**
+### **Vantagens da Arquitetura com 3 Tabelas**
 
-✅ **Separação de Responsabilidades** - Cada tabela tem função específica  
-✅ **Flexibilidade de Consultas** - Pode consultar dados específicos ou completos  
-✅ **Manutenção Fácil** - Problemas meteorológicos não afetam dados dos sensores  
-✅ **Performance Otimizada** - Consultas específicas são mais rápidas  
-✅ **Dados ML Prontos** - Tabela integrada com 23 features otimizadas  
-✅ **Escalabilidade** - Fácil adicionar novas fontes de dados  
-✅ **Garantia Temporal** - Dados sincronizados no mesmo timestamp  
-✅ **Automação Total** - ESP32 só envia sensores, meteorologia é automática  
+**Separação de Responsabilidades** - Cada tabela tem função específica  
+**Flexibilidade de Consultas** - Pode consultar dados específicos ou completos  
+**Manutenção Fácil** - Problemas meteorológicos não afetam dados dos sensores  
+**Performance Otimizada** - Consultas específicas são mais rápidas  
+**Dados ML Prontos** - Tabela integrada com 23 features otimizadas  
+**Escalabilidade** - Fácil adicionar novas fontes de dados  
+**Garantia Temporal** - Dados sincronizados no mesmo timestamp  
+**Automação Total** - ESP32 só envia sensores, meteorologia é automática  
 
-### 🔬 **Exemplo de Decisão Inteligente**
+### **Exemplo de Decisão Inteligente**
 
 **Cenário:** Dia quente e ventoso
 ```
-📊 Dados coletados automaticamente:
+Dados coletados automaticamente:
 - Temperatura externa: 35°C | Temperatura solo: 22°C  
 - Umidade ar: 30% | Umidade solo: 60%
 - Vento: 18 km/h | Probabilidade chuva: 15%
 
-🔢 Fatores calculados automaticamente:
+Fatores calculados automaticamente:
 - diferenca_temperatura: +13°C (solo mais frio que ar)
 - deficit_umidade: -30% (ar muito seco comparado ao solo)
 - fator_evapotranspiracao: 8.4 (alta evaporação esperada)
 
-🚩 Flags inteligentes:
+Flags inteligentes:
 - vai_chover_hoje: 0 (não vai chover)
 - vento_forte: 1 (vento acima de 15 km/h)
 - dia_quente: 1 (temperatura acima de 30°C)
 
-🤖 Decisão do sistema:
-⚠️ ALERTA: Alta evaporação esperada (fator 8.4)
-💧 RECOMENDAÇÃO: Irrigar preventivamente
-⏰ TIMING: Irrigar de manhã cedo para minimizar perdas
-🚫 ECONOMIA: Não esperar chuva (probabilidade apenas 15%)
+Decisão do sistema:
+⚠ALERTA: Alta evaporação esperada (fator 8.4)
+RECOMENDAÇÃO: Irrigar preventivamente
+TIMING: Irrigar de manhã cedo para minimizar perdas
+ECONOMIA: Não esperar chuva (probabilidade apenas 15%)
 ```
 
 ---
 
-## 🛠️ **Tecnologias Utilizadas**
+## **Tecnologias Utilizadas**
 
 ### **Frontend & Interface**
 - **Streamlit** - Dashboard interativo e responsivo
@@ -273,16 +273,16 @@ FROM leituras_integradas;
 
 ---
 
-## ⭐ **Funcionalidades**
+## **Funcionalidades**
 
-### 🏠 **Dashboard Principal**
+### **Dashboard Principal**
 - Visualização em tempo real dos dados dos sensores
 - Gráficos interativos de tendências
 - Alertas climáticos e recomendações
 - Auto-refresh configurável (45 segundos)
 - Interface responsiva e moderna
 
-### 🗃️ **Gerenciamento CRUD**
+### **Gerenciamento CRUD**
 - **Inserir** novas leituras de sensores
 - **Listar** e gerenciar registros existentes
 - **Atualizar** dados históricos
@@ -290,20 +290,20 @@ FROM leituras_integradas;
 - **Estatísticas** detalhadas dos dados
 - **Consultas** filtradas por umidade
 
-### 📈 **Live Plotter**
+### **Live Plotter**
 - Gráficos em tempo real com Chart.js
 - Visualização avançada de múltiplas variáveis
 - Interface integrada com design consistente
 - Monitoramento contínuo de sensores
 
-### 🤖 **Machine Learning (Scikit-learn)**
+### **Machine Learning (Scikit-learn)**
 - **Modelo de Previsão de Irrigação** (Random Forest Classifier)
 - **Modelo de Previsão de Umidade** (Random Forest Regressor)
 - **Sistema Inteligente Completo** com recomendações
 - **Análise de Importância** das variáveis
 - Métricas de performance (Acurácia, RMSE)
 
-### 🔬 **Análise Estatística (R)**
+### **Análise Estatística (R)**
 - Estatísticas descritivas detalhadas
 - Correlações entre variáveis
 - Visualizações com ggplot2
@@ -312,49 +312,49 @@ FROM leituras_integradas;
 
 ---
 
-## ✅ **Requisitos Fase 4**
+## **Requisitos Fase 4**
 
-### **Incorporar Scikit-learn** ✅
-- ✅ Modelo Random Forest para previsão de irrigação
-- ✅ Modelo de regressão para previsão de umidade
-- ✅ Sistema inteligente com recomendações automáticas
-- ✅ Análise de importância das features
-- ✅ Métricas de avaliação (Acurácia, RMSE)
+### **Incorporar Scikit-learn** 
+- Modelo Random Forest para previsão de irrigação
+- Modelo de regressão para previsão de umidade
+- Sistema inteligente com recomendações automáticas
+- Análise de importância das features
+- Métricas de avaliação (Acurácia, RMSE)
 
-### **Implementar Streamlit** ✅
-- ✅ Dashboard interativo completo
-- ✅ Visualizações em tempo real
-- ✅ Interface responsiva e moderna
-- ✅ Navegação entre múltiplas páginas
-- ✅ Auto-refresh configurável
+### **Implementar Streamlit** 
+- Dashboard interativo completo
+- Visualizações em tempo real
+- Interface responsiva e moderna
+- Navegação entre múltiplas páginas
+- Auto-refresh configurável
 
-### **Adicionar display LCD no Wokwi** ✅
-- ✅ Display I2C (SDA/SCL) implementado
-- ✅ Exibição de métricas em tempo real
-- ✅ Status da irrigação visível
-- ✅ Interface física no simulador
+### **Adicionar display LCD no Wokwi** 
+- Display I2C (SDA/SCL) implementado
+- Exibição de métricas em tempo real
+- Status da irrigação visível
+- Interface física no simulador
 
-### **Monitoramento com Serial Plotter** ✅
-- ✅ Monitoramento de umidade em tempo real
-- ✅ Gráficos de variáveis múltiplas
-- ✅ Análise visual do comportamento
-- ✅ Integração com Wokwi
+### **Monitoramento com Serial Plotter** 
+- Monitoramento de umidade em tempo real
+- Gráficos de variáveis múltiplas
+- Análise visual do comportamento
+- Integração com Wokwi
 
-### **Otimização de Memória no ESP32** ✅
-- ✅ Otimização de tipos de dados (int, float, char)
-- ✅ Gerenciamento eficiente de variáveis
-- ✅ Comentários justificando otimizações
-- ✅ Redução do uso de RAM
+### **Otimização de Memória no ESP32** 
+- Otimização de tipos de dados (int, float, char)
+- Gerenciamento eficiente de variáveis
+- Comentários justificando otimizações
+- Redução do uso de RAM
 
-### **Banco de Dados** ✅
-- ✅ PostgreSQL implementado e otimizado
-- ✅ Schema robusto para dados IoT
-- ✅ Operações CRUD completas
-- ✅ Conexão estável e configurável
+### **Banco de Dados** 
+- PostgreSQL implementado e otimizado
+- Schema robusto para dados IoT
+- Operações CRUD completas
+- Conexão estável e configurável
 
 ---
 
-## 🚀 **Instalação e Configuração**
+## **Instalação e Configuração**
 
 ### **Pré-requisitos**
 - Python 3.9 ou superior
@@ -404,7 +404,7 @@ streamlit run dashboard_streamlit.py
 
 ---
 
-## 💻 **Como Usar**
+## **Como Usar**
 
 ### **1. Acesso aos Componentes**
 - **Dashboard Principal:** http://localhost:8501
@@ -412,10 +412,10 @@ streamlit run dashboard_streamlit.py
 - **API REST:** http://localhost:8000
 
 ### **2. Navegação do Dashboard**
-1. **🗃️ Gerenciamento CRUD** - Operações de banco de dados
-2. **📈 Live Plotter** - Gráficos avançados em tempo real
-3. **🤖 Análise R** - Estatísticas e previsões ARIMA
-4. **🧠 Machine Learning** - IA com Scikit-learn
+1. **Gerenciamento CRUD** - Operações de banco de dados
+2. **Live Plotter** - Gráficos avançados em tempo real
+3. **Análise R** - Estatísticas e previsões ARIMA
+4. **Machine Learning** - IA com Scikit-learn
 
 ### **3. Workflow Recomendado**
 1. Visualize dados no **Dashboard Principal**
@@ -426,37 +426,37 @@ streamlit run dashboard_streamlit.py
 
 ---
 
-## 📁 **Estrutura do Projeto**
+## **Estrutura do Projeto**
 
 ```
 maquina_agricola_Fase4_Cap1/
-├── 📊 dashboard/                    # Dashboard Streamlit
+├── dashboard/                       # Dashboard Streamlit
 │   ├── dashboard_streamlit.py       # Interface principal
 │   └── requirements_streamlit.txt   # Dependências específicas
-├── 🗃️ config/                       # Configurações do sistema
+├── config/                          # Configurações do sistema
 │   ├── database_config.py           # Configuração PostgreSQL
 │   └── settings.py                  # Configurações gerais
-├── 🌐 servidor_local/               # Servidor Flask
+├── servidor_local/                  # Servidor Flask
 │   ├── serve.py                     # API REST + Live Plotter
 │   └── leituras_sensores.db         # Banco SQLite local
-├── 🔬 analise_estatistica/          # Análise estatística R
+├── analise_estatistica/             # Análise estatística R
 │   ├── AnaliseEstatisticaBD.R       # Script principal R
 │   ├── leituras_sensores.csv        # Dados para análise
 │   ├── resumo_estatistico.csv       # Resultados gerados
 │   └── requirements.txt             # Dependências R
-├── 🤖 esp32/                        # Código IoT
+├── esp32/                           # Código IoT
 │   ├── src/programa_esp32.ino       # Código ESP32 otimizado
 │   ├── diagram.json                 # Diagrama Wokwi
 │   └── README.md                    # Documentação ESP32
-├── 🖼️ imagens/                       # Recursos visuais
+├── imagens/                         # Recursos visuais
 │   └── logo-fiap.png                # Logo institucional
-├── 📋 requirements.txt              # Dependências Python
-└── 📖 README.md                     # Esta documentação
+├── requirements.txt                 # Dependências Python
+└── README.md                        # Esta documentação
 ```
 
 ---
 
-## 🎬 **Demonstração**
+## **Demonstração**
 
 ### **Dashboard Principal**
 ![Dashboard funcionando](dashboard/Imagens/DashboardFuncioando.png)
@@ -478,23 +478,23 @@ maquina_agricola_Fase4_Cap1/
 
 ---
 
-## 📹 **Vídeo**
+## **Vídeo**
 
-🎥 **[Demonstração do Sistema FarmTech Solutions - Fase 4](https://youtu.be/SEU_LINK_AQUI)**
+**[Demonstração do Sistema FarmTech Solutions - Fase 4](https://youtu.be/SEU_LINK_AQUI)**
 
-*⚠️ Substitua "SEU_LINK_AQUI" pelo link real do seu vídeo YouTube não listado*
+*⚠Substitua "SEU_LINK_AQUI" pelo link real do seu vídeo YouTube não listado*
 
 *Vídeo de 5 minutos demonstrando:*
-- ✅ Funcionamento completo do sistema
-- ✅ Navegação entre todas as funcionalidades
-- ✅ Machine Learning em ação
-- ✅ Análises estatísticas com R
-- ✅ Dashboard interativo
-- ✅ ESP32 e sensores no Wokwi
+- Funcionamento completo do sistema
+- Navegação entre todas as funcionalidades
+- Machine Learning em ação
+- Análises estatísticas com R
+- Dashboard interativo
+- ESP32 e sensores no Wokwi
 
 ---
 
-## 🔧 **Funcionalidades Técnicas Avançadas**
+## **Funcionalidades Técnicas Avançadas**
 
 ### **Machine Learning**
 - **Random Forest Classifier** para decisões de irrigação
@@ -519,7 +519,7 @@ maquina_agricola_Fase4_Cap1/
 
 ---
 
-## 🚀 **Inovações da Fase 4**
+## **Inovações da Fase 4**
 
 ### **Inteligência Artificial**
 - Sistema de recomendação inteligente
@@ -541,33 +541,33 @@ maquina_agricola_Fase4_Cap1/
 
 ---
 
-## 🤝 **Contribuições**
+## **Contribuições**
 
 Este projeto foi desenvolvido como parte do curso de **Análise e Desenvolvimento de Sistemas** da **FIAP**, demonstrando a aplicação prática de:
 
-- 🧠 Inteligência Artificial
-- 📊 Ciência de Dados
-- 🌐 Desenvolvimento Web
-- 🤖 Internet das Coisas
-- 💾 Banco de Dados
-- 📈 Análise Estatística
+- Inteligência Artificial
+- Ciência de Dados
+- Desenvolvimento Web
+- Internet das Coisas
+- Banco de Dados
+- Análise Estatística
 
 ---
 
-## 📄 **Licença**
+## **Licença**
 
 Este projeto é desenvolvido para fins acadêmicos como parte do curso da FIAP.
 
 ---
 
-## 📞 **Contato**
+## **Contato**
 
 Para dúvidas sobre o projeto, entre em contato com qualquer membro do **Grupo 56**.
 
 ---
 
 <p align="center">
-  <strong>🌱 FarmTech Solutions - Inovando a Agricultura com Tecnologia 🌱</strong>
+  <strong>FarmTech Solutions - Inovando a Agricultura com Tecnologia </strong>
 </p>
 
 <p align="center">
