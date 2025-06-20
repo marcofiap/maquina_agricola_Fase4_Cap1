@@ -14,6 +14,7 @@ A principal melhoria nesta fase é a integração com um **display LCD I2C**, qu
 - [Componentes](#componentes-utilizados)
 - [Conexões](#conexões)
 - [Lógica de Controle](#lógica-de-controle-da-bomba-de-irrigação)
+- [Lógica de Simulação do pH com LDR](#lógica-de-simulação-do-ph-com-ldr)
 - [Código](#código-cc)
 - [Otimizações de Memória](#-otimizações-de-memória)
 
@@ -94,6 +95,24 @@ A lógica de controle da bomba (simulada pelo LED vermelho) é simples e direta:
 - **Se** a `umidade` for maior ou igual a 40% → **Desliga** a bomba.
 
 O status da bomba (`on` ou `off`) é enviado para o servidor juntamente com os outros dados dos sensores.
+
+---
+
+### Lógica de Simulação do pH com LDR
+
+Para simular um sensor de pH de forma eficaz no Wokwi, utilizamos um **Sensor de Luminosidade (LDR)**. O valor analógico do LDR (que no ESP32 varia de 0 a 4095) é mapeado para uma escala de pH relevante para a agricultura (5 a 9).
+
+A conversão é feita dividindo a leitura do LDR em 5 faixas, onde cada faixa corresponde a um nível de pH:
+
+| Faixa de Leitura LDR | Valor do LDR | pH Resultante | Classificação do Solo |
+|----------------------|--------------|---------------|-----------------------|
+| Faixa 1              | 0 - 819      | 5             | Muito Ácido           |
+| Faixa 2              | 820 - 1638   | 6             | Ácido                 |
+| Faixa 3              | 1639 - 2457  | 7             | Neutro                |
+| Faixa 4              | 2458 - 3276  | 8             | Básico                |
+| Faixa 5              | 3277 - 4095  | 9             | Muito Básico          |
+
+Essa abordagem permite uma simulação interativa e realista de um sensor de pH dentro do ambiente Wokwi.
 
 ---
 
