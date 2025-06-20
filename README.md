@@ -13,7 +13,7 @@
 | Juan Felipe Voltolini | RM557538 |
 | Luiz Henrique Ribeiro de Oliveira | RM558447 |
 | Marco Aurélio Eberhardt Assumpção | RM558375 |
-| Paulo Henrique Senise | RM557712 |
+| Paulo Henrique Senise | RM565781 |
 
 ### **Professores:**
 - **Tutor:** Leonardo Ruiz Orabona
