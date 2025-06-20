@@ -49,15 +49,16 @@ O sistema realiza as seguintes tarefas:
 
 ## Componentes Utilizados
 
-| Componente              | Função                                           |
-|-------------------------|--------------------------------------------------|
-| **ESP32**               | Microcontrolador principal                       |
-| **Sensor de Umidade**   | Mede a umidade do solo                           |
-| **Sensor de Temperatura**| Mede a temperatura do solo                        |
-| **Potenciômetro**       | Simula a leitura do sensor de pH                 |
-| **Botões (2)**          | Simulam a detecção de Fósforo e Potássio         |
-| **Display LCD 16x2 I2C**| Exibe os dados dos sensores localmente           |
-| **LED Vermelho**        | Simula o relé de acionamento da bomba de água    |
+| Componente               | Função                                           |
+|--------------------------|--------------------------------------------------|
+| **ESP32**                | Microcontrolador principal                       |
+| **Sensor de Umidade**    | Mede a umidade do solo                           |
+| **Sensor de Temperatura**| Mede a temperatura do solo                       |
+| **Potenciômetro**        | Simula a leitura do sensor de pH                 |
+| **Botões (2)**           | Simulam a detecção de Fósforo e Potássio         |
+| **Botão Verde**          | Desliga a bomba manualmente                      |
+| **Display LCD 16x2 I2C** | Exibe os dados dos sensores localmente           |
+| **LED Vermelho**         | Simula o relé de acionamento da bomba de água    |
 
 ---
 
