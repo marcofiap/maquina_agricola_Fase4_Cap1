@@ -9,10 +9,10 @@
 
 | Nome | RM |
 |------|-----|
-| Felipe Sabino da Silva | RM558616 |
-| Juan Felipe Voltolini | RM557538 |
-| Luiz Henrique Ribeiro de Oliveira | RM558447 |
-| Marco Aurélio Eberhardt Assumpção | RM558375 |
+| Felipe Sabino da Silva | RM563569 |
+| Juan Felipe Voltolini | RM562890  |
+| Luiz Henrique Ribeiro de Oliveira | RM563077 |
+| Marco Aurélio Eberhardt Assumpção | RM563348 |
 | Paulo Henrique Senise | RM565781 |
 
 ### **Professores:**
@@ -541,7 +541,7 @@ Assista ao vídeo de demonstração do projeto no YouTube:
 
 ## **Contribuições**
 
-Este projeto foi desenvolvido como parte do curso de **Análise e Desenvolvimento de Sistemas** da **FIAP**, demonstrando a aplicação prática de:
+Este projeto foi desenvolvido como parte do curso de **Inteligência Artificial** da **FIAP**, demonstrando a aplicação prática de:
 
 - Inteligência Artificial
 - Ciência de Dados
