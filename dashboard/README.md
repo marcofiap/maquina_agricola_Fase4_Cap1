@@ -2,8 +2,7 @@
 
 ## Visão Geral do Projeto
 
-Nesta quarta fase do projeto FarmTech Solutions, a aplicação de irrigação inteligente foi aprimorada com a incorporação de análise de dados avançada e Machine Learning. O sistema agora utiliza um dashboard interativo construído com **Streamlit**, um modelo preditivo com **Scikit-learn** para otimizar o uso da água, e uma suíte de análise estatística com **R**. Adicionalmente, a simulação no Wokwi foi melhorada com um display LCD para monitoramento local e o uso do Serial Plotter para análise de dados em tempo real.
-
+Nesta quarta fase do projeto FarmTech Solutions, a aplicação de irrigação inteligente foi aprimorada com a incorporação de análise de dados avançada e Machine Learning. O sistema agora utiliza um dashboard interativo construído com **Streamlit**, um modelo preditivo com **Scikit-learn** para otimizar o uso da água, e uma suíte de análise estatística com **R**. Além disso, a simulação no Wokwi foi aprimorada com a inclusão de um display LCD, permitindo o monitoramento local dos dados. Também foram realizadas otimizações no uso de memória do ESP32 e a utilização do Serial Plotter para análise dos dados em tempo real, proporcionando maior eficiência e melhor visualização dos resultados.
 ---
 
 ## Grupo 65 - FIAP
