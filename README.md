@@ -5,7 +5,7 @@
   <img src="imagens/logo-fiap.png" alt="FIAP Logo" width="200"/>
 </p>
 
-### 👥 **Grupo 65 - Turma: 2TDSPS**
+### 👥 **Grupo 56 - Turma: 2TDSPS**
 
 | Nome | RM |
 |------|-----|

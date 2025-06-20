@@ -51,14 +51,14 @@ install.packages(c("readr", "dplyr", "ggplot2", "lubridate", "forecast"))
 
 ---
 
-Grupo 65 – FIAP
-Integrantes:
+### Grupo 56 – FIAP
 
-Felipe Sabino da Silva
-Juan Felipe Voltolini
-Luiz Henrique Ribeiro de Oliveira
-Marco Aurélio Eberhardt Assimpção
-Paulo Henrique Senise
+- Felipe Sabino da Silva
+- Juan Felipe Voltolini
+- Luiz Henrique Ribeiro de Oliveira
+- Marco Aurélio Eberhardt Assimpção
+- Paulo Henrique Senise
+
 Professores:
 
 Tutor: Leonardo Ruiz Orabona

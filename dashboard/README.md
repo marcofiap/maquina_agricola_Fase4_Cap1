@@ -12,7 +12,7 @@ Nesta quarta fase do projeto FarmTech Solutions, a aplicação de irrigação in
 
 ---
 
-## Grupo 65 - FIAP
+## Grupo 56 - FIAP
 
 **Integrantes:**
 - Felipe Sabino da Silva
