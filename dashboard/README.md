@@ -128,11 +128,3 @@ O dashboard permite gerar relatórios estatísticos em formato CSV e PDF utiliza
 ![Gráfico do Serial Plotter](Imagens/serial-plotter.png)
 
 ---
-
-## Vídeo de Demonstração
-
-Assista ao vídeo de apresentação do projeto no YouTube:
-
-**(Insira aqui o link do seu vídeo não listado do YouTube)**
-
----

@@ -479,9 +479,8 @@ maquina_agricola_Fase4_Cap1/
 
 Assista ao vídeo de demonstração do projeto no YouTube:
 
-**[Demonstração do Sistema FarmTech Solutions - Fase 4](https://youtu.be/SEU_LINK_AQUI)**
+**[Demonstração do Sistema FarmTech Solutions - Fase 4](https://youtu.be/-e9jOFyS9NA)**
 
-*⚠Substitua "SEU_LINK_AQUI" pelo link real do seu vídeo YouTube não listado*
 
 *Vídeo de 5 minutos demonstrando:*
 - Funcionamento completo do sistema
