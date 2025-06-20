@@ -1,133 +1,134 @@
-# Entrega 3 – Dashboard Interativo com Clima em Tempo Real  
-### Projeto Fase 3 – FarmTech Solutions | FIAP
+# FarmTech Solutions - Fase 4
 
-Nesta entrega, foi desenvolvido um sistema de visualização e análise de dados agrícolas com foco em irrigação inteligente. O dashboard foi implementado com a biblioteca Dash (Python) e se conecta a um banco Oracle contendo os dados enviados pelo ESP32. Além disso, o sistema integra a API OpenWeatherMap para exibir condições climáticas em tempo real e prever chuva, auxiliando o operador na tomada de decisão.
+## Visão Geral do Projeto
+
+Nesta quarta fase do projeto FarmTech Solutions, a aplicação de irrigação inteligente foi aprimorada com a incorporação de análise de dados avançada e Machine Learning. O sistema agora utiliza um dashboard interativo construído com **Streamlit**, um modelo preditivo com **Scikit-learn** para otimizar o uso da água, e uma suíte de análise estatística com **R**. Adicionalmente, a simulação no Wokwi foi melhorada com um display LCD para monitoramento local e o uso do Serial Plotter para análise de dados em tempo real.
 
 ---
 
 ## Grupo 65 - FIAP
 
 **Integrantes:**
-- Felipe Sabino da Silva  
-- Juan Felipe Voltolini  
-- Luiz Henrique Ribeiro de Oliveira  
-- Marco Aurélio Eberhardt Assimpção  
-- Paulo Henrique Senise  
+- Felipe Sabino da Silva
+- Juan Felipe Voltolini
+- Luiz Henrique Ribeiro de Oliveira
+- Marco Aurélio Eberhardt Assimpção
+- Paulo Henrique Senise
 
-**Professores:**  
-- Tutor: Leonardo Ruiz Orabona  
+**Professores:**
+- Tutor: Leonardo Ruiz Orabona
 - Coordenador: André Godoi
 
 ---
 
-## Objetivos da Entrega
+## Funcionalidades Principais
 
-- Apresentar os dados de sensores simulados em gráficos interativos
-- Exibir o status da bomba de irrigação
-- Mostrar presença ou ausência dos nutrientes fósforo e potássio
-- Integrar dados meteorológicos com a API OpenWeatherMap
-- Emitir alertas visuais em caso de previsão de chuva
+-   **Dashboard Interativo (Streamlit):** Uma interface moderna para visualização de dados em tempo real, incluindo métricas de sensores, gráficos históricos e recomendações do modelo de IA.
+-   **Machine Learning (Scikit-learn):** Um modelo de `Random Forest` que prevê a necessidade de irrigação com base em dados históricos e meteorológicos, oferecendo um sistema de recomendação inteligente.
+-   **Análise Estatística com R:** Geração de relatórios estatísticos detalhados em formatos **PDF** e **CSV**, com gráficos e resumos quantitativos.
+-   **Simulação no Wokwi:** O ESP32 agora exibe dados críticos (umidade, status) em um **display LCD I2C**, oferecendo feedback visual direto no hardware.
+-   **Monitoramento com Serial Plotter:** Análise visual e em tempo real de variáveis como a umidade do solo, diretamente da simulação do Wokwi.
+-   **Banco de Dados PostgreSQL:** Persistência de todos os dados coletados para análise histórica e treinamento dos modelos.
 
 ---
 
 ## Tecnologias Utilizadas
 
-- Python 3.10+
-- Dash (plotly, dcc, html, callbacks)
-- Banco Oracle (via script da Entrega 2)
-- API OpenWeatherMap
-- ESP32 (simulado via Wokwi)
-- Flask (servidor para comunicação entre ESP32 e banco)
+-   **Python 3.10+**
+-   **Streamlit:** Para o dashboard interativo.
+-   **Scikit-learn:** Para o modelo preditivo de Machine Learning.
+-   **R:** Para análises estatísticas e geração de relatórios.
+-   **Pandas:** Para manipulação de dados.
+-   **Plotly:** Para a criação de gráficos.
+-   **PostgreSQL:** Como banco de dados.
+-   **Wokwi:** Para simulação do hardware (ESP32, sensores, display LCD).
+-   **Flask:** Como servidor local para receber dados do ESP32.
 
 ---
 
-## Como Executar
+## Como Executar o Projeto
 
-1. **Servidor Flask**
-```bash
-python flask_server.py
-```
+**1. Pré-requisitos:**
+-   Ter o **Python 3.10+** e o **R** instalados.
+-   Instalar as dependências do projeto:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-2. **Dashboard**
-```bash
-python dashboard.py
-```
+**2. Servidor Local:**
+-   Para receber os dados do ESP32, inicie o servidor Flask:
+    ```bash
+    python Servidor_Local/serve.py
+    ```
 
-3. **Acesso**
-- Navegue até `http://127.0.0.1:8050` para visualizar o dashboard.
-
-4. **API de Clima**
-- Crie uma conta em [OpenWeatherMap](https://openweathermap.org/api)
-- Substitua a chave no código:
-```python
-API_KEY = "SUA_CHAVE_AQUI"
-```
-
----
-
-## Dashboard com Dados em Tempo Real
-
-O dashboard desenvolvido em Dash apresenta dados atualizados dos sensores e estado da bomba:
-
-![MensagemAlertaChuvaDashboard](https://github.com/user-attachments/assets/c8139400-eb5f-4c6e-b601-fdb806f940aa)
+**3. Dashboard Streamlit:**
+-   Execute o dashboard com o seguinte comando:
+    ```bash
+    streamlit run dashboard/dashboard_streamlit.py
+    ```
+-   Acesse a aplicação em seu navegador no endereço `http://localhost:8501`.
 
 ---
 
-## Resposta Manual com Base na Previsão de Chuva
+## Como Gerar Relatórios com R
 
-Ao detectar previsão de chuva, o operador pode desligar a bomba manualmente por meio do botão físico no ESP32:
+O dashboard permite gerar relatórios estatísticos em formato CSV e PDF utilizando a integração com a linguagem R. Siga os passos abaixo:
 
-![AposMSGdeAlertaDashbBotaoESP32PressionadoDesligBombaMSGMonitorSerial](https://github.com/user-attachments/assets/6c9088ca-e051-44cd-a1bb-7ca3ce09d540)
+1.  **Acesse a Análise R**
+    - Com o dashboard em execução, clique no botão **"Análise R"**.
 
----
+2.  **Execute o Script**
+    - Na tela de análise, selecione a opção **"Executar Análise Estatística Completa"** no menu suspenso.
+    - Clique no botão **"2. Executar Script R"**.
 
-## Visão Completa do Dashboard
+3.  **Configurando o Caminho do R (se necessário)**
+    - Se o R não estiver configurado no PATH do seu sistema, o dashboard solicitará que você insira o caminho para a pasta `bin` da sua instalação do R.
+    - **Para encontrar o caminho no Windows:**
+        - Navegue até `C:\Program Files\R`.
+        - Entre na pasta correspondente à sua versão do R (ex: `R-4.4.3`).
+        - Dentro dela, entre na pasta `bin`.
+        - Copie o caminho completo da barra de endereço do Windows Explorer.
 
-Abaixo, a visão geral do dashboard, exibindo todos os recursos implementados:
+    - **Exemplo de caminho no Windows:**
+    ```
+    C:\Program Files\R\R-4.4.3\bin
+    ```
 
-![DashboardFuncioando](https://github.com/user-attachments/assets/cc48b61f-b78b-4f4d-9f4f-57e0580d2e50)
+    - Cole este caminho no campo de texto que apareceu no dashboard e clique em **"Salvar caminho e tentar novamente"**.
 
----
-
-## Lógica de Integração com a API de Clima
-
-Trecho de código usado para prever chuva nas próximas horas:
-
-```python
-import requests
-
-API_KEY = "SUA_CHAVE"
-cidade = "Porto Alegre"
-url_previsao = f"https://api.openweathermap.org/data/2.5/forecast?q={cidade},BR&appid={API_KEY}&units=metric&lang=pt_br&cnt=4"
-
-response = requests.get(url_previsao)
-data = response.json()
-
-alerta = ""
-for item in data['list']:
-    if 'rain' in item and item['rain'].get('3h', 0) > 0:
-        alerta = "⚠️ Previsão de chuva! Desligar bomba."
-        break
-```
+4.  **Baixe os Relatórios**
+    - Após a execução bem-sucedida do script, os botões **"Baixar Relatório PDF"** e **"Baixar Resumo CSV"** aparecerão na tela, permitindo que você salve os arquivos gerados.
 
 ---
 
-## Tomada de Decisão Inteligente
+## Demonstrações
 
-O sistema segue a seguinte lógica:
-- Se **umidade > 40%** → bomba é desligada
-- Se **temperatura < 18°C** → bomba é desligada
-- Se **previsão de chuva** → alerta visual no dashboard para desligamento manual
+### Dashboard Principal
+*(Insira aqui um print da tela principal do dashboard Streamlit)*
+![placeholder](https://via.placeholder.com/800x400.png?text=Print+do+Dashboard+Principal)
+
+### Análise de Machine Learning
+*(Insira aqui um print da seção de Machine Learning, mostrando a acurácia e a matriz de confusão)*
+![placeholder](https://via.placeholder.com/800x400.png?text=Print+da+Análise+de+Machine+Learning)
+
+### Análise em R
+*(Insira aqui um print da seção de Análise R, mostrando os botões de download dos relatórios)*
+![placeholder](https://via.placeholder.com/800x400.png?text=Print+da+Análise+em+R)
+
+### Simulação no Wokwi com Display LCD
+*(Insira aqui um print da simulação no Wokwi, destacando o display LCD em funcionamento)*
+![placeholder](https://via.placeholder.com/800x400.png?text=Print+do+Wokwi+com+Display+LCD)
+
+### Gráfico do Serial Plotter
+*(Insira aqui um print do Serial Plotter do Wokwi monitorando a umidade ou outra variável)*
+![placeholder](https://via.placeholder.com/800x400.png?text=Print+do+Serial+Plotter)
 
 ---
 
-## Status da Entrega
+## Vídeo de Demonstração
 
-- Dashboard interativo funcional  
-- Gráficos e indicadores visuais de sensores  
-- Consulta ao banco Oracle com atualização automática  
-- Integração com API OpenWeatherMap  
-- Lógica condicional para evitar irrigação em caso de chuva  
-- Ação manual sincronizada com eventos externos  
+Assista ao vídeo de apresentação do projeto no YouTube:
+
+**(Insira aqui o link do seu vídeo não listado do YouTube)**
 
 ---

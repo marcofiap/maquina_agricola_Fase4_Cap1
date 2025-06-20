@@ -10,7 +10,7 @@ import os
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, accuracy_score, classification_report
+from sklearn.metrics import mean_squared_error, accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import StandardScaler
 import joblib
 
@@ -24,7 +24,7 @@ from config.database_config import _config as DatabaseConfig, conectar_postgres
 # Configuração da página
 st.set_page_config(
     page_title="FarmTech Solutions Dashboard",
-    page_icon="🌱",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -39,6 +39,9 @@ if 'crud_opcao' not in st.session_state:
 if 'analytics_opcao' not in st.session_state:
     st.session_state.analytics_opcao = "Selecione uma análise..."
 
+if 'rscript_path' not in st.session_state:
+    st.session_state.rscript_path = 'Rscript'  # Comando padrão para R
+
 # URL do servidor Flask local
 FLASK_SERVER_URL = "http://127.0.0.1:8000/get_data"
 
@@ -46,7 +49,7 @@ FLASK_SERVER_URL = "http://127.0.0.1:8000/get_data"
 
 def crud_inserir_dados():
     """Interface Streamlit para inserir novos dados"""
-    st.subheader("📥 Inserir Nova Leitura")
+    st.subheader("Inserir Nova Leitura")
     
     with st.form("inserir_dados_form"):
         # Data/hora
@@ -77,7 +80,7 @@ def crud_inserir_dados():
         with col3:
             bomba = st.selectbox("Bomba", ["Desligada", "Ligada"]) == "Ligada"
         
-        submitted = st.form_submit_button("✅ Inserir Dados")
+        submitted = st.form_submit_button("Inserir Dados")
         
         if submitted:
             try:
@@ -89,19 +92,19 @@ def crud_inserir_dados():
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """, (data_hora, umidade, temperatura, ph, fosforo, potassio, bomba))
                     conn.commit()
-                    st.success("✅ Dados inseridos com sucesso!")
+                    st.success("Dados inseridos com sucesso!")
                     st.balloons()
                     cursor.close()
                     conn.close()
                     st.cache_data.clear()  # Limpa cache para mostrar novos dados
                 else:
-                    st.error("❌ Erro ao conectar com o banco de dados")
+                    st.error("Erro ao conectar com o banco de dados")
             except Exception as e:
-                st.error(f"❌ Erro ao inserir dados: {e}")
+                st.error(f"Erro ao inserir dados: {e}")
 
 def crud_listar_dados():
     """Interface Streamlit para listar dados"""
-    st.subheader("📄 Gerenciar Leituras")
+    st.subheader("Gerenciar Leituras")
     
     try:
         conn, cursor = conectar_postgres()
@@ -122,23 +125,23 @@ def crud_listar_dados():
                 ])
                 
                 # Formata as colunas boolean
-                df['Fósforo'] = df['Fósforo'].apply(lambda x: "✅ Presente" if x else "❌ Ausente")
-                df['Potássio'] = df['Potássio'].apply(lambda x: "✅ Presente" if x else "❌ Ausente")
-                df['Bomba'] = df['Bomba'].apply(lambda x: "✅ Ligada" if x else "❌ Desligada")
+                df['Fósforo'] = df['Fósforo'].apply(lambda x: "Presente" if x else "Ausente")
+                df['Potássio'] = df['Potássio'].apply(lambda x: "Presente" if x else "Ausente")
+                df['Bomba'] = df['Bomba'].apply(lambda x: "Ligada" if x else "Desligada")
                 
                 st.dataframe(df, use_container_width=True, height=400)
-                st.info(f"📊 Mostrando últimos 50 registros de {len(rows)} encontrados")
+                st.info(f"Mostrando últimos 50 registros de {len(rows)} encontrados")
             else:
-                st.warning("⚠️ Nenhum dado encontrado")
+                st.warning("Nenhum dado encontrado")
             
             cursor.close()
             conn.close()
     except Exception as e:
-        st.error(f"❌ Erro ao listar dados: {e}")
+        st.error(f"Erro ao listar dados: {e}")
 
 def crud_atualizar_dados():
     """Interface Streamlit para atualizar dados"""
-    st.subheader("✏️ Atualizar Leitura")
+    st.subheader("Atualizar Leitura")
     
     # Busca registros para seleção
     try:
@@ -175,7 +178,7 @@ def crud_atualizar_dados():
                     
                     if dados_atuais:
                         with st.form("atualizar_dados_form"):
-                            st.info(f"📋 Atualizando registro ID: {id_registro}")
+                            st.info(f"Atualizando registro ID: {id_registro}")
                             
                             # Campos com valores atuais
                             col1, col2, col3 = st.columns(3)
@@ -206,7 +209,7 @@ def crud_atualizar_dados():
                                                         ["Desligada", "Ligada"], 
                                                         index=1 if dados_atuais[5] else 0) == "Ligada"
                             
-                            submitted = st.form_submit_button("✅ Atualizar Registro")
+                            submitted = st.form_submit_button("Atualizar Registro")
                             
                             if submitted:
                                 try:
@@ -218,23 +221,23 @@ def crud_atualizar_dados():
                                     
                                     if cursor.rowcount > 0:
                                         conn.commit()
-                                        st.success("✅ Registro atualizado com sucesso!")
+                                        st.success("Registro atualizado com sucesso!")
                                         st.cache_data.clear()
                                     else:
-                                        st.warning("⚠️ Nenhum registro foi atualizado")
+                                        st.warning("Nenhum registro foi atualizado")
                                 except Exception as e:
-                                    st.error(f"❌ Erro ao atualizar: {e}")
+                                    st.error(f"Erro ao atualizar: {e}")
             else:
-                st.warning("⚠️ Nenhum registro encontrado")
+                st.warning("Nenhum registro encontrado")
             
             cursor.close()
             conn.close()
     except Exception as e:
-        st.error(f"❌ Erro ao buscar registros: {e}")
+        st.error(f"Erro ao buscar registros: {e}")
 
 def crud_remover_dados():
     """Interface Streamlit para remover dados"""
-    st.subheader("🗑️ Remover Leitura")
+    st.subheader("Remover Leitura")
     
     try:
         conn, cursor = conectar_postgres()
@@ -269,7 +272,7 @@ def crud_remover_dados():
                     registro = cursor.fetchone()
                     
                     if registro:
-                        st.warning("⚠️ Registro a ser removido:")
+                        st.warning("Registro a ser removido:")
                         col1, col2 = st.columns(2)
                         
                         with col1:
@@ -280,37 +283,37 @@ def crud_remover_dados():
                         
                         with col2:
                             st.info(f"**pH:** {registro[4]}")
-                            st.info(f"**Fósforo:** {'✅ Presente' if registro[5] else '❌ Ausente'}")
-                            st.info(f"**Potássio:** {'✅ Presente' if registro[6] else '❌ Ausente'}")
-                            st.info(f"**Bomba:** {'✅ Ligada' if registro[7] else '❌ Desligada'}")
+                            st.info(f"**Fósforo:** {'Presente' if registro[5] else 'Ausente'}")
+                            st.info(f"**Potássio:** {'Presente' if registro[6] else 'Ausente'}")
+                            st.info(f"**Bomba:** {'Ligada' if registro[7] else 'Desligada'}")
                         
                         # Confirmação
-                        confirmar = st.checkbox("⚠️ Confirmo que desejo remover este registro")
+                        confirmar = st.checkbox("Confirmo que desejo remover este registro")
                         
-                        if confirmar and st.button("🗑️ REMOVER REGISTRO", type="primary"):
+                        if confirmar and st.button("REMOVER REGISTRO", type="primary"):
                             try:
                                 cursor.execute(f"DELETE FROM {DatabaseConfig.SCHEMA}.leituras_sensores WHERE id = %s", (id_registro,))
                                 if cursor.rowcount > 0:
                                     conn.commit()
-                                    st.success("✅ Registro removido com sucesso!")
+                                    st.success("Registro removido com sucesso!")
                                     st.cache_data.clear()
                                     time.sleep(1)
                                     st.rerun()
                                 else:
-                                    st.warning("⚠️ Nenhum registro foi removido")
+                                    st.warning("Nenhum registro foi removido")
                             except Exception as e:
-                                st.error(f"❌ Erro ao remover: {e}")
+                                st.error(f"Erro ao remover: {e}")
             else:
-                st.warning("⚠️ Nenhum registro encontrado")
+                st.warning("Nenhum registro encontrado")
             
             cursor.close()
             conn.close()
     except Exception as e:
-        st.error(f"❌ Erro ao buscar registros: {e}")
+        st.error(f"Erro ao buscar registros: {e}")
 
 def crud_estatisticas():
     """Interface Streamlit para mostrar estatísticas"""
-    st.subheader("📊 Estatísticas dos Dados")
+    st.subheader("Estatísticas dos Dados")
     
     try:
         conn, cursor = conectar_postgres()
@@ -336,49 +339,49 @@ def crud_estatisticas():
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
-                    st.metric("📊 Total de Registros", f"{stats[0]:,}")
+                    st.metric("Total de Registros", f"{stats[0]:,}")
                 
                 with col2:
-                    st.metric("💧 Umidade Média", f"{stats[1]:.1f}%")
+                    st.metric("Umidade Média", f"{stats[1]:.1f}%")
                 
                 with col3:
-                    st.metric("🌡️ Temperatura Média", f"{stats[4]:.1f}°C")
+                    st.metric("Temperatura Média", f"{stats[4]:.1f}°C")
                 
                 with col4:
-                    st.metric("⚗️ pH Médio", f"{stats[7]:.1f}")
+                    st.metric("pH Médio", f"{stats[7]:.1f}")
                 
                 # Estatísticas detalhadas
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
-                    st.info("💧 **UMIDADE**")
+                    st.info("**UMIDADE**")
                     st.write(f"Média: {stats[1]:.1f}%")
                     st.write(f"Mínima: {stats[2]:.1f}%")
                     st.write(f"Máxima: {stats[3]:.1f}%")
                 
                 with col2:
-                    st.info("🌡️ **TEMPERATURA**")
+                    st.info("**TEMPERATURA**")
                     st.write(f"Média: {stats[4]:.1f}°C")
                     st.write(f"Mínima: {stats[5]:.1f}°C")
                     st.write(f"Máxima: {stats[6]:.1f}°C")
                 
                 with col3:
-                    st.info("⚗️ **pH**")
+                    st.info("**pH**")
                     st.write(f"Médio: {stats[7]:.1f}")
                     st.write(f"Mínimo: {stats[8]:.1f}")
                     st.write(f"Máximo: {stats[9]:.1f}")
                 
             else:
-                st.warning("⚠️ Nenhum dado disponível para estatísticas")
+                st.warning("Nenhum dado disponível para estatísticas")
             
             cursor.close()
             conn.close()
     except Exception as e:
-        st.error(f"❌ Erro ao calcular estatísticas: {e}")
+        st.error(f"Erro ao calcular estatísticas: {e}")
 
 def crud_consulta_umidade():
     """Interface Streamlit para consulta por umidade"""
-    st.subheader("🔎 Consulta por Umidade")
+    st.subheader("Consulta por Umidade")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -386,7 +389,7 @@ def crud_consulta_umidade():
     with col2:
         condicao = st.selectbox("Condição", ["acima", "abaixo"])
     
-    if st.button("🔍 Buscar"):
+    if st.button("Buscar"):
         try:
             conn, cursor = conectar_postgres()
             if conn:
@@ -408,7 +411,7 @@ def crud_consulta_umidade():
                 rows = cursor.fetchall()
                 
                 if rows:
-                    st.success(f"🔍 Encontrados {len(rows)} registros com umidade {condicao} de {limite}%")
+                    st.success(f"Encontrados {len(rows)} registros com umidade {condicao} de {limite}%")
                     
                     # Converte para DataFrame
                     df = pd.DataFrame(rows, columns=[
@@ -416,18 +419,18 @@ def crud_consulta_umidade():
                     ])
                     
                     # Formata as colunas boolean
-                    df['Fósforo'] = df['Fósforo'].apply(lambda x: "✅" if x else "❌")
-                    df['Potássio'] = df['Potássio'].apply(lambda x: "✅" if x else "❌")
-                    df['Bomba'] = df['Bomba'].apply(lambda x: "✅" if x else "❌")
+                    df['Fósforo'] = df['Fósforo'].apply(lambda x: "Presente" if x else "Ausente")
+                    df['Potássio'] = df['Potássio'].apply(lambda x: "Presente" if x else "Ausente")
+                    df['Bomba'] = df['Bomba'].apply(lambda x: "Ligada" if x else "Desligada")
                     
                     st.dataframe(df, use_container_width=True)
                 else:
-                    st.warning("⚠️ Nenhum registro encontrado com esse critério")
+                    st.warning("Nenhum registro encontrado com esse critério")
                 
                 cursor.close()
                 conn.close()
         except Exception as e:
-            st.error(f"❌ Erro na consulta: {e}")
+            st.error(f"Erro na consulta: {e}")
 
 # === FUNÇÕES PARA ANÁLISE ESTATÍSTICA COM R ===
 
@@ -454,59 +457,119 @@ def exportar_dados_para_r():
                 output_path = os.path.join(parent_dir, 'analise_estatistica', 'leituras_sensores.csv')
                 df.to_csv(output_path, index=False)
                 
-                st.success(f"✅ Dados exportados com sucesso! {len(rows)} registros salvos em:")
+                st.success(f"Dados exportados com sucesso! {len(rows)} registros salvos em:")
                 st.code(output_path)
                 return True
             else:
-                st.warning("⚠️ Nenhum dado encontrado para exportar")
+                st.warning("Nenhum dado encontrado para exportar")
                 return False
             
             cursor.close()
             conn.close()
     except Exception as e:
-        st.error(f"❌ Erro ao exportar dados: {e}")
+        st.error(f"Erro ao exportar dados: {e}")
         return False
 
 def executar_script_r():
-    """Executa o script R de análise estatística"""
+    """Executa o script R de análise estatística, pedindo o caminho se não for encontrado."""
     try:
         # Caminho para o script R
         script_path = os.path.join(parent_dir, 'analise_estatistica', 'AnaliseEstatisticaBD.R')
         analise_dir = os.path.join(parent_dir, 'analise_estatistica')
         
         if not os.path.exists(script_path):
-            st.error(f"❌ Script R não encontrado: {script_path}")
+            st.error(f"Script R não encontrado: {script_path}")
             return False
             
-        # Executa o script R
-        import subprocess
+        # Usa o caminho do R salvo na sessão
+        r_executable = st.session_state.get('rscript_path', 'Rscript')
         
-        with st.spinner("🔄 Executando análise estatística com R..."):
-            result = subprocess.run(['Rscript', script_path], 
+        import subprocess
+        with st.spinner(f"Executando análise com '{r_executable}'..."):
+            result = subprocess.run([r_executable, script_path], 
                                   cwd=analise_dir,
                                   capture_output=True, 
                                   text=True,
                                   timeout=60)
         
         if result.returncode == 0:
-            st.success("✅ Análise R executada com sucesso!")
+            st.success("Análise R executada com sucesso!")
             if result.stdout:
-                st.text("📋 Output do R:")
+                st.text("Output do R:")
                 st.code(result.stdout)
+            
+            # Adiciona botão para download do PDF
+            pdf_path = os.path.join(analise_dir, 'Rplots.pdf')
+            if os.path.exists(pdf_path):
+                with open(pdf_path, "rb") as pdf_file:
+                    pdf_bytes = pdf_file.read()
+                
+                st.download_button(
+                    label="Baixar Relatório PDF",
+                    data=pdf_bytes,
+                    file_name="relatorio_analise_R.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+            else:
+                st.info("PDF não disponível (execute o script R primeiro)")
+        
+            # Adiciona botão para download do CSV
+            resumo_path = os.path.join(analise_dir, 'resumo_estatistico.csv')
+            if os.path.exists(resumo_path):
+                df_resumo = pd.read_csv(resumo_path)
+                csv_data = df_resumo.to_csv(index=False)
+                st.download_button(
+                    label="Baixar Resumo CSV",
+                    data=csv_data,
+                    file_name="resumo_estatistico.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+            else:
+                st.warning("O arquivo resumo_estatistico.csv não foi encontrado.")
+
             return True
         else:
-            st.error("❌ Erro na execução do script R:")
+            st.error("Erro na execução do script R:")
             st.code(result.stderr)
             return False
             
     except subprocess.TimeoutExpired:
-        st.error("❌ Timeout: Script R demorou mais de 60 segundos")
+        st.error("Timeout: Script R demorou mais de 60 segundos")
         return False
     except FileNotFoundError:
-        st.error("❌ R não encontrado no sistema. Certifique-se de que o R está instalado e no PATH")
+        st.error("R não encontrado no sistema.")
+        
+        st.warning("Forneça o caminho para a pasta 'bin' da sua instalação do R.")
+        
+        r_bin_path = st.text_input(
+            "Caminho para a pasta 'bin' do R", 
+            value=st.session_state.get('r_bin_path_input', r"C:\Program Files\R\R-4.4.3\bin"),
+            key="r_bin_path_input",
+            help="Exemplo: C:\\Program Files\\R\\R-4.4.3\\bin"
+        )
+
+        if st.button("Salvar caminho e tentar novamente"):
+            # Constrói o caminho completo para Rscript.exe
+            potential_rscript_path = os.path.join(r_bin_path, 'Rscript.exe')
+            
+            # Validação do caminho
+            if os.path.isdir(r_bin_path) and os.path.exists(potential_rscript_path):
+                st.session_state.rscript_path = potential_rscript_path
+                st.success(f"Caminho do Rscript salvo: {potential_rscript_path}")
+                
+                # Executa o script R imediatamente após configurar o caminho
+                st.info("Executando análise R com o novo caminho...")
+                time.sleep(1)
+                
+                # Chama a função novamente para executar o script
+                return executar_script_r()
+            else:
+                st.error("Caminho inválido. Verifique se a pasta 'bin' existe e contém 'Rscript.exe'.")
         return False
     except Exception as e:
-        st.error(f"❌ Erro ao executar script R: {e}")
+        st.error(f"Erro ao executar script R: {e}")
         return False
 
 def mostrar_resumo_estatistico():
@@ -516,24 +579,24 @@ def mostrar_resumo_estatistico():
         
         if os.path.exists(resumo_path):
             df_resumo = pd.read_csv(resumo_path)
-            st.subheader("📊 Resumo Estatístico (Gerado pelo R)")
+            st.subheader("Resumo Estatístico (Gerado pelo R)")
             st.dataframe(df_resumo, use_container_width=True)
             
             # Botão para download
             csv_data = df_resumo.to_csv(index=False)
             st.download_button(
-                label="📥 Download Resumo Estatístico",
+                label="Download Resumo Estatístico",
                 data=csv_data,
                 file_name="resumo_estatistico.csv",
                 mime="text/csv"
             )
             return True
         else:
-            st.warning("⚠️ Arquivo de resumo estatístico não encontrado. Execute a análise primeiro.")
+            st.warning("Arquivo de resumo estatístico não encontrado. Execute a análise primeiro.")
             return False
             
     except Exception as e:
-        st.error(f"❌ Erro ao ler resumo estatístico: {e}")
+        st.error(f"Erro ao ler resumo estatístico: {e}")
         return False
 
 def verificar_ambiente_r():
@@ -543,16 +606,16 @@ def verificar_ambiente_r():
         result = subprocess.run(['R', '--version'], capture_output=True, text=True, timeout=10)
         
         if result.returncode == 0:
-            st.success("✅ R está instalado e funcionando")
-            st.text("📋 Versão do R:")
+            st.success("R está instalado e funcionando")
+            st.text("Versão do R:")
             st.code(result.stdout.split('\n')[0])
             return True
         else:
-            st.error("❌ Problema com a instalação do R")
+            st.error("Problema com a instalação do R")
             return False
             
     except FileNotFoundError:
-        st.error("❌ R não encontrado. Instale o R para usar as análises estatísticas.")
+        st.error("R não encontrado. Instale o R para usar as análises estatísticas.")
         st.markdown("""
         **Como instalar o R:**
         - **macOS**: `brew install r` ou baixe de https://cran.r-project.org/
@@ -561,16 +624,16 @@ def verificar_ambiente_r():
         """)
         return False
     except Exception as e:
-        st.error(f"❌ Erro ao verificar R: {e}")
+        st.error(f"Erro ao verificar R: {e}")
         return False
 
 def pagina_analytics_r():
     """Página dedicada à análise estatística com R"""
-    st.title("🤖 Análise Estatística com R")
+    st.title("Análise Estatística com R")
     st.markdown("**Análise preditiva e estatística usando linguagem R**")
     
     # Botão para voltar ao dashboard
-    if st.button("🏠 Voltar ao Dashboard", type="primary"):
+    if st.button("Voltar ao Dashboard", type="primary"):
         st.session_state.current_page = "dashboard"
         st.session_state.analytics_opcao = "Selecione uma análise..."
         st.rerun()
@@ -580,24 +643,24 @@ def pagina_analytics_r():
     # Informações do sistema
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.info(f"🏗️ **Schema:** {DatabaseConfig.SCHEMA}")
+        st.info(f"**Schema:** {DatabaseConfig.SCHEMA}")
     with col2:
-        st.info(f"📊 **Linguagem:** R + Python")
+        st.info(f"**Linguagem:** R + Python")
     with col3:
-        st.info(f"📁 **Pasta:** analise_estatistica/")
+        st.info(f"**Pasta:** analise_estatistica/")
     
     st.markdown("---")
     
     # Verificação do ambiente R
-    st.subheader("🔍 Verificação do Ambiente")
+    st.subheader("Verificação do Ambiente")
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("🔍 Verificar Instalação do R", use_container_width=True):
+        if st.button("Verificar Instalação do R", use_container_width=True):
             verificar_ambiente_r()
     
     with col2:
-        if st.button("📤 Exportar Dados para R", use_container_width=True):
+        if st.button("Exportar Dados para R", use_container_width=True):
             exportar_dados_para_r()
     
     st.markdown("---")
@@ -607,10 +670,10 @@ def pagina_analytics_r():
         "**Selecione a análise desejada:**",
         [
             "Selecione uma análise...",
-            "📊 Executar Análise Estatística Completa",
-            "📈 Ver Resumo Estatístico",
-            "📋 Status dos Arquivos R",
-            "🔧 Configurar Ambiente R"
+            "Executar Análise Estatística Completa",
+            "Ver Resumo Estatístico",
+            "Status dos Arquivos R",
+            "Configurar Ambiente R"
         ],
         key="analytics_page_selectbox"
     )
@@ -618,27 +681,74 @@ def pagina_analytics_r():
     st.markdown("---")
     
     # Executa a operação selecionada
-    if analytics_opcao == "📊 Executar Análise Estatística Completa":
-        st.subheader("📊 Análise Estatística Completa")
+    if analytics_opcao == "Executar Análise Estatística Completa":
+        st.subheader("Análise Estatística Completa")
         
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("1️⃣ Exportar Dados", use_container_width=True):
+            if st.button("1. Exportar Dados", use_container_width=True):
                 exportar_dados_para_r()
         
         with col2:
-            if st.button("2️⃣ Executar Script R", use_container_width=True):
+            if st.button("2. Executar Script R", use_container_width=True):
                 if executar_script_r():
                     st.balloons()
         
         st.markdown("---")
-        st.info("💡 **Processo completo:** 1) Exporte os dados → 2) Execute o script R → 3) Veja os resultados")
+        st.info("**Processo completo:** 1) Exporte os dados → 2) Execute o script R → 3) Veja os resultados")
         
-    elif analytics_opcao == "📈 Ver Resumo Estatístico":
+        # Seção de downloads após execução
+        st.markdown("---")
+        st.subheader("Downloads Disponíveis")
+        
+        analise_dir = os.path.join(parent_dir, 'analise_estatistica')
+        
+        # Verifica e mostra botões de download
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Download do PDF
+            pdf_path = os.path.join(analise_dir, 'Rplots.pdf')
+            if os.path.exists(pdf_path):
+                with open(pdf_path, "rb") as pdf_file:
+                    pdf_bytes = pdf_file.read()
+                
+                st.download_button(
+                    label="Baixar Relatório PDF",
+                    data=pdf_bytes,
+                    file_name="relatorio_analise_R.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+            else:
+                st.info("PDF não disponível (execute o script R primeiro)")
+        
+        with col2:
+            # Download do CSV
+            resumo_path = os.path.join(analise_dir, 'resumo_estatistico.csv')
+            if os.path.exists(resumo_path):
+                df_resumo = pd.read_csv(resumo_path)
+                csv_data = df_resumo.to_csv(index=False)
+                st.download_button(
+                    label="Baixar Resumo CSV",
+                    data=csv_data,
+                    file_name="resumo_estatistico.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+            else:
+                st.info("CSV não disponível (execute o script R primeiro)")
+        
+        # Mostra preview do resumo se disponível
+        if os.path.exists(resumo_path):
+            st.markdown("---")
+            st.subheader("Preview do Resumo Estatístico")
+            st.dataframe(df_resumo, use_container_width=True)
+    elif analytics_opcao == "Ver Resumo Estatístico":
         mostrar_resumo_estatistico()
         
-    elif analytics_opcao == "📋 Status dos Arquivos R":
-        st.subheader("📋 Status dos Arquivos R")
+    elif analytics_opcao == "Status dos Arquivos R":
+        st.subheader("Status dos Arquivos R")
         
         # Verifica arquivos na pasta analise_estatistica
         analise_dir = os.path.join(parent_dir, 'analise_estatistica')
@@ -653,12 +763,12 @@ def pagina_analytics_r():
         for arquivo, descricao in arquivos_r.items():
             arquivo_path = os.path.join(analise_dir, arquivo)
             if os.path.exists(arquivo_path):
-                st.success(f"✅ **{arquivo}** - {descricao}")
+                st.success(f"**{arquivo}** - {descricao}")
             else:
-                st.error(f"❌ **{arquivo}** - {descricao} (não encontrado)")
+                st.error(f"**{arquivo}** - {descricao} (não encontrado)")
         
-    elif analytics_opcao == "🔧 Configurar Ambiente R":
-        st.subheader("🔧 Configuração do Ambiente R")
+    elif analytics_opcao == "Configurar Ambiente R":
+        st.subheader("Configuração do Ambiente R")
         
         st.markdown("""
         **Pacotes R necessários:**
@@ -669,7 +779,7 @@ def pagina_analytics_r():
         **Para instalar os pacotes automaticamente:**
         """)
         
-        if st.button("📦 Instalar Pacotes R", use_container_width=True):
+        if st.button("Instalar Pacotes R", use_container_width=True):
             try:
                 import subprocess
                 
@@ -681,12 +791,12 @@ def pagina_analytics_r():
                     cat("Instalando pacote:", package, "\\n")
                     install.packages(package, repos = "https://cran.rstudio.com/")
                     if (require(package, character.only = TRUE, quietly = TRUE)) {
-                      cat("✅", package, "instalado com sucesso\\n")
+                      cat("", package, "instalado com sucesso\\n")
                     } else {
-                      cat("❌ Erro ao instalar", package, "\\n")
+                      cat("Erro ao instalar", package, "\\n")
                     }
                   } else {
-                    cat("✅", package, "já está instalado\\n")
+                    cat("", package, "já está instalado\\n")
                   }
                 }
 
@@ -701,54 +811,58 @@ def pagina_analytics_r():
                 cat("=== INSTALAÇÃO CONCLUÍDA ===\\n")
                 '''
                 
-                install_cmd = ['Rscript', '-e', install_script]
+                # Usa o caminho do R salvo na sessão para instalar pacotes
+                r_executable = st.session_state.get('rscript_path', 'Rscript')
+                install_cmd = [r_executable, '-e', install_script]
                 
-                with st.spinner("📦 Instalando pacotes R... (pode demorar alguns minutos)"):
+                with st.spinner(f"Instalando pacotes com '{r_executable}'... (pode demorar)"):
                     result = subprocess.run(install_cmd, capture_output=True, text=True, timeout=300)
                 
                 if result.returncode == 0:
-                    st.success("✅ Pacotes R instalados com sucesso!")
-                    st.text("📋 Log da instalação:")
+                    st.success("Pacotes R instalados com sucesso!")
+                    st.text("Log da instalação:")
                     st.code(result.stdout)
                 else:
-                    st.error("❌ Erro na instalação dos pacotes:")
+                    st.error("Erro na instalação dos pacotes:")
                     st.code(result.stderr)
-                    st.info("💡 Tente executar manualmente no R: install.packages(c('readr', 'dplyr', 'ggplot2', 'lubridate', 'forecast'))")
+                    st.info("Tente executar manualmente no R: install.packages(c('readr', 'dplyr', 'ggplot2', 'lubridate', 'forecast'))")
+            except FileNotFoundError:
+                 st.error(f"R ('{st.session_state.get('rscript_path', 'Rscript')}') não encontrado. Vá para 'Executar Análise Estatística Completa' e clique em 'Executar Script R' para configurar o caminho.")
             except subprocess.TimeoutExpired:
-                st.error("❌ Timeout: Instalação demorou mais de 5 minutos")
+                st.error("Timeout: Instalação demorou mais de 5 minutos")
             except Exception as e:
-                st.error(f"❌ Erro: {e}")
+                st.error(f"Erro: {e}")
         
     else:
-        st.info("👆 Selecione uma análise no menu acima para começar")
+        st.info("Selecione uma análise no menu acima para começar")
         
         # Preview da estrutura do projeto R
-        st.subheader("📁 Estrutura do Projeto R")
+        st.subheader("Estrutura do Projeto R")
         st.markdown("""
         ```
         analise_estatistica/
-        ├── 📄 AnaliseEstatisticaBD.R       # Script principal
-        ├── 📊 leituras_sensores.csv        # Dados para análise  
-        ├── 📈 resumo_estatistico.csv       # Resultados gerados
-        ├── 📦 requirements.txt             # Dependências R
-        └── 📋 README.md                    # Documentação
+        ├── AnaliseEstatisticaBD.R       # Script principal
+        ├── leituras_sensores.csv        # Dados para análise  
+        ├── resumo_estatistico.csv       # Resultados gerados
+        ├── requirements.txt             # Dependências R
+        └── README.md                    # Documentação
         ```
         
         **Funcionalidades disponíveis:**
-        - ✅ Estatísticas descritivas
-        - ✅ Correlações entre variáveis
-        - ✅ Visualizações com ggplot2
-        - ✅ Previsões ARIMA para umidade
-        - ✅ Análise de séries temporais
+        - Estatísticas descritivas
+        - Correlações entre variáveis
+        - Visualizações com ggplot2
+        - Previsões ARIMA para umidade
+        - Análise de séries temporais
         """)
 
 def pagina_crud():
     """Página dedicada ao CRUD"""
-    st.title("🗃️ Gerenciamento de Registros")
+    st.title("Gerenciamento de Registros")
     st.markdown("**Operações do Banco de Dados PostgreSQL**")
     
     # Botão para voltar ao dashboard
-    if st.button("🏠 Voltar ao Dashboard", type="primary"):
+    if st.button("Voltar ao Dashboard", type="primary"):
         st.session_state.current_page = "dashboard"
         st.session_state.crud_opcao = "Selecione uma operação..."
         st.rerun()
@@ -758,11 +872,11 @@ def pagina_crud():
     # Informações do banco
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.info(f"🏗️ **Schema:** {DatabaseConfig.SCHEMA}")
+        st.info(f"**Schema:** {DatabaseConfig.SCHEMA}")
     with col2:
-        st.info(f"🖥️ **Host:** {DatabaseConfig.HOST}")
+        st.info(f"**Host:** {DatabaseConfig.HOST}")
     with col3:
-        st.info(f"💾 **Database:** {DatabaseConfig.DATABASE}")
+        st.info(f"**Database:** {DatabaseConfig.DATABASE}")
     
     st.markdown("---")
     
@@ -771,12 +885,12 @@ def pagina_crud():
         "**Selecione a operação desejada:**",
         [
             "Selecione uma operação...",
-            "📥 Inserir Nova Leitura",
-            "📄 Gerenciar Leituras",
-            "✏️ Atualizar Leitura",
-            "🗑️ Remover Leitura",
-            "📊 Estatísticas dos Dados",
-            "🔎 Consulta por Umidade"
+            "Inserir Nova Leitura",
+            "Gerenciar Leituras",
+            "Atualizar Leitura",
+            "Remover Leitura",
+            "Estatísticas dos Dados",
+            "Consulta por Umidade"
         ],
         key="crud_page_selectbox"
     )
@@ -784,23 +898,23 @@ def pagina_crud():
     st.markdown("---")
     
     # Executa a operação selecionada
-    if crud_opcao == "📥 Inserir Nova Leitura":
+    if crud_opcao == "Inserir Nova Leitura":
         crud_inserir_dados()
-    elif crud_opcao == "📄 Gerenciar Leituras":
+    elif crud_opcao == "Gerenciar Leituras":
         crud_listar_dados()
-    elif crud_opcao == "✏️ Atualizar Leitura":
+    elif crud_opcao == "Atualizar Leitura":
         crud_atualizar_dados()
-    elif crud_opcao == "🗑️ Remover Leitura":
+    elif crud_opcao == "Remover Leitura":
         crud_remover_dados()
-    elif crud_opcao == "📊 Estatísticas dos Dados":
+    elif crud_opcao == "Estatísticas dos Dados":
         crud_estatisticas()
-    elif crud_opcao == "🔎 Consulta por Umidade":
+    elif crud_opcao == "Consulta por Umidade":
         crud_consulta_umidade()
     else:
-        st.info("👆 Selecione uma operação no menu acima para começar")
+        st.info("Selecione uma operação no menu acima para começar")
         
         # Mostra preview das últimas leituras
-        st.subheader("📊 Últimas Leituras (Preview)")
+        st.subheader("Últimas Leituras (Preview)")
         try:
             conn, cursor = conectar_postgres()
             if conn:
@@ -818,19 +932,19 @@ def pagina_crud():
                     ])
                     
                     # Formata as colunas boolean
-                    df['Fósforo'] = df['Fósforo'].apply(lambda x: "✅" if x else "❌")
-                    df['Potássio'] = df['Potássio'].apply(lambda x: "✅" if x else "❌")
-                    df['Bomba'] = df['Bomba'].apply(lambda x: "✅" if x else "❌")
+                    df['Fósforo'] = df['Fósforo'].apply(lambda x: "Presente" if x else "Ausente")
+                    df['Potássio'] = df['Potássio'].apply(lambda x: "Presente" if x else "Ausente")
+                    df['Bomba'] = df['Bomba'].apply(lambda x: "Ligada" if x else "Desligada")
                     
                     st.dataframe(df, use_container_width=True)
                     st.caption("Mostrando apenas os 5 registros mais recentes")
                 else:
-                    st.warning("⚠️ Nenhum registro encontrado")
+                    st.warning("Nenhum registro encontrado")
                 
                 cursor.close()
                 conn.close()
         except Exception as e:
-            st.error(f"❌ Erro ao buscar dados: {e}")
+            st.error(f"Erro ao buscar dados: {e}")
 
 # === FUNÇÕES PARA MACHINE LEARNING COM SCIKIT-LEARN ===
 
@@ -878,7 +992,7 @@ def preparar_dados_ml():
                     
                     cursor.close()
                     conn.close()
-                    st.success(f"✅ Usando dados INTEGRADOS com meteorologia: {len(df)} registros")
+                    st.success(f"Usando dados INTEGRADOS com meteorologia: {len(df)} registros")
                     return df
             
             # Fallback: usa dados básicos dos sensores
@@ -907,15 +1021,15 @@ def preparar_dados_ml():
                 
                 cursor.close()
                 conn.close()
-                st.info(f"ℹ️ Usando dados BÁSICOS (sem meteorologia): {len(df)} registros")
+                st.info(f"Usando dados BÁSICOS (sem meteorologia): {len(df)} registros")
                 return df
             else:
-                st.warning("⚠️ Dados insuficientes para Machine Learning (mínimo 10 registros)")
+                st.warning("Dados insuficientes para Machine Learning (mínimo 10 registros)")
                 cursor.close()
                 conn.close()
                 return None
     except Exception as e:
-        st.error(f"❌ Erro ao preparar dados para ML: {e}")
+        st.error(f"Erro ao preparar dados para ML: {e}")
         return None
 
 def treinar_modelo_irrigacao(df):
@@ -945,9 +1059,9 @@ def treinar_modelo_irrigacao(df):
         
         # Log das features utilizadas
         if any(feat in df.columns for feat in features_meteorologicas):
-            st.info(f"🌤️ Usando {len(features_disponiveis)} features (incluindo meteorologia)")
+            st.info(f"Usando {len(features_disponiveis)} features (incluindo meteorologia)")
         else:
-            st.info(f"📊 Usando {len(features_disponiveis)} features básicas")
+            st.info(f"Usando {len(features_disponiveis)} features básicas")
         
         # Target (variável dependente) - bomba de irrigação
         y = df['bomba_dagua']
@@ -972,7 +1086,7 @@ def treinar_modelo_irrigacao(df):
         return modelo, accuracy, feature_importance, X_test, y_test, y_pred
         
     except Exception as e:
-        st.error(f"❌ Erro ao treinar modelo: {e}")
+        st.error(f"Erro ao treinar modelo: {e}")
         return None, None, None, None, None, None
 
 def treinar_modelo_umidade(df):
@@ -1027,7 +1141,7 @@ def treinar_modelo_umidade(df):
         return modelo, scaler, rmse, feature_importance, X_test, y_test, y_pred
         
     except Exception as e:
-        st.error(f"❌ Erro ao treinar modelo de umidade: {e}")
+        st.error(f"Erro ao treinar modelo de umidade: {e}")
         return None, None, None, None, None, None, None
 
 def prever_irrigacao_inteligente(modelo_irrigacao, modelo_umidade, scaler, hora_atual=None):
@@ -1065,10 +1179,10 @@ def prever_irrigacao_inteligente(modelo_irrigacao, modelo_umidade, scaler, hora_
             
             # Recomendação inteligente
             if prob_irrigacao > 0.5 or umidade_sem_irrigacao < 30:
-                recomendacao = "🟢 IRRIGAR"
+                recomendacao = "IRRIGAR"
                 motivo = f"Prob: {prob_irrigacao:.2f} | Umidade esperada sem irrigação: {umidade_sem_irrigacao:.1f}%"
             else:
-                recomendacao = "🔴 NÃO IRRIGAR"
+                recomendacao = "NÃO IRRIGAR"
                 motivo = f"Prob: {prob_irrigacao:.2f} | Umidade atual suficiente: {umidade_sem_irrigacao:.1f}%"
             
             resultados.append({
@@ -1086,16 +1200,16 @@ def prever_irrigacao_inteligente(modelo_irrigacao, modelo_umidade, scaler, hora_
         return resultados
         
     except Exception as e:
-        st.error(f"❌ Erro nas previsões: {e}")
+        st.error(f"Erro nas previsões: {e}")
         return []
 
 def pagina_ml_scikit():
     """Página dedicada ao Machine Learning com Scikit-learn"""
-    st.title("🤖 Machine Learning com Scikit-learn")
+    st.title("Machine Learning com Scikit-learn")
     st.markdown("**Modelo preditivo inteligente para irrigação automatizada**")
     
     # Botão para voltar ao dashboard
-    if st.button("🏠 Voltar ao Dashboard", type="primary"):
+    if st.button("Voltar ao Dashboard", type="primary"):
         st.session_state.current_page = "dashboard"
         st.rerun()
     
@@ -1104,34 +1218,34 @@ def pagina_ml_scikit():
     # Informações do sistema
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.info(f"🧠 **Algoritmo:** Random Forest")
+        st.info(f"**Algoritmo:** Random Forest")
     with col2:
-        st.info(f"📊 **Biblioteca:** Scikit-learn")
+        st.info(f"**Biblioteca:** Scikit-learn")
     with col3:
-        st.info(f"🎯 **Objetivo:** Irrigação Inteligente")
+        st.info(f"**Objetivo:** Irrigação Inteligente")
     
     st.markdown("---")
     
     # Preparar dados
-    with st.spinner("📊 Carregando dados para Machine Learning..."):
+    with st.spinner("Carregando dados para Machine Learning..."):
         df = preparar_dados_ml()
     
     if df is not None and len(df) > 10:
-        st.success(f"✅ Dados carregados: {len(df)} registros para análise ML")
+        st.success(f"Dados carregados: {len(df)} registros para análise ML")
         
         # Estatísticas dos dados
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("📊 Total Registros", len(df))
+            st.metric("Total Registros", len(df))
         with col2:
             irrigacoes = df['bomba_dagua'].sum()
-            st.metric("💧 Irrigações", f"{irrigacoes}")
+            st.metric("Irrigações", f"{irrigacoes}")
         with col3:
             umidade_media = df['umidade'].mean()
-            st.metric("📈 Umidade Média", f"{umidade_media:.1f}%")
+            st.metric("Umidade Média", f"{umidade_media:.1f}%")
         with col4:
             temp_media = df['temperatura'].mean()
-            st.metric("🌡️ Temp Média", f"{temp_media:.1f}°C")
+            st.metric("Temp Média", f"{temp_media:.1f}°C")
         
         st.markdown("---")
         
@@ -1140,39 +1254,39 @@ def pagina_ml_scikit():
             "**Selecione o modelo de Machine Learning:**",
             [
                 "Selecione um modelo...",
-                "🎯 Modelo de Previsão de Irrigação",
-                "📊 Modelo de Previsão de Umidade",
-                "🤖 Sistema Inteligente Completo",
-                "📈 Análise de Importância das Variáveis"
+                "Modelo de Previsão de Irrigação",
+                "Modelo de Previsão de Umidade",
+                "Sistema Inteligente Completo",
+                "Análise de Importância das Variáveis"
             ]
         )
         
         st.markdown("---")
         
-        if ml_opcao == "🎯 Modelo de Previsão de Irrigação":
-            st.subheader("🎯 Previsão de Necessidade de Irrigação")
+        if ml_opcao == "Modelo de Previsão de Irrigação":
+            st.subheader("Previsão de Necessidade de Irrigação")
             
-            if st.button("🚀 Treinar Modelo de Irrigação", use_container_width=True):
-                with st.spinner("🧠 Treinando modelo Random Forest..."):
+            if st.button("Treinar Modelo de Irrigação", use_container_width=True):
+                with st.spinner("Treinando modelo Random Forest..."):
                     modelo, accuracy, feature_importance, X_test, y_test, y_pred = treinar_modelo_irrigacao(df)
                 
                 if modelo is not None:
-                    st.success(f"✅ Modelo treinado com sucesso!")
+                    st.success(f"Modelo treinado com sucesso!")
                     
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.metric("🎯 Acurácia do Modelo", f"{accuracy:.3f}")
+                        st.metric("Acurácia do Modelo", f"{accuracy:.3f}")
                         
                         # Matriz de confusão simples
-                        from sklearn.metrics import confusion_matrix
-                        cm = confusion_matrix(y_test, y_pred)
-                        st.text("📊 Matriz de Confusão:")
+                        # Garante que a matriz seja 2x2, mesmo com dados de teste desbalanceados
+                        cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
+                        st.text("Matriz de Confusão:")
                         st.dataframe(pd.DataFrame(cm, 
                                                columns=['Pred: Não Irrigar', 'Pred: Irrigar'],
                                                index=['Real: Não Irrigar', 'Real: Irrigar']))
                     
                     with col2:
-                        st.text("📈 Importância das Variáveis:")
+                        st.text("Importância das Variáveis:")
                         fig_importance = px.bar(feature_importance, 
                                               x='importance', 
                                               y='feature',
@@ -1180,19 +1294,19 @@ def pagina_ml_scikit():
                                               title="Importância das Features")
                         st.plotly_chart(fig_importance, use_container_width=True)
         
-        elif ml_opcao == "📊 Modelo de Previsão de Umidade":
-            st.subheader("📊 Previsão de Umidade do Solo")
+        elif ml_opcao == "Modelo de Previsão de Umidade":
+            st.subheader("Previsão de Umidade do Solo")
             
-            if st.button("🚀 Treinar Modelo de Umidade", use_container_width=True):
-                with st.spinner("🧠 Treinando modelo Random Forest..."):
+            if st.button("Treinar Modelo de Umidade", use_container_width=True):
+                with st.spinner("Treinando modelo Random Forest..."):
                     modelo, scaler, rmse, feature_importance, X_test, y_test, y_pred = treinar_modelo_umidade(df)
                 
                 if modelo is not None:
-                    st.success(f"✅ Modelo de umidade treinado!")
+                    st.success(f"Modelo de umidade treinado!")
                     
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.metric("📏 RMSE", f"{rmse:.2f}%")
+                        st.metric("RMSE", f"{rmse:.2f}%")
                         
                         # Gráfico de predição vs real
                         fig_pred = px.scatter(x=y_test, y=y_pred,
@@ -1203,7 +1317,7 @@ def pagina_ml_scikit():
                         st.plotly_chart(fig_pred, use_container_width=True)
                     
                     with col2:
-                        st.text("📈 Importância das Variáveis:")
+                        st.text("Importância das Variáveis:")
                         fig_importance = px.bar(feature_importance, 
                                               x='importance', 
                                               y='feature',
@@ -1211,36 +1325,36 @@ def pagina_ml_scikit():
                                               title="Importância das Features")
                         st.plotly_chart(fig_importance, use_container_width=True)
         
-        elif ml_opcao == "🤖 Sistema Inteligente Completo":
-            st.subheader("🤖 Sistema de Irrigação Inteligente")
+        elif ml_opcao == "Sistema Inteligente Completo":
+            st.subheader("Sistema de Irrigação Inteligente")
             
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("🚀 Treinar Modelo de Irrigação", use_container_width=True):
-                    with st.spinner("🧠 Treinando modelo de irrigação..."):
+                if st.button("Treinar Modelo de Irrigação", use_container_width=True):
+                    with st.spinner("Treinando modelo de irrigação..."):
                         modelo_irrig, accuracy, _, _, _, _ = treinar_modelo_irrigacao(df)
                         if modelo_irrig:
                             st.session_state.modelo_irrigacao = modelo_irrig
-                            st.success(f"✅ Modelo irrigação: {accuracy:.3f}")
+                            st.success(f"Modelo irrigação: {accuracy:.3f}")
             
             with col2:
-                if st.button("🚀 Treinar Modelo de Umidade", use_container_width=True):
-                    with st.spinner("🧠 Treinando modelo de umidade..."):
+                if st.button("Treinar Modelo de Umidade", use_container_width=True):
+                    with st.spinner("Treinando modelo de umidade..."):
                         modelo_umid, scaler, rmse, _, _, _, _ = treinar_modelo_umidade(df)
                         if modelo_umid:
                             st.session_state.modelo_umidade = modelo_umid
                             st.session_state.scaler_umidade = scaler
-                            st.success(f"✅ Modelo umidade: RMSE {rmse:.2f}")
+                            st.success(f"Modelo umidade: RMSE {rmse:.2f}")
             
             st.markdown("---")
             
             # Sistema de recomendações
-            if st.button("🔮 Gerar Recomendações Inteligentes", use_container_width=True):
+            if st.button("Gerar Recomendações Inteligentes", use_container_width=True):
                 if (hasattr(st.session_state, 'modelo_irrigacao') and 
                     hasattr(st.session_state, 'modelo_umidade') and
                     hasattr(st.session_state, 'scaler_umidade')):
                     
-                    with st.spinner("🤖 Calculando recomendações..."):
+                    with st.spinner("Calculando recomendações..."):
                         recomendacoes = prever_irrigacao_inteligente(
                             st.session_state.modelo_irrigacao,
                             st.session_state.modelo_umidade,
@@ -1248,32 +1362,32 @@ def pagina_ml_scikit():
                         )
                     
                     if recomendacoes:
-                        st.subheader("🎯 Recomendações de Irrigação")
+                        st.subheader("Recomendações de Irrigação")
                         
                         for rec in recomendacoes:
                             with st.expander(f"{rec['cenario']} - {rec['recomendacao']}"):
                                 col1, col2, col3 = st.columns(3)
                                 with col1:
-                                    st.write(f"🌡️ **Temperatura:** {rec['temperatura']}°C")
-                                    st.write(f"⚗️ **pH:** {rec['ph']}")
-                                    st.write(f"🧪 **Nutrientes:** {rec['nutrientes']}")
+                                    st.write(f"**Temperatura:** {rec['temperatura']}°C")
+                                    st.write(f"**pH:** {rec['ph']}")
+                                    st.write(f"**Nutrientes:** {rec['nutrientes']}")
                                 
                                 with col2:
-                                    st.write(f"📊 **Prob. Irrigação:** {rec['prob_irrigacao']:.3f}")
-                                    st.write(f"💧 **Umidade sem irrigação:** {rec['umidade_sem_irrig']:.1f}%")
-                                    st.write(f"💧 **Umidade com irrigação:** {rec['umidade_com_irrig']:.1f}%")
+                                    st.write(f"**Prob. Irrigação:** {rec['prob_irrigacao']:.3f}")
+                                    st.write(f"**Umidade sem irrigação:** {rec['umidade_sem_irrig']:.1f}%")
+                                    st.write(f"**Umidade com irrigação:** {rec['umidade_com_irrig']:.1f}%")
                                 
                                 with col3:
                                     st.write(f"**{rec['recomendacao']}**")
                                     st.write(rec['motivo'])
                 
                 else:
-                    st.warning("⚠️ Treine ambos os modelos primeiro!")
+                    st.warning("Treine ambos os modelos primeiro!")
         
-        elif ml_opcao == "📈 Análise de Importância das Variáveis":
-            st.subheader("📈 Análise de Features")
+        elif ml_opcao == "Análise de Importância das Variáveis":
+            st.subheader("Análise de Features")
             
-            if st.button("📊 Analisar Importância", use_container_width=True):
+            if st.button("Analisar Importância", use_container_width=True):
                 modelo_irrig, _, feat_irrig, _, _, _ = treinar_modelo_irrigacao(df)
                 modelo_umid, _, _, feat_umid, _, _, _ = treinar_modelo_umidade(df)
                 
@@ -1281,27 +1395,27 @@ def pagina_ml_scikit():
                     col1, col2 = st.columns(2)
                     
                     with col1:
-                        st.text("🎯 Importância para Irrigação:")
+                        st.text("Importância para Irrigação:")
                         fig1 = px.bar(feat_irrig, x='importance', y='feature', orientation='h',
                                      title="Features mais importantes para Irrigação")
                         st.plotly_chart(fig1, use_container_width=True)
                     
                     with col2:
-                        st.text("💧 Importância para Umidade:")
+                        st.text("Importância para Umidade:")
                         fig2 = px.bar(feat_umid, x='importance', y='feature', orientation='h',
                                      title="Features mais importantes para Umidade")
                         st.plotly_chart(fig2, use_container_width=True)
         
         else:
-            st.info("👆 Selecione um modelo no menu acima para começar")
+            st.info("Selecione um modelo no menu acima para começar")
             
             # Informações sobre Machine Learning
-            st.subheader("🤖 Sobre os Modelos de Machine Learning")
+            st.subheader("Sobre os Modelos de Machine Learning")
             
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown("""
-                **🎯 Modelo de Irrigação:**
+                **Modelo de Irrigação:**
                 - Algoritmo: Random Forest Classifier
                 - Objetivo: Prever se deve irrigar (Sim/Não)
                 - Features: Temperatura, pH, Nutrientes, Hora
@@ -1310,7 +1424,7 @@ def pagina_ml_scikit():
             
             with col2:
                 st.markdown("""
-                **📊 Modelo de Umidade:**
+                **Modelo de Umidade:**
                 - Algoritmo: Random Forest Regressor
                 - Objetivo: Prever nível de umidade
                 - Features: Temperatura, pH, Bomba, Hora
@@ -1318,7 +1432,7 @@ def pagina_ml_scikit():
                 """)
             
             st.markdown("""
-            **🧠 Sistema Inteligente:**
+            **Sistema Inteligente:**
             
             O sistema combina ambos os modelos para tomar decisões inteligentes:
             1. **Coleta dados** dos sensores (temperatura, pH, nutrientes)
@@ -1329,26 +1443,26 @@ def pagina_ml_scikit():
             6. **Aprende continuamente** com novos dados
             
             **Benefícios com Meteorologia:**
-            - ✅ Não irriga se vai chover
-            - ✅ Considera evaporação por vento
-            - ✅ Otimiza baseado na pressão atmosférica
-            - ✅ Ajusta para umidade do ar
-            - ✅ Economia de água inteligente
+            - Não irriga se vai chover
+            - Considera evaporação por vento
+            - Otimiza baseado na pressão atmosférica
+            - Ajusta para umidade do ar
+            - Economia de água inteligente
             """)
         
         # Seção sobre dados meteorológicos
-        st.subheader("🌤️ Integração Meteorológica")
+        st.subheader("Integração Meteorológica")
         col1, col2 = st.columns(2)
         
         with col1:
             st.markdown("""
-            **📊 Dados Coletados:**
-            - 🌡️ Temperatura externa
-            - 💧 Umidade do ar
-            - 🌪️ Velocidade do vento
-            - 📊 Pressão atmosférica
-            - 🌧️ Probabilidade de chuva
-            - ☀️ Índice UV
+            **Dados Coletados:**
+            - Temperatura externa
+            - Umidade do ar
+            - Velocidade do vento
+            - Pressão atmosférica
+            - Probabilidade de chuva
+            - Índice UV
             """)
         
         with col2:
@@ -1362,16 +1476,16 @@ def pagina_ml_scikit():
             """)
     
     else:
-        st.error("❌ Dados insuficientes para Machine Learning")
-        st.info("💡 Aguarde mais dados serem coletados pelos sensores ou insira dados manualmente via CRUD")
+        st.error("Dados insuficientes para Machine Learning")
+        st.info("Aguarde mais dados serem coletados pelos sensores ou insira dados manualmente via CRUD")
         
         # Botão para popular dados de teste
-        if st.button("🎲 Gerar Dados de Teste para ML", use_container_width=True):
-            with st.spinner("🔄 Gerando dados de teste..."):
+        if st.button("Gerar Dados de Teste para ML", use_container_width=True):
+            with st.spinner("Gerando dados de teste..."):
                 dados_gerados = gerar_dados_teste_ml()
                 if dados_gerados > 0:
-                    st.success(f"✅ {dados_gerados} registros de teste gerados!")
-                    st.info("🔄 Recarregue a página para treinar os modelos")
+                    st.success(f"{dados_gerados} registros de teste gerados!")
+                    st.info("Recarregue a página para treinar os modelos")
 
 def gerar_dados_teste_ml():
     """Gera dados de teste para demonstrar o ML"""
@@ -1441,7 +1555,7 @@ def gerar_dados_teste_ml():
         return dados_gerados
         
     except Exception as e:
-        st.error(f"❌ Erro ao gerar dados de teste: {e}")
+        st.error(f"Erro ao gerar dados de teste: {e}")
         return 0
 
 # === FUNÇÕES PARA DADOS METEOROLÓGICOS ===
@@ -1547,7 +1661,7 @@ def coletar_dados_meteorologicos():
         return dados_meteorologicos
         
     except Exception as e:
-        st.error(f"❌ Erro ao coletar dados meteorológicos: {e}")
+        st.error(f"Erro ao coletar dados meteorológicos: {e}")
         return None
 
 def salvar_dados_meteorologicos(dados_met):
@@ -1580,7 +1694,7 @@ def salvar_dados_meteorologicos(dados_met):
             conn.close()
             return True
     except Exception as e:
-        st.error(f"❌ Erro ao salvar dados meteorológicos: {e}")
+        st.error(f"Erro ao salvar dados meteorológicos: {e}")
         return False
 
 def calcular_fatores_evapotranspiracao(temp_solo, temp_externa, umidade_ar, vento):
@@ -1646,7 +1760,7 @@ def criar_leitura_integrada(dados_sensores, dados_meteorologicos):
             conn.close()
             return True
     except Exception as e:
-        st.error(f"❌ Erro ao criar leitura integrada: {e}")
+        st.error(f"Erro ao criar leitura integrada: {e}")
         return False
 
 # --- Função para consultar a API do tempo ---
@@ -1768,13 +1882,13 @@ def main():
     init_session_state()
     
     # Título principal
-    st.title("🌱 FarmTech Solutions Dashboard")
+    st.title("FarmTech Solutions Dashboard")
     
     # Botões de navegação principal - Agora com 4 colunas
     col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
     
     with col1:
-        if st.button("🗃️ Gerenciamento CRUD", use_container_width=True, type="primary"):
+        if st.button("Gerenciamento CRUD", use_container_width=True, type="primary"):
             st.session_state.current_page = "crud"
             st.rerun()
     
@@ -1794,18 +1908,18 @@ def main():
                 font-weight: 400;
                 padding: 0 12px;
             ">
-                📈 Live Plotter
+                Live Plotter
             </button>
         </a>
         """, unsafe_allow_html=True)
     
     with col3:
-        if st.button("🤖 Análise R", use_container_width=True, type="secondary"):
+        if st.button("Análise R", use_container_width=True, type="secondary"):
             st.session_state.current_page = "analytics"
             st.rerun()
     
     with col4:
-        if st.button("🧠 Machine Learning", use_container_width=True, type="secondary"):
+        if st.button("Machine Learning", use_container_width=True, type="secondary"):
             st.session_state.current_page = "ml"
             st.rerun()
     
@@ -1827,14 +1941,14 @@ def main():
     
     # Sidebar para controles
     with st.sidebar:
-        st.header("⚙️ Controles")
-        auto_refresh = st.checkbox("🔄 Atualização Automática", value=True)
+        st.header("Controles")
+        auto_refresh = st.checkbox("Atualização Automática", value=True)
         refresh_interval = st.slider("Intervalo (segundos)", 3, 60, 45)
         
         # Checkbox para coleta automática de dados meteorológicos
-        coletar_meteorologia = st.checkbox("🌤️ Coletar Meteorologia", value=True)
+        coletar_meteorologia = st.checkbox("Coletar Meteorologia", value=True)
         
-        if st.button("🔄 Atualizar Dados"):
+        if st.button("Atualizar Dados"):
             st.cache_data.clear()
             st.rerun()
         
@@ -1846,10 +1960,10 @@ def main():
                 if st.session_state.get('ultimo_salvamento_met', 0) + 600 < time.time():
                     if salvar_dados_meteorologicos(dados_met):
                         st.session_state.ultimo_salvamento_met = time.time()
-                        st.success("☁️ Meteorologia salva!", icon="🌤️")
+                        st.success("Meteorologia salva!")
         
         st.markdown("---")
-        st.header("📊 Servidor")
+        st.header("Servidor")
         st.info(f"URL: {FLASK_SERVER_URL}")
         st.info(f"DB: {DatabaseConfig.HOST}")
         st.info(f"Schema: {DatabaseConfig.SCHEMA}")
@@ -1862,7 +1976,7 @@ def main():
     
     if sensor_data and sensor_data.get('dados'):
         # Status de conexão
-        status_placeholder.success(f"✅ Conectado - {sensor_data.get('total_registros', 0)} registros")
+        status_placeholder.success(f"Conectado - {sensor_data.get('total_registros', 0)} registros")
         
         # Converte para DataFrame
         df = pd.DataFrame(sensor_data['dados'])
@@ -1883,7 +1997,7 @@ def main():
             ultimo_registro = df.iloc[0]
             
             # === SEÇÃO 1: MÉTRICAS PRINCIPAIS ===
-            st.header("📊 Dados Atuais")
+            st.header("Dados Atuais")
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
@@ -1895,7 +2009,7 @@ def main():
                     temp_display = f"{temp_value}°C"
                 
                 st.metric(
-                    label="🌡️ Temperatura",
+                    label="Temperatura",
                     value=temp_display,
                     delta=None
                 )
@@ -1909,7 +2023,7 @@ def main():
                     umid_display = f"{umid_value}%"
                 
                 st.metric(
-                    label="💧 Umidade",
+                    label="Umidade",
                     value=umid_display,
                     delta=None
                 )
@@ -1923,7 +2037,7 @@ def main():
                     ph_display = str(ph_value)
                 
                 st.metric(
-                    label="⚗️ pH",
+                    label="pH",
                     value=ph_display,
                     delta=None
                 )
@@ -1936,13 +2050,13 @@ def main():
                     bomba_ligada = bool(bomba_status)
                     
                 st.metric(
-                    label="🚰 Bomba",
+                    label="Bomba",
                     value="Ligada" if bomba_ligada else "Desligada",
                     delta=None
                 )
             
             # === SEÇÃO 2: STATUS DOS NUTRIENTES ===
-            st.header("🧪 Nutrientes")
+            st.header("Nutrientes")
             col1, col2 = st.columns(2)
             
             with col1:
@@ -1953,9 +2067,9 @@ def main():
                     fosforo_presente = bool(fosforo_value)
                 
                 if fosforo_presente:
-                    st.success("🧪 Fósforo: Presente ✅")
+                    st.success("Fósforo: Presente")
                 else:
-                    st.error("🧪 Fósforo: Ausente ❌")
+                    st.error("Fósforo: Ausente")
             
             with col2:
                 potassio_value = ultimo_registro.get('potassio', False)
@@ -1965,12 +2079,12 @@ def main():
                     potassio_presente = bool(potassio_value)
                 
                 if potassio_presente:
-                    st.success("🧪 Potássio: Presente ✅")
+                    st.success("Potássio: Presente")
                 else:
-                    st.error("🧪 Potássio: Ausente ❌")
+                    st.error("Potássio: Ausente")
             
             # === SEÇÃO 3: GRÁFICOS ===
-            st.header("📈 Tendências")
+            st.header("Tendências")
             
             if len(df) > 1:
                 # Prepara dados para gráficos (últimos 20 registros)
@@ -1995,7 +2109,7 @@ def main():
                                 df_plot, 
                                 x='data_hora_leitura', 
                                 y='umidade',
-                                title='💧 Umidade do Solo',
+                                title='Umidade do Solo',
                                 labels={'umidade': 'Umidade (%)', 'data_hora_leitura': 'Horário'}
                             )
                             fig_umidade.update_traces(line_color='#1f77b4')
@@ -2008,7 +2122,7 @@ def main():
                                 df_plot, 
                                 x='data_hora_leitura', 
                                 y='temperatura',
-                                title='🌡️ Temperatura do Solo',
+                                title='Temperatura do Solo',
                                 labels={'temperatura': 'Temperatura (°C)', 'data_hora_leitura': 'Horário'}
                             )
                             fig_temperatura.update_traces(line_color='#ff7f0e')
@@ -2020,7 +2134,7 @@ def main():
                             df_plot, 
                             x='data_hora_leitura', 
                             y='ph',
-                            title='⚗️ Nível de pH',
+                            title='Nível de pH',
                             labels={'ph': 'pH', 'data_hora_leitura': 'Horário'}
                         )
                         fig_ph.update_traces(line_color='#2ca02c')
@@ -2028,10 +2142,10 @@ def main():
                                        annotation_text="pH Neutro (7)")
                         st.plotly_chart(fig_ph, use_container_width=True)
                 else:
-                    st.warning("⚠️ Dados insuficientes para gráficos")
+                    st.warning("Dados insuficientes para gráficos")
             
             # === SEÇÃO 4: DADOS CLIMÁTICOS ===
-            st.header("🌤️ Condições Climáticas")
+            st.header("Condições Climáticas")
             
             clima = get_clima_atual()
             
@@ -2039,27 +2153,27 @@ def main():
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:
-                    st.info(f"📍 **Cidade:** {clima['cidade']}")
-                    st.info(f"🌡️ **Temperatura:** {clima['temperatura']}°C")
+                    st.info(f"**Cidade:** {clima['cidade']}")
+                    st.info(f"**Temperatura:** {clima['temperatura']}°C")
                 
                 with col2:
-                    st.info(f"💧 **Umidade:** {clima['umidade']}%")
-                    st.info(f"☁️ **Condição:** {clima['condicao']}")
+                    st.info(f"**Umidade:** {clima['umidade']}%")
+                    st.info(f"**Condição:** {clima['condicao']}")
                 
                 with col3:
-                    st.info(f"🌬️ **Vento:** {clima['vento']} m/s")
-                    st.info(f"🌧️ **Chuva:** {clima['chuva']} mm")
+                    st.info(f"**Vento:** {clima['vento']} m/s")
+                    st.info(f"**Chuva:** {clima['chuva']} mm")
                 
                 # Alerta de chuva
                 if clima['vai_chover']:
-                    st.warning(f"🌧️ **ALERTA:** Previsão de {clima['chuva']} mm de chuva! Manter bomba d'água desligada!")
+                    st.warning(f"**ALERTA:** Previsão de {clima['chuva']} mm de chuva! Manter bomba d'água desligada!")
                 else:
-                    st.success("☀️ Sem previsão de chuva nas próximas horas.")
+                    st.success("Sem previsão de chuva nas próximas horas.")
             else:
-                st.error("❌ Erro ao obter dados climáticos")
+                st.error("Erro ao obter dados climáticos")
     
             # === SEÇÃO 5: TABELA DE DADOS ===
-            st.header("📋 Histórico de Leituras")
+            st.header("Histórico de Leituras")
             
             # Prepara dados para exibição
             df_display = df.copy()
@@ -2095,11 +2209,11 @@ def main():
             )
         else:
             if sensor_data and sensor_data.get('dados'):
-                st.warning("⚠️ Nenhum dado encontrado")
+                st.warning("Nenhum dado encontrado")
     
     # Mensagem de erro de conexão
     if not sensor_data or not sensor_data.get('dados'):
-        status_placeholder.error("❌ Erro ao conectar com o servidor ou sem dados")
+        status_placeholder.error("Erro ao conectar com o servidor ou sem dados")
         st.error("Verifique se o servidor Flask está rodando em http://127.0.0.1:8000")
     
     # Auto-refresh otimizado
@@ -2107,7 +2221,7 @@ def main():
         # Mostra próxima atualização
         with st.empty():
             for i in range(refresh_interval, 0, -1):
-                st.caption(f"🔄 Próxima atualização em {i} segundos...")
+                st.caption(f"Próxima atualização em {i} segundos...")
                 time.sleep(1)
         
         # Limpa cache e recarrega
